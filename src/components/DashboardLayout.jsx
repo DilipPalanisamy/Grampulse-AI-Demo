@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, lazy, Suspense, useCallback } from 'react';
 import {
   Compass,
   RefreshCw,
@@ -14,20 +14,31 @@ import {
   GraduationCap,
   ArrowRight,
   Bot,
+  Loader2,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLocation } from '../context/LocationContext';
 
 import Header from './Header';
-import MapView from './MapView';
 import AnalyticsPanel from './AnalyticsPanel';
 import SchemeRecommendations from './SchemeRecommendations';
-import IssueReportForm from './IssueReportForm';
 import HeroSearchCircle from './HeroSearchCircle';
-import MapPage from './MapPage';
-import VillageChatbot from './VillageChatbot';
 
-export default function DashboardLayout() {
+// Lazy-loaded heavy components for instant initial page loads
+const MapView = lazy(() => import('./MapView'));
+const MapPage = lazy(() => import('./MapPage'));
+const VillageChatbot = lazy(() => import('./VillageChatbot'));
+const IssueReportForm = lazy(() => import('./IssueReportForm'));
+
+// Loading Fallback Spinner
+const ComponentLoader = ({ label = 'Loading geospatial layers...' }) => (
+  <div className="w-full h-full min-h-[400px] flex flex-col items-center justify-center p-8 bg-slate-900/60 rounded-3xl border border-slate-800 space-y-3">
+    <Loader2 className="w-8 h-8 text-emerald-400 animate-spin" />
+    <span className="text-xs text-slate-400 font-medium">{label}</span>
+  </div>
+);
+
+function DashboardLayout() {
   const { user } = useAuth();
   const {
     locations,
@@ -54,21 +65,39 @@ export default function DashboardLayout() {
 
   const [isChatbotOpen, setIsChatbotOpen] = useState(false);
 
+  const handleNavigateToMap = useCallback(() => {
+    setActiveTab('map');
+  }, [setActiveTab]);
+
+  const handleOpenChatbot = useCallback(() => {
+    setIsChatbotOpen(true);
+  }, []);
+
+  const handleCloseChatbot = useCallback(() => {
+    setIsChatbotOpen(false);
+  }, []);
+
+  const handleToggleChatbot = useCallback(() => {
+    setIsChatbotOpen((prev) => !prev);
+  }, []);
+
   // If user selected Dedicated Fullscreen Map View
   if (activeTab === 'map') {
     return (
       <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-emerald-500 selection:text-white">
         <Header onOpenReportModal={() => setIsReportModalOpen(true)} />
-        <MapPage
-          onBackToDashboard={() => setActiveTab('dashboard')}
-          onOpenChatbot={() => setIsChatbotOpen(true)}
-        />
-        {/* Floating Village AI Assistant */}
-        <VillageChatbot
-          isOpen={isChatbotOpen}
-          onClose={() => setIsChatbotOpen(false)}
-          onToggle={() => setIsChatbotOpen(!isChatbotOpen)}
-        />
+        <Suspense fallback={<ComponentLoader label="Loading High-Resolution Satellite Map..." />}>
+          <MapPage
+            onBackToDashboard={() => setActiveTab('dashboard')}
+            onOpenChatbot={handleOpenChatbot}
+          />
+          {/* Floating Village AI Assistant */}
+          <VillageChatbot
+            isOpen={isChatbotOpen}
+            onClose={handleCloseChatbot}
+            onToggle={handleToggleChatbot}
+          />
+        </Suspense>
       </div>
     );
   }
@@ -100,7 +129,7 @@ export default function DashboardLayout() {
         </div>
 
         {/* 1. CENTRAL HERO SEARCH CIRCLE */}
-        <HeroSearchCircle onNavigateToMap={() => setActiveTab('map')} />
+        <HeroSearchCircle onNavigateToMap={handleNavigateToMap} />
 
         {/* 2. Active GP Banner with Rich Dynamic Statistics */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-gradient-to-r from-emerald-950/50 via-slate-900/70 to-slate-900/50 border border-emerald-500/30 rounded-3xl p-5 sm:p-6 backdrop-blur-xl shadow-2xl">
@@ -138,7 +167,7 @@ export default function DashboardLayout() {
             {/* Launch Dedicated Map Page Button */}
             <button
               type="button"
-              onClick={() => setActiveTab('map')}
+              onClick={handleNavigateToMap}
               className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold shadow-md shadow-emerald-950/60 transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
             >
               <Compass className="w-3.5 h-3.5" />
@@ -148,7 +177,7 @@ export default function DashboardLayout() {
             {/* Launch AI Assessment Assistant */}
             <button
               type="button"
-              onClick={() => setIsChatbotOpen(true)}
+              onClick={handleOpenChatbot}
               className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-300 hover:text-white border border-slate-700 transition-all flex items-center gap-1.5 text-xs font-bold shadow-sm cursor-pointer active:scale-95"
             >
               <Bot className="w-3.5 h-3.5 text-emerald-400" />
@@ -194,7 +223,7 @@ export default function DashboardLayout() {
 
               <button
                 type="button"
-                onClick={() => setActiveTab('map')}
+                onClick={handleNavigateToMap}
                 className="text-xs text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1 hover:underline cursor-pointer"
               >
                 <span>Expand Full Map</span>
@@ -202,16 +231,18 @@ export default function DashboardLayout() {
               </button>
             </div>
 
-            {/* Interactive Leaflet MapView */}
-            <MapView
-              center={mapCenter}
-              zoom={13}
-              issues={issues}
-              locations={locations}
-              selectedGpId={selectedGpId}
-              onSelectLocation={(loc) => selectLocation(loc)}
-              className="border-slate-800/80 shadow-2xl h-[480px]"
-            />
+            {/* Interactive Leaflet MapView (Lazy Loaded) */}
+            <Suspense fallback={<ComponentLoader label="Rendering PostGIS GIS Map..." />}>
+              <MapView
+                center={mapCenter}
+                zoom={13}
+                issues={issues}
+                locations={locations}
+                selectedGpId={selectedGpId}
+                onSelectLocation={(loc) => selectLocation(loc)}
+                className="border-slate-800/80 shadow-2xl h-[480px]"
+              />
+            </Suspense>
           </div>
 
           {/* Right Column (5 cols): AI-Matched Schemes (RAG) */}
@@ -242,24 +273,26 @@ export default function DashboardLayout() {
       </footer>
 
       {/* ------------------------------------------------------------------- */}
-      {/* Citizen Grievance Reporting Modal */}
+      {/* Citizen Grievance Reporting Modal (Lazy Loaded) */}
       {/* ------------------------------------------------------------------- */}
-      <IssueReportForm
-        isOpen={isReportModalOpen}
-        onClose={() => setIsReportModalOpen(false)}
-        activeGpId={selectedLocation.gp_id}
-        defaultCoords={mapCenter}
-        onIssueCreated={handleIssueCreated}
-      />
+      <Suspense fallback={null}>
+        <IssueReportForm
+          isOpen={isReportModalOpen}
+          onClose={() => setIsReportModalOpen(false)}
+          activeGpId={selectedLocation.gp_id}
+          defaultCoords={mapCenter}
+          onIssueCreated={handleIssueCreated}
+        />
 
-      {/* ------------------------------------------------------------------- */}
-      {/* Floating Interactive Village Assessment AI Chatbot */}
-      {/* ------------------------------------------------------------------- */}
-      <VillageChatbot
-        isOpen={isChatbotOpen}
-        onClose={() => setIsChatbotOpen(false)}
-        onToggle={() => setIsChatbotOpen(!isChatbotOpen)}
-      />
+        {/* Floating Interactive Village Assessment AI Chatbot (Lazy Loaded) */}
+        <VillageChatbot
+          isOpen={isChatbotOpen}
+          onClose={handleCloseChatbot}
+          onToggle={handleToggleChatbot}
+        />
+      </Suspense>
     </div>
   );
 }
+
+export default React.memo(DashboardLayout);

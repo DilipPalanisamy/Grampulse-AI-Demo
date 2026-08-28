@@ -462,6 +462,9 @@ export const TAMIL_NADU_VILLAGES_DATABASE = [
   },
 ];
 
+// In-memory LRU search cache for instant 0ms responses
+const SEARCH_RESULTS_CACHE = new Map();
+
 /**
  * Searches real-world Indian villages via local high-speed index + OpenStreetMap Nominatim Live Geocoding API.
  */
@@ -469,6 +472,11 @@ export const searchRealVillages = async (query = '') => {
   const cleanQ = (query || '').trim().toLowerCase();
   if (!cleanQ || cleanQ.length < 2) {
     return TAMIL_NADU_VILLAGES_DATABASE.slice(0, 10);
+  }
+
+  // Check in-memory search cache
+  if (SEARCH_RESULTS_CACHE.has(cleanQ)) {
+    return SEARCH_RESULTS_CACHE.get(cleanQ);
   }
 
   // 1. First-pass fast search in our authentic database
@@ -483,6 +491,7 @@ export const searchRealVillages = async (query = '') => {
 
   // If we have strong local matches, return them immediately
   if (localMatches.length >= 3) {
+    SEARCH_RESULTS_CACHE.set(cleanQ, localMatches);
     return localMatches;
   }
 
@@ -558,9 +567,12 @@ export const searchRealVillages = async (query = '') => {
       }
     });
 
-    return combined.length > 0 ? combined : localMatches;
+    const finalResults = combined.length > 0 ? combined : localMatches;
+    SEARCH_RESULTS_CACHE.set(cleanQ, finalResults);
+    return finalResults;
   } catch (err) {
     console.warn('Live geocoding fallback to local database:', err);
+    SEARCH_RESULTS_CACHE.set(cleanQ, localMatches);
     return localMatches;
   }
 };

@@ -410,6 +410,7 @@ const MapView = ({
 
       {/* Map Container */}
       <MapContainer
+        preferCanvas={true}
         center={center}
         zoom={zoom}
         scrollWheelZoom={true}
@@ -602,4 +603,4 @@ MapView.propTypes = {
   className: PropTypes.string,
 };
 
-export default MapView;
+export default React.memo(MapView);

@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { useLocation } from '../context/LocationContext';
 
-export default function HeroSearchCircle({ onNavigateToMap }) {
+function HeroSearchCircle({ onNavigateToMap }) {
   const {
     locations,
     selectedLocation,
@@ -224,6 +224,4 @@ export default function HeroSearchCircle({ onNavigateToMap }) {
   );
 }
 
-HeroSearchCircle.propTypes = {
-  onNavigateToMap: PropTypes.func.isRequired,
-};
+export default React.memo(HeroSearchCircle);

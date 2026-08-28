@@ -258,4 +258,4 @@ AnalyticsPanel.propTypes = {
   loading: PropTypes.bool,
 };
 
-export default AnalyticsPanel;
+export default React.memo(AnalyticsPanel);

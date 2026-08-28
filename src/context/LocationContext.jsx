@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import PropTypes from 'prop-types';
 import {
   fetchPanchayats,
@@ -89,26 +89,35 @@ export const LocationProvider = ({ children }) => {
     loadIssues();
   }, [loadIssues]);
 
+  const debounceTimeoutRef = useRef(null);
+
   /**
-   * Search real villages by name, district, or keywords (with live geocoding)
+   * Search real villages by name, district, or keywords (with 250ms debounce & memory cache)
    */
-  const handleSearch = useCallback(async (query) => {
+  const handleSearch = useCallback((query) => {
     setSearchQuery(query);
     if (!query || query.trim().length === 0) {
       setSearchResults([]);
       setIsSearching(false);
+      if (debounceTimeoutRef.current) clearTimeout(debounceTimeoutRef.current);
       return;
     }
 
     setIsSearching(true);
-    try {
-      const results = await searchRealVillages(query);
-      setSearchResults(results);
-    } catch (err) {
-      console.error('Village search error:', err);
-    } finally {
-      setIsSearching(false);
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
     }
+
+    debounceTimeoutRef.current = setTimeout(async () => {
+      try {
+        const results = await searchRealVillages(query);
+        setSearchResults(results);
+      } catch (err) {
+        console.error('Village search error:', err);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 250);
   }, []);
 
   /**

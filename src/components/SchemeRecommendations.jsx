@@ -128,4 +128,4 @@ SchemeRecommendations.propTypes = {
   loading: PropTypes.bool,
 };
 
-export default SchemeRecommendations;
+export default React.memo(SchemeRecommendations);
