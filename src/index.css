@@ -1,0 +1,58 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-slate-950 text-slate-100 antialiased selection:bg-emerald-500 selection:text-white;
+  }
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+/* Leaflet map custom popup overrides */
+.leaflet-popup-content-wrapper {
+  background: rgba(255, 255, 255, 0.98) !important;
+  border-radius: 1rem !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+  padding: 4px !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+.leaflet-popup-tip {
+  background: #ffffff !important;
+}
+
+.leaflet-popup-content {
+  margin: 8px 12px !important;
+  line-height: 1.4 !important;
+}
+
+.custom-map-pin {
+  background: transparent !important;
+  border: none !important;
+}
+
+.custom-village-hub-pin {
+  background: transparent !important;
+  border: none !important;
+}
+
+.custom-cluster-marker {
+  background: transparent !important;
+  border: none !important;
+}

@@ -1,0 +1,15 @@
+                               ┌─────────────────────────────────────────────────┐
+                               │             REMAINING AI & DATA WORK            │
+                               └────────────────────────┬────────────────────────┘
+                                                        │
+                        ┌───────────────────────────────┴───────────────────────────────┐
+                        ▼                                                               ▼
+┌───────────────────────────────────────────────┐               ┌───────────────────────────────────────────────┐
+│                   MEMBER 3                    │               │                   MEMBER 4                    │
+│  AI Engine, Machine Learning & RAG Specialist │               │ Data Architecture, GIS Mapping & PDF Engine   │
+│ ───────────────────────────────────────────── │               │ ───────────────────────────────────────────── │
+│ • Predictive Demand Models (Scikit-learn)     │               │ • PostgreSQL + PostGIS Schema Setup           │
+│ • Government Schemes Vector Database          │               │ • Seed Data & Census Ingestion                │
+│ • RAG Scheme Matching Engine (LangChain)      │               │ • Interactive Geospatial Map (Leaflet.js)     │
+│ • Issue Clustering Logic (Grievances)         │               │ • Automated PDF Report Engine (ReportLab)     │
+└───────────────────────────────────────────────┘               └───────────────────────────────────────────────┘
