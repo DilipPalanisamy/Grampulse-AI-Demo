@@ -64,7 +64,10 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
-# CORS middleware supporting local Vite / React frontends and production origins
+# CORS middleware supporting local Vite / React frontends, Render domains, and env overrides
+cors_env = os.getenv("CORS_ORIGINS", "")
+custom_origins = [o.strip() for o in cors_env.split(",") if o.strip()]
+
 origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
@@ -72,12 +75,12 @@ origins = [
     "http://127.0.0.1:3000",
     "http://localhost:8000",
     "http://127.0.0.1:8000",
-    "*",
-]
+] + custom_origins
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
+    allow_origin_regex=r"https?://(localhost|127\.0\.0\.1|.*\.onrender\.com|.*\.vercel\.app|.*\.netlify\.app|.*\.github\.io)(:\d+)?",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

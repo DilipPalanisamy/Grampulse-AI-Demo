@@ -1,0 +1,64 @@
+# =============================================================================
+# GramPulse AI - Render Infrastructure as Code Blueprint (render.yaml)
+# =============================================================================
+# Documentation: https://render.com/docs/blueprint-spec
+# =============================================================================
+
+databases:
+  # ---------------------------------------------------------------------------
+  # 1. PostgreSQL Database Instance with PostGIS Extension
+  # ---------------------------------------------------------------------------
+  - name: grampulse-db
+    databaseName: grampulse
+    user: grampulse_user
+    plan: free
+    region: oregon
+    postgresMajorVersion: "16"
+
+services:
+  # ---------------------------------------------------------------------------
+  # 2. FastAPI Backend Web Service (Dockerized)
+  # ---------------------------------------------------------------------------
+  - type: web
+    name: grampulse-backend
+    runtime: docker
+    dockerfilePath: ./Dockerfile.backend
+    plan: free
+    region: oregon
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: grampulse-db
+          property: connectionString
+      - key: PORT
+        value: 8000
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      - key: CORS_ORIGINS
+        value: "http://localhost:5173,http://127.0.0.1:5173"
+
+  # ---------------------------------------------------------------------------
+  # 3. React + Vite Frontend (Production Static Site)
+  # ---------------------------------------------------------------------------
+  - type: web
+    name: grampulse-frontend
+    runtime: static
+    plan: free
+    region: oregon
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    routes:
+      # Handle Single-Page App (SPA) client-side routing
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_BASE_URL
+        fromService:
+          name: grampulse-backend
+          type: web
+          property: host
+        value: https://grampulse-backend.onrender.com/api/v1
+      - key: VITE_GOOGLE_CLIENT_ID
+        value: 490045634434-h09m0avfvfkcfcj06vpcg4hk1v1q2jq1.apps.googleusercontent.com
