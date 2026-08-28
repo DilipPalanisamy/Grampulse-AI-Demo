@@ -3,6 +3,8 @@ import react from '@vitejs/plugin-react';
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  // Use relative base path so assets load on GitHub Pages subpaths and Render without 404s
+  base: './',
   plugins: [react()],
   server: {
     host: '127.0.0.1',
@@ -18,6 +20,12 @@ export default defineConfig({
     watch: {
       usePolling: true,
     },
+  },
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+    sourcemap: false,
+    chunkSizeWarningLimit: 1000,
   },
   optimizeDeps: {
     include: [
