@@ -8,6 +8,7 @@ import {
   fetchSpatialInfrastructure,
 } from '../services/api';
 import { searchRealVillages } from '../services/villageSearchService';
+import { queryOverpassInfrastructure } from '../utils/overpassApi';
 
 const LocationContext = createContext(null);
 
@@ -131,7 +132,11 @@ export const LocationProvider = ({ children }) => {
     if (!selectedLocation?.lat || !selectedLocation?.lng) return;
     setLoadingInfrastructure(true);
     try {
-      const data = await fetchSpatialInfrastructure(selectedLocation.lat, selectedLocation.lng, 3500);
+      const data = await queryOverpassInfrastructure(
+        Number(selectedLocation.lat),
+        Number(selectedLocation.lng),
+        5000
+      );
       setInfrastructure(data);
     } catch (err) {
       console.error('Error loading live infrastructure nodes:', err);

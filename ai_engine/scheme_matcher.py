@@ -105,6 +105,34 @@ GOVERNMENT_SCHEMES_KNOWLEDGE_BASE: List[Dict[str, Any]] = [
         "per_capita_multiplier": 0.0015,
     },
     {
+        "scheme_id": "CSS-ABHWC-009",
+        "scheme_name": "Ayushman Bharat - Health & Wellness Centres (AB-HWC) / NHM",
+        "ministry": "Ministry of Health and Family Welfare",
+        "category": "Healthcare",
+        "official_portal_url": "https://ab-hwc.nhp.gov.in",
+        "eligibility_criteria": "Rural habitations requiring Primary Health Centres (PHC) under IPHS norms (1 PHC per 30,000 population and Sub-Centres per 5,000 population).",
+        "keywords": [
+            "primary health centre",
+            "phc deficit",
+            "community health centre chc",
+            "ayushman bharat health and wellness centre",
+            "sub centre",
+            "maternal healthcare",
+            "national health mission nhm",
+            "rural doctor clinic",
+            "iphs healthcare norm",
+        ],
+        "description": (
+            "Comprehensive primary healthcare delivery upgrading Sub-Centres and Primary Health Centres (PHCs) "
+            "into modern Health & Wellness Centres providing maternal child care, diagnostics, tele-consultation, and free essential medicines."
+        ),
+        "primary_trigger_field": "healthcare_deficit",
+        "min_deficit_threshold": 1.0,
+        "base_budget_lakhs": 22.0,
+        "deficit_multiplier": 18.0,     # ₹ 18.0 Lakhs per PHC/HWC upgrade
+        "per_capita_multiplier": 0.0025,
+    },
+    {
         "scheme_id": "CSS-SBMG-004",
         "scheme_name": "Swachh Bharat Mission - Gramin (SBM-G Phase II)",
         "ministry": "Ministry of Jal Shakti (DDWS)",
@@ -341,6 +369,12 @@ class SchemeMatcherEngine:
                 deficit_summary.get("road_gap_km", 0.0),
             )
         )
+        healthcare_def = float(
+            deficit_summary.get(
+                "healthcare_deficit",
+                deficit_summary.get("phc_deficit", 0.0),
+            )
+        )
         pop_proj = int(
             deficit_summary.get(
                 "population_projected",
@@ -367,6 +401,11 @@ class SchemeMatcherEngine:
             query_components.append(
                 f"paved road connectivity deficit {road_def:.2f} km all-weather blacktopped road "
                 f"PMGSY asphalt paving culvert bridge rural transport access"
+            )
+        if healthcare_def > 0:
+            query_components.append(
+                f"primary health centre PHC deficit healthcare clinic Ayushman Bharat Health and Wellness Centre "
+                f"AB-HWC National Health Mission NHM hospital sub-centre IPHS rural doctor"
             )
 
         query_components.append(
@@ -441,6 +480,12 @@ class SchemeMatcherEngine:
                 else:
                     is_eligible = False
 
+            elif trig_field == "healthcare_deficit":
+                if healthcare_def >= min_thresh or pop_proj > 4000:
+                    boost_factor += 0.50 + min(0.30, (pop_proj / 30000.0) * 0.20)
+                else:
+                    is_eligible = False
+
             elif trig_field == "population_projected":
                 boost_factor += 0.25
 
@@ -461,6 +506,8 @@ class SchemeMatcherEngine:
                 active_deficit_val = float(classroom_gap)
             elif trig_field == "paved_road_deficit_km":
                 active_deficit_val = road_def
+            elif trig_field == "healthcare_deficit":
+                active_deficit_val = max(1.0, healthcare_def)
 
             calculated_budget = (
                 base_budget

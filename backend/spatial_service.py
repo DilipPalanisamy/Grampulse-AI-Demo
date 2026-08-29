@@ -231,14 +231,14 @@ def fetch_village_infrastructure_overpass(
       node["amenity"="kindergarten"](around:{radius_meters},{lat},{lng});
       node["amenity"="college"](around:{radius_meters},{lat},{lng});
 
-      // Healthcare
-      node["amenity"="hospital"](around:{radius_meters},{lat},{lng});
-      node["amenity"="clinic"](around:{radius_meters},{lat},{lng});
-      node["amenity"="pharmacy"](around:{radius_meters},{lat},{lng});
+      // Healthcare (PHCs, CHCs, Hospitals, Health Posts, Clinics)
+      node["amenity"~"hospital|clinic|pharmacy|doctors|health_post"](around:{radius_meters},{lat},{lng});
+      way["amenity"~"hospital|clinic"](around:{radius_meters},{lat},{lng});
+      node["healthcare"](around:{radius_meters},{lat},{lng});
 
       // Roads & Transport
       node["highway"="bus_stop"](around:{radius_meters},{lat},{lng});
-      way["highway"~"primary|secondary|tertiary|unclassified|residential"](around:{radius_meters},{lat},{lng});
+      way["highway"~"primary|secondary|tertiary|unclassified|residential|unpaved|track"](around:{radius_meters},{lat},{lng});
 
       // Sanitation & SLWM
       node["amenity"="waste_disposal"](around:{radius_meters},{lat},{lng});

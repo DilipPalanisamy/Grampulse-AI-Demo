@@ -13,13 +13,17 @@ import {
   Globe,
   LayoutDashboard,
   Map,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLocation } from '../context/LocationContext';
+import { useTheme } from '../context/ThemeContext';
 import ReportDownloadButton from './ReportDownloadButton';
 
 export default function Header({ onOpenReportModal }) {
   const { user, logout } = useAuth();
+  const { themeConfig, toggleMode, activePalette } = useTheme();
   const {
     locations,
     selectedLocation,
@@ -287,7 +291,22 @@ export default function Header({ onOpenReportModal }) {
         {/* ================================================================= */}
         {/* 3. FAR RIGHT: USER PROFILE & HIGH-CONTRAST LOGOUT BUTTON          */}
         {/* ================================================================= */}
-        <div className="flex items-center gap-3 pl-2 sm:pl-3 border-l border-slate-800 flex-shrink-0 justify-end">
+        <div className="flex items-center gap-2.5 sm:gap-3 pl-2 sm:pl-3 border-l border-slate-800 flex-shrink-0 justify-end">
+          {/* Quick Theme Toggle Button */}
+          <button
+            type="button"
+            onClick={toggleMode}
+            className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 hover:border-slate-700 transition-colors shadow-sm cursor-pointer"
+            title={themeConfig.mode === 'light' ? 'Switch to Dark Governance Mode' : 'Switch to Light Mode'}
+            aria-label="Toggle Dark/Light Mode"
+          >
+            {themeConfig.mode === 'light' ? (
+              <Sun className="w-4 h-4 text-amber-400" />
+            ) : (
+              <Moon className="w-4 h-4 text-emerald-400" style={{ color: activePalette.primary }} />
+            )}
+          </button>
+
           {/* User Profile Avatar & Metadata */}
           <div className="flex items-center gap-2.5">
             {user?.avatar ? (
