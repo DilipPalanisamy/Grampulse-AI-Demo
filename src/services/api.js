@@ -27,6 +27,21 @@ export const searchSpatialLocation = async (query, state = null) => {
 };
 
 /**
+ * Live OpenStreetMap Reverse Geocoding for Map Pin Drops
+ */
+export const reverseGeocodeLocation = async (lat, lng) => {
+  try {
+    const response = await apiClient.get('/spatial/reverse', {
+      params: { lat, lng },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error in reverse geocoding via backend:', error);
+    return null;
+  }
+};
+
+/**
  * Live Overpass API Infrastructure Fetching
  */
 export const fetchSpatialInfrastructure = async (lat, lng, radius = 3500) => {

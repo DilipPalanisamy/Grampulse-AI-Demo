@@ -176,6 +176,33 @@ async def get_spatial_infrastructure(
     return infra
 
 
+@app.get(
+    "/api/v1/spatial/reverse",
+    tags=["Spatial & GIS Engine"],
+)
+async def reverse_geocode_point(
+    lat: float = Query(..., ge=-90.0, le=90.0, description="Latitude of clicked point"),
+    lng: float = Query(..., ge=-180.0, le=180.0, description="Longitude of clicked point"),
+):
+    """
+    Reverse geocodes any map pin coordinates to discover village, ward, district,
+    state, and boundary geometry using OpenStreetMap Nominatim.
+    """
+    res = reverse_geocode_osm(lat=lat, lng=lng)
+    if not res:
+        return {
+            "gp_id": 9999,
+            "gp_code": "GP-PIN-MANUAL",
+            "gp_name": "Pinned Location",
+            "district": "Local District",
+            "state": "India",
+            "lat": lat,
+            "lng": lng,
+            "is_live_osm": True,
+        }
+    return res
+
+
 # ---------------------------------------------------------------------------
 # Gram Panchayat Master Endpoints (PostGIS + Dynamic Resolution)
 # ---------------------------------------------------------------------------

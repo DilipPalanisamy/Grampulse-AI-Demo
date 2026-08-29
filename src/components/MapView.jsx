@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import PropTypes from 'prop-types';
-import { MapContainer, TileLayer, Marker, Popup, GeoJSON, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, GeoJSON, useMap, useMapEvents } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-cluster';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -20,7 +20,13 @@ import {
   Mountain,
   HeartPulse,
   Trash2,
+  Crosshair,
+  Search,
+  CheckCircle2,
+  Loader2,
+  Activity,
 } from 'lucide-react';
+import { reverseGeocodeCoordinates } from '../services/villageSearchService';
 
 // =============================================================================
 // Fix Leaflet's default marker asset paths in React / Bundlers
@@ -72,7 +78,7 @@ export const MAP_PROVIDERS = {
 };
 
 // =============================================================================
-// Static Configuration & Color Themes
+// Category Color Themes & Icons
 // =============================================================================
 export const CATEGORY_THEMES = {
   water: {
@@ -191,6 +197,30 @@ export const buildVillageHubIcon = (villageName, state = 'Tamil Nadu', isSelecte
 };
 
 /**
+ * Custom DivIcon for Manually Dropped Map Pin
+ */
+export const buildDroppedPinIcon = (locationName, isSelected = true) => {
+  const html = `
+    <div class="relative flex flex-col items-center group cursor-pointer animate-bounce">
+      <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-rose-600 border-2 border-white text-white text-xs font-black shadow-2xl backdrop-blur-md ring-4 ring-rose-500/50">
+        <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
+        <span class="tracking-tight whitespace-nowrap">${locationName || 'Pinned Location'}</span>
+      </div>
+      <div class="w-3 h-3 bg-rose-600 rotate-45 -mt-1.5 border-r-2 border-b-2 border-white shadow-md"></div>
+      <div class="w-6 h-2 bg-black/40 rounded-full blur-xs mt-0.5"></div>
+    </div>
+  `;
+
+  return L.divIcon({
+    html,
+    className: 'custom-dropped-pin',
+    iconSize: [140, 48],
+    iconAnchor: [70, 44],
+    popupAnchor: [0, -42],
+  });
+};
+
+/**
  * Custom SVG DivIcon for Live Infrastructure Nodes (Overpass API)
  */
 export const buildInfrastructureIcon = (type) => {
@@ -299,7 +329,36 @@ const MapViewController = ({ center, zoom }) => {
 };
 
 // =============================================================================
-// Main MapView Component
+// MapEventsHandler - Handles Manual Pin Drop Click Listener & Cursor Mode
+// =============================================================================
+const MapEventsHandler = ({ isPinningMode, onMapClick }) => {
+  const map = useMap();
+
+  useEffect(() => {
+    const container = map.getContainer();
+    if (isPinningMode) {
+      container.classList.add('cursor-crosshair');
+    } else {
+      container.classList.remove('cursor-crosshair');
+    }
+    return () => {
+      container.classList.remove('cursor-crosshair');
+    };
+  }, [isPinningMode, map]);
+
+  useMapEvents({
+    click: (e) => {
+      if (onMapClick) {
+        onMapClick(e.latlng);
+      }
+    },
+  });
+
+  return null;
+};
+
+// =============================================================================
+// Main MapView Component with Dual Location Selection Modes
 // =============================================================================
 const MapView = ({
   center = [11.2982, 76.9366],
@@ -314,6 +373,11 @@ const MapView = ({
 }) => {
   const [mapStyle, setMapStyle] = useState('satellite');
   const [showInfra, setShowInfra] = useState(true);
+
+  // Dual Location Selection Mode: 'search' (Automated) vs 'pin' (Manual Pin Drop)
+  const [selectionMode, setSelectionMode] = useState('search'); // 'search' | 'pin'
+  const [manualPinnedLocation, setManualPinnedLocation] = useState(null);
+  const [isGeocodingPin, setIsGeocodingPin] = useState(false);
 
   const validIssues = useMemo(() => {
     if (!Array.isArray(issues)) return [];
@@ -334,11 +398,100 @@ const MapView = ({
   const activeProvider = MAP_PROVIDERS[mapStyle] || MAP_PROVIDERS.satellite;
   const activeGeoJson = selectedLocation?.geojson || null;
 
+  /**
+   * Handles Manual Pin Drop anywhere on the Map
+   */
+  const handleMapClick = useCallback(
+    async (latlng) => {
+      const lat = latlng.lat;
+      const lng = latlng.lng;
+
+      // Set immediate placeholder marker
+      const tempLoc = {
+        gp_id: 9999,
+        gp_code: 'GP-PIN-MANUAL',
+        gp_name: `Loc (${lat.toFixed(3)}, ${lng.toFixed(3)})`,
+        district: 'Locating...',
+        state: 'India',
+        lat,
+        lng,
+        isManualPin: true,
+      };
+      setManualPinnedLocation(tempLoc);
+      setIsGeocodingPin(true);
+
+      try {
+        // Perform Reverse Geocoding via Nominatim / Backend API
+        const geocoded = await reverseGeocodeCoordinates(lat, lng);
+        const resolved = { ...tempLoc, ...geocoded };
+        setManualPinnedLocation(resolved);
+
+        // Automatically update active global state and trigger ML analytics & schemes
+        if (onSelectLocation) {
+          onSelectLocation(resolved);
+        }
+      } catch (err) {
+        console.error('Error reverse geocoding manual pin:', err);
+      } finally {
+        setIsGeocodingPin(false);
+      }
+    },
+    [onSelectLocation]
+  );
+
   return (
     <div
-      className={`relative w-full h-[520px] rounded-2xl overflow-hidden shadow-2xl border border-slate-800 bg-slate-950 transition-all ${className}`}
+      className={`relative w-full h-[540px] rounded-2xl overflow-hidden shadow-2xl border border-slate-800 bg-slate-950 transition-all ${className}`}
     >
-      {/* Top-Right Map Mode & Category Legend Overlay */}
+      {/* =================================================================== */}
+      {/* DUAL LOCATION SELECTION MODE BAR (TOP-LEFT OVERLAY)                */}
+      {/* =================================================================== */}
+      <div className="absolute top-4 left-4 z-[1000] flex flex-col gap-2 max-w-sm">
+        {/* Mode Toggle Controls */}
+        <div className="bg-slate-900/95 backdrop-blur-md p-1.5 rounded-2xl shadow-2xl border border-slate-700/90 flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => {
+              setSelectionMode('search');
+            }}
+            className={`px-3 py-1.5 rounded-xl flex items-center gap-2 text-xs font-bold transition-all cursor-pointer ${
+              selectionMode === 'search'
+                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-950'
+                : 'text-slate-300 hover:text-white hover:bg-slate-800'
+            }`}
+          >
+            <Search className="w-3.5 h-3.5" />
+            <span>Search Bar Mode</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setSelectionMode('pin');
+            }}
+            className={`px-3 py-1.5 rounded-xl flex items-center gap-2 text-xs font-bold transition-all cursor-pointer ${
+              selectionMode === 'pin'
+                ? 'bg-rose-600 text-white shadow-md shadow-rose-950 animate-pulse'
+                : 'text-slate-300 hover:text-white hover:bg-slate-800'
+            }`}
+          >
+            <Crosshair className="w-3.5 h-3.5" />
+            <span>Pin Location Manually</span>
+          </button>
+        </div>
+
+        {/* Dynamic Instructional Banner for Manual Pin Drop */}
+        {selectionMode === 'pin' && (
+          <div className="bg-rose-950/90 text-rose-200 border border-rose-500/40 px-3 py-2 rounded-xl text-[11px] font-semibold backdrop-blur-md shadow-lg flex items-center gap-2 animate-fadeIn">
+            <span className="w-2 h-2 rounded-full bg-rose-400 animate-ping flex-shrink-0" />
+            <span>Click anywhere on the map to drop a pin &amp; dynamically analyze telemetry.</span>
+          </div>
+        )}
+      </div>
+
+      {/* =================================================================== */}
+      {/* TOP-RIGHT MAP STYLES & CATEGORY LEGEND OVERLAY                     */}
+      {/* =================================================================== */}
       <div className="absolute top-4 right-4 z-[1000] flex flex-col items-end gap-2">
         {/* Layer Switcher */}
         <div className="bg-slate-900/95 backdrop-blur-md p-1 rounded-xl shadow-xl border border-slate-700/80 flex items-center gap-1 text-[11px] font-bold">
@@ -443,7 +596,9 @@ const MapView = ({
         })}
       </div>
 
-      {/* Map Container */}
+      {/* =================================================================== */}
+      {/* MAIN LEAFLET MAP CONTAINER                                         */}
+      {/* =================================================================== */}
       <MapContainer
         preferCanvas={true}
         center={center}
@@ -452,6 +607,10 @@ const MapView = ({
         className="w-full h-full z-0"
       >
         <MapViewController center={center} zoom={zoom} />
+        <MapEventsHandler
+          isPinningMode={selectionMode === 'pin'}
+          onMapClick={handleMapClick}
+        />
 
         {/* Dynamic TileLayer */}
         <TileLayer
@@ -487,7 +646,59 @@ const MapView = ({
           />
         )}
 
-        {/* 1. Village Hub Markers */}
+        {/* 1. Manually Dropped Map Pin Marker */}
+        {manualPinnedLocation && (
+          <Marker
+            position={[Number(manualPinnedLocation.lat), Number(manualPinnedLocation.lng)]}
+            icon={buildDroppedPinIcon(manualPinnedLocation.gp_name, true)}
+          >
+            <Popup className="grampulse-popup" autoPan={true}>
+              <div className="p-2 min-w-[260px] max-w-[300px] font-sans text-slate-800 space-y-2">
+                <div className="flex items-start justify-between gap-2 pb-1.5 border-b border-slate-200">
+                  <div>
+                    <span className="text-[9px] font-bold uppercase tracking-wider text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200">
+                      Manual Pin Drop
+                    </span>
+                    <h4 className="text-sm font-black text-slate-900 mt-1 leading-tight">
+                      {manualPinnedLocation.gp_name}
+                    </h4>
+                    <p className="text-[11px] text-slate-500">
+                      {manualPinnedLocation.district} District, {manualPinnedLocation.state}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="bg-slate-50 p-2 rounded-xl border border-slate-200 text-[11px] space-y-1">
+                  <div className="flex items-center justify-between text-slate-700">
+                    <span className="text-slate-500">GPS Coordinates:</span>
+                    <span className="font-mono font-bold">
+                      {Number(manualPinnedLocation.lat).toFixed(4)}°N, {Number(manualPinnedLocation.lng).toFixed(4)}°E
+                    </span>
+                  </div>
+                  {isGeocodingPin && (
+                    <div className="flex items-center gap-1 text-emerald-600 font-semibold pt-1">
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                      <span>Resolving OpenStreetMap Telemetry...</span>
+                    </div>
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onSelectLocation) onSelectLocation(manualPinnedLocation);
+                  }}
+                  className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold shadow-md transition-all flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer"
+                >
+                  <Activity className="w-3.5 h-3.5" />
+                  <span>Analyze This Location</span>
+                </button>
+              </div>
+            </Popup>
+          </Marker>
+        )}
+
+        {/* 2. Registered Village Hub Markers */}
         {locations.map((loc) => {
           if (!loc.lat || !loc.lng) return null;
           const isSelected = Number(loc.gp_id) === Number(selectedGpId);
@@ -546,7 +757,7 @@ const MapView = ({
                     }}
                     className="w-full py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md transition-all flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer"
                   >
-                    <span>View Live Analytics & GPDP Plan</span>
+                    <span>View Live Analytics &amp; GPDP Plan</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -555,7 +766,7 @@ const MapView = ({
           );
         })}
 
-        {/* 2. Live Overpass Infrastructure Node Markers */}
+        {/* 3. Live Overpass Infrastructure Node Markers */}
         {showInfra &&
           infrastructure?.markers?.map((infra) => (
             <Marker
@@ -577,7 +788,7 @@ const MapView = ({
             </Marker>
           ))}
 
-        {/* 3. Marker Clustering Layer for Geotagged Grievances */}
+        {/* 4. Marker Clustering Layer for Geotagged Grievances */}
         <MarkerClusterGroup
           chunkedLoading
           maxClusterRadius={50}
