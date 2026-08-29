@@ -5,22 +5,23 @@ import axios from 'axios';
 
 const AuthContext = createContext(null);
 
-const STORAGE_USER_KEY = 'grampulse_citizen_session';
+const STORAGE_USER_KEY = 'user_session';
 const STORAGE_TOKEN_KEY = 'grampulse_auth_token';
 
 // Demo quick-fill citizen account
 export const DEMO_CITIZEN = {
-  identifier: 'citizen@punsari.in',
+  identifier: 'citizen@koduvai.in',
   password: 'citizen123',
   name: 'Aarav Sharma',
-  email: 'citizen@punsari.in',
+  email: 'citizen@koduvai.in',
+  villageOrCity: 'Koduvai',
   role: 'CITIZEN',
   roleLabel: 'Verified Citizen Resident',
   designation: 'Ward 3 Resident & Gram Sabha Member',
-  gpId: 2,
-  gpName: 'Punsari GP, Gujarat',
-  district: 'Sabarkantha',
-  state: 'Gujarat',
+  gpId: 101,
+  gpName: 'Koduvai GP, Tamil Nadu',
+  district: 'Tiruppur',
+  state: 'Tamil Nadu',
   avatar: null,
 };
 
@@ -37,7 +38,9 @@ export const AuthProvider = ({ children }) => {
    */
   useEffect(() => {
     try {
-      const storedUser = localStorage.getItem(STORAGE_USER_KEY);
+      const storedUser =
+        localStorage.getItem('user_session') ||
+        localStorage.getItem('grampulse_citizen_session');
       const storedToken = localStorage.getItem(STORAGE_TOKEN_KEY);
 
       if (storedUser && storedToken) {
@@ -47,7 +50,8 @@ export const AuthProvider = ({ children }) => {
       }
     } catch (err) {
       console.error('Failed to parse persistent citizen session:', err);
-      localStorage.removeItem(STORAGE_USER_KEY);
+      localStorage.removeItem('user_session');
+      localStorage.removeItem('grampulse_citizen_session');
       localStorage.removeItem(STORAGE_TOKEN_KEY);
     } finally {
       setLoading(false);
@@ -62,7 +66,8 @@ export const AuthProvider = ({ children }) => {
     setToken(userData.token);
     setAuthError(null);
     try {
-      localStorage.setItem(STORAGE_USER_KEY, JSON.stringify(userData));
+      localStorage.setItem('user_session', JSON.stringify(userData));
+      localStorage.setItem('grampulse_citizen_session', JSON.stringify(userData));
       localStorage.setItem(STORAGE_TOKEN_KEY, userData.token);
     } catch (e) {
       console.warn('Could not persist session to localStorage:', e);
@@ -221,7 +226,8 @@ export const AuthProvider = ({ children }) => {
     setToken(null);
     setAuthError(null);
     try {
-      localStorage.removeItem(STORAGE_USER_KEY);
+      localStorage.removeItem('user_session');
+      localStorage.removeItem('grampulse_citizen_session');
       localStorage.removeItem(STORAGE_TOKEN_KEY);
     } catch (e) {
       console.warn('Could not clear localStorage session:', e);

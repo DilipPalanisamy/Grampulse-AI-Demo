@@ -10,27 +10,56 @@ import {
 import { searchRealVillages } from '../services/villageSearchService';
 import { queryOverpassInfrastructure } from '../utils/overpassApi';
 
+import { useAuth } from './AuthContext';
+
 const LocationContext = createContext(null);
 
-const DEFAULT_INITIAL_VILLAGE = {
-  gp_id: 4,
-  gp_code: 'GP-TN-CBE-004',
-  gp_name: 'Odanthurai',
-  district: 'Coimbatore',
-  state: 'Tamil Nadu',
-  lat: 11.2982,
-  lng: 76.9366,
-  population: 6820,
-  households: 1530,
-  daily_water_supply_liters: 430000.0,
-  school_classrooms_count: 34,
-  road_coverage_km: 34.8,
-  tagline: 'Self-Powered Green Energy & Windmill Grid Pioneer',
+const getSavedUserVillage = () => {
+  try {
+    const rawSession =
+      typeof localStorage !== 'undefined'
+        ? localStorage.getItem('user_session') || localStorage.getItem('grampulse_citizen_session')
+        : null;
+    if (rawSession) {
+      const parsed = JSON.parse(rawSession);
+      if (parsed?.villageOrCity) {
+        return parsed.villageOrCity;
+      }
+      if (parsed?.gpName) {
+        return parsed.gpName;
+      }
+    }
+  } catch (e) {
+    // Ignore JSON parse errors
+  }
+  return 'Koduvai';
+};
+
+const buildInitialVillage = (villageName = 'Koduvai') => {
+  const isKoduvai = String(villageName).toLowerCase().includes('koduvai');
+  return {
+    gp_id: 101,
+    gp_code: 'GP-TN-TPR-101',
+    gp_name: villageName,
+    district: isKoduvai ? 'Tiruppur' : `${villageName} District`,
+    state: 'Tamil Nadu',
+    lat: isKoduvai ? 10.9634 : 11.2982,
+    lng: isKoduvai ? 77.4727 : 76.9366,
+    population: 5800,
+    households: 1420,
+    daily_water_supply_liters: 319000.0,
+    school_classrooms_count: 26,
+    road_coverage_km: 28.5,
+    tagline: `${villageName} Gram Panchayat Sustainable Smart Governance`,
+    description: `Real-time spatial telemetry, predictive deficit planning, and active Jal Jeevan & PMGSY infrastructure for ${villageName}.`,
+  };
 };
 
 export const LocationProvider = ({ children }) => {
-  const [locations, setLocations] = useState([DEFAULT_INITIAL_VILLAGE]);
-  const [selectedGpId, setSelectedGpId] = useState(4);
+  const { user } = useAuth() || {};
+  const [initialVillage] = useState(() => buildInitialVillage(user?.villageOrCity || user?.gpName || getSavedUserVillage()));
+  const [locations, setLocations] = useState(() => [initialVillage]);
+  const [selectedGpId, setSelectedGpId] = useState(() => initialVillage.gp_id);
   const [planningHorizon, setPlanningHorizon] = useState(5);
   const [analytics, setAnalytics] = useState(null);
   const [issues, setIssues] = useState([]);
@@ -52,17 +81,32 @@ export const LocationProvider = ({ children }) => {
     return (
       locations.find((l) => Number(l.gp_id) === Number(selectedGpId)) ||
       locations[0] ||
-      DEFAULT_INITIAL_VILLAGE
+      initialVillage
     );
-  }, [locations, selectedGpId]);
+  }, [locations, selectedGpId, initialVillage]);
 
   // Center Coordinates for Map
   const mapCenter = useMemo(() => {
     if (selectedLocation?.lat && selectedLocation?.lng) {
       return [Number(selectedLocation.lat), Number(selectedLocation.lng)];
     }
-    return [11.2982, 76.9366]; // Default to Odanthurai, Tamil Nadu
+    return [10.9634, 77.4727]; // Default to Koduvai / Tamil Nadu
   }, [selectedLocation]);
+
+  // Auto-sync active location when authenticated user session updates
+  useEffect(() => {
+    const targetVillage = user?.villageOrCity || user?.gpName;
+    if (targetVillage) {
+      const updatedVillage = buildInitialVillage(targetVillage);
+      setLocations((prev) => {
+        if (!prev.some((p) => String(p.gp_name).toLowerCase() === String(targetVillage).toLowerCase())) {
+          return [updatedVillage, ...prev];
+        }
+        return prev;
+      });
+      setSelectedGpId(updatedVillage.gp_id);
+    }
+  }, [user?.villageOrCity, user?.gpName]);
 
   // Load registered Panchayats on mount
   useEffect(() => {

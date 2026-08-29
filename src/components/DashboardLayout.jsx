@@ -143,7 +143,11 @@ function DashboardLayout() {
             <div className="space-y-1">
               <div className="flex flex-wrap items-center gap-2">
                 <h2 className="text-lg sm:text-xl font-black text-[var(--text-main)] tracking-tight">
-                  {selectedLocation.gp_name} Gram Panchayat
+                  {selectedLocation.gp_name.toLowerCase().includes('panchayat') ||
+                  selectedLocation.gp_name.toLowerCase().includes('city') ||
+                  selectedLocation.gp_name.toLowerCase().includes('municipality')
+                    ? selectedLocation.gp_name
+                    : `${selectedLocation.gp_name} Gram Panchayat`}
                 </h2>
                 <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-lg bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30">
                   {selectedLocation.gp_code || `GP-${selectedLocation.gp_id}`}
