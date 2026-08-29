@@ -204,7 +204,11 @@ function DashboardLayout() {
         </div>
 
         {/* 3. Analytics & Predictive Deficit Metric Cards */}
-        <AnalyticsPanel analytics={analytics} loading={loadingAnalytics} />
+        <AnalyticsPanel
+          analytics={analytics}
+          infrastructure={infrastructure}
+          loading={loadingAnalytics}
+        />
 
         {/* 4. Interactive Map Preview & AI Scheme Recommendations Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">

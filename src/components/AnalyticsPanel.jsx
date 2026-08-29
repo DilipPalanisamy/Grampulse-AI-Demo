@@ -9,7 +9,13 @@ import {
   AlertTriangle,
   CheckCircle2,
   Activity,
+  HeartPulse,
+  Trash2,
+  Layers,
+  MapPin,
+  Sparkles,
 } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
 
 const getSeverityBadge = (severity = 'MONITOR') => {
   const norm = (severity || 'MONITOR').toUpperCase();
@@ -35,26 +41,30 @@ const getSeverityBadge = (severity = 'MONITOR') => {
   }
 };
 
-const AnalyticsPanel = ({ analytics, loading = false }) => {
+const AnalyticsPanel = ({ analytics, infrastructure = { counts: {}, markers: [] }, loading = false }) => {
+  const { activePalette } = useTheme();
+
   if (loading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 animate-pulse">
-        {[1, 2, 3, 4].map((i) => (
-          <div
-            key={i}
-            className="h-44 bg-slate-900/60 rounded-2xl border border-slate-800 p-5 flex flex-col justify-between"
-          >
-            <div className="flex items-center justify-between">
-              <div className="w-10 h-10 rounded-xl bg-slate-800" />
-              <div className="w-20 h-5 rounded-full bg-slate-800" />
+      <div className="space-y-4 animate-pulse">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              className="h-44 bg-slate-900/80 rounded-2xl border border-slate-800 p-5 flex flex-col justify-between"
+            >
+              <div className="flex items-center justify-between">
+                <div className="w-10 h-10 rounded-xl bg-slate-800" />
+                <div className="w-20 h-5 rounded-full bg-slate-800" />
+              </div>
+              <div className="space-y-2">
+                <div className="w-16 h-3 bg-slate-800 rounded" />
+                <div className="w-28 h-6 bg-slate-800 rounded" />
+              </div>
+              <div className="w-full h-2 bg-slate-800 rounded-full" />
             </div>
-            <div className="space-y-2">
-              <div className="w-16 h-3 bg-slate-800 rounded" />
-              <div className="w-28 h-6 bg-slate-800 rounded" />
-            </div>
-            <div className="w-full h-2 bg-slate-800 rounded-full" />
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     );
   }
@@ -86,12 +96,21 @@ const AnalyticsPanel = ({ analytics, loading = false }) => {
   const classBadge = getSeverityBadge(severity?.education || (classGap > 0 ? 'HIGH' : 'MONITOR'));
   const roadBadge = getSeverityBadge(severity?.roads || (roadDeficit > 0 ? 'MEDIUM' : 'MONITOR'));
 
+  // Live Overpass Infrastructure Node Counts
+  const counts = infrastructure?.counts || {};
+  const waterNodesCount = counts.water_points || 0;
+  const schoolNodesCount = counts.schools || 0;
+  const healthNodesCount = counts.healthcare || 0;
+  const sanitationNodesCount = counts.sanitation_nodes || 0;
+  const roadNetworkKm = counts.estimated_road_network_km || roadCurrent.toFixed(1);
+
   return (
     <div className="space-y-4">
-      {/* Overview Metric Cards Grid */}
+      {/* 1. Overview Metric Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        
         {/* Card 1: Population Projection */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-slate-900/90 to-slate-900/60 backdrop-blur-md rounded-2xl border border-slate-800/80 p-5 shadow-xl hover:border-slate-700 transition-all group">
+        <div className="relative overflow-hidden bg-slate-900/85 backdrop-blur-md rounded-2xl border border-slate-800 p-5 shadow-xl hover:border-slate-700 transition-all group">
           <div className="flex items-center justify-between mb-3">
             <div className="w-11 h-11 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 group-hover:scale-110 transition-transform">
               <Users className="w-5 h-5" />
@@ -121,7 +140,7 @@ const AnalyticsPanel = ({ analytics, loading = false }) => {
         </div>
 
         {/* Card 2: Potable Water Supply Deficit */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-slate-900/90 to-slate-900/60 backdrop-blur-md rounded-2xl border border-slate-800/80 p-5 shadow-xl hover:border-slate-700 transition-all group">
+        <div className="relative overflow-hidden bg-slate-900/85 backdrop-blur-md rounded-2xl border border-slate-800 p-5 shadow-xl hover:border-slate-700 transition-all group">
           <div className="flex items-center justify-between mb-3">
             <div className="w-11 h-11 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 group-hover:scale-110 transition-transform">
               <Droplets className="w-5 h-5" />
@@ -142,10 +161,9 @@ const AnalyticsPanel = ({ analytics, loading = false }) => {
               </span>
             </div>
           </div>
-          {/* Progress bar */}
           <div className="mt-3 pt-2 border-t border-slate-800/80">
             <div className="flex justify-between text-[11px] text-slate-400 mb-1">
-              <span>Current Supply: {waterSupply.toLocaleString()} L</span>
+              <span>Supply: {waterSupply.toLocaleString()} L</span>
               <span className="font-mono">{waterCoveragePct}%</span>
             </div>
             <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
@@ -158,7 +176,7 @@ const AnalyticsPanel = ({ analytics, loading = false }) => {
         </div>
 
         {/* Card 3: School Classroom Gap */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-slate-900/90 to-slate-900/60 backdrop-blur-md rounded-2xl border border-slate-800/80 p-5 shadow-xl hover:border-slate-700 transition-all group">
+        <div className="relative overflow-hidden bg-slate-900/85 backdrop-blur-md rounded-2xl border border-slate-800 p-5 shadow-xl hover:border-slate-700 transition-all group">
           <div className="flex items-center justify-between mb-3">
             <div className="w-11 h-11 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 group-hover:scale-110 transition-transform">
               <GraduationCap className="w-5 h-5" />
@@ -179,7 +197,6 @@ const AnalyticsPanel = ({ analytics, loading = false }) => {
               </span>
             </div>
           </div>
-          {/* Progress bar */}
           <div className="mt-3 pt-2 border-t border-slate-800/80">
             <div className="flex justify-between text-[11px] text-slate-400 mb-1">
               <span>Functional: {classCurrent} / {classRequired}</span>
@@ -195,7 +212,7 @@ const AnalyticsPanel = ({ analytics, loading = false }) => {
         </div>
 
         {/* Card 4: Paved Road Deficit */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-slate-900/90 to-slate-900/60 backdrop-blur-md rounded-2xl border border-slate-800/80 p-5 shadow-xl hover:border-slate-700 transition-all group">
+        <div className="relative overflow-hidden bg-slate-900/85 backdrop-blur-md rounded-2xl border border-slate-800 p-5 shadow-xl hover:border-slate-700 transition-all group">
           <div className="flex items-center justify-between mb-3">
             <div className="w-11 h-11 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-400 group-hover:scale-110 transition-transform">
               <Route className="w-5 h-5" />
@@ -216,7 +233,6 @@ const AnalyticsPanel = ({ analytics, loading = false }) => {
               </span>
             </div>
           </div>
-          {/* Progress bar */}
           <div className="mt-3 pt-2 border-t border-slate-800/80">
             <div className="flex justify-between text-[11px] text-slate-400 mb-1">
               <span>Existing: {roadCurrent.toFixed(1)} / {roadRequired.toFixed(1)} km</span>
@@ -232,12 +248,61 @@ const AnalyticsPanel = ({ analytics, loading = false }) => {
         </div>
       </div>
 
-      {/* AI Contextual Narrative Banner */}
+      {/* 2. Live Infrastructure Census Telemetry Dataset Table */}
+      <div className="bg-slate-900/85 backdrop-blur-md rounded-2xl border border-slate-800 p-5 shadow-xl space-y-3">
+        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div className="flex items-center gap-2">
+            <Layers className="w-4 h-4 text-emerald-400" />
+            <h3 className="text-sm font-bold text-white">
+              Live Infrastructure Telemetry Dataset (Overpass / OpenStreetMap)
+            </h3>
+          </div>
+          <span className="text-[11px] font-mono text-emerald-400 font-semibold bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+            Real-time Spatial Sync
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+          <div className="p-3 bg-slate-950/70 rounded-xl border border-slate-800 flex items-center justify-between">
+            <div className="space-y-0.5">
+              <span className="text-[10px] text-slate-400 uppercase font-semibold">Water Points</span>
+              <p className="text-sm font-bold text-white font-mono">{waterNodesCount} Nodes</p>
+            </div>
+            <Droplets className="w-4 h-4 text-blue-400" />
+          </div>
+
+          <div className="p-3 bg-slate-950/70 rounded-xl border border-slate-800 flex items-center justify-between">
+            <div className="space-y-0.5">
+              <span className="text-[10px] text-slate-400 uppercase font-semibold">School Facilities</span>
+              <p className="text-sm font-bold text-white font-mono">{schoolNodesCount || classCurrent} Units</p>
+            </div>
+            <GraduationCap className="w-4 h-4 text-purple-400" />
+          </div>
+
+          <div className="p-3 bg-slate-950/70 rounded-xl border border-slate-800 flex items-center justify-between">
+            <div className="space-y-0.5">
+              <span className="text-[10px] text-slate-400 uppercase font-semibold">Healthcare (PHCs)</span>
+              <p className="text-sm font-bold text-white font-mono">{healthNodesCount || 1} Centre</p>
+            </div>
+            <HeartPulse className="w-4 h-4 text-rose-400" />
+          </div>
+
+          <div className="p-3 bg-slate-950/70 rounded-xl border border-slate-800 flex items-center justify-between">
+            <div className="space-y-0.5">
+              <span className="text-[10px] text-slate-400 uppercase font-semibold">Road Network</span>
+              <p className="text-sm font-bold text-white font-mono">{roadNetworkKm} km</p>
+            </div>
+            <Route className="w-4 h-4 text-orange-400" />
+          </div>
+        </div>
+      </div>
+
+      {/* 3. AI Contextual Governance Assessment Narrative */}
       {p?.summary_narrative && (
-        <div className="bg-slate-900/60 backdrop-blur-md rounded-xl p-3.5 border border-slate-800 flex items-start gap-3">
+        <div className="bg-slate-900/85 backdrop-blur-md rounded-xl p-3.5 border border-slate-800 flex items-start gap-3 shadow-md">
           <Activity className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
           <p className="text-xs text-slate-300 leading-relaxed">
-            <strong className="text-emerald-400 font-semibold">AI Governance Assessment: </strong>
+            <strong className="text-emerald-400 font-semibold">MoPR AI Governance Assessment: </strong>
             {p.summary_narrative}
           </p>
         </div>
@@ -254,6 +319,10 @@ AnalyticsPanel.propTypes = {
     planning_horizon_years: PropTypes.number,
     predictions: PropTypes.object,
     matched_schemes: PropTypes.array,
+  }),
+  infrastructure: PropTypes.shape({
+    counts: PropTypes.object,
+    markers: PropTypes.array,
   }),
   loading: PropTypes.bool,
 };

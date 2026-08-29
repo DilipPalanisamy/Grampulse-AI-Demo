@@ -23,6 +23,8 @@ GOVERNMENT_SCHEMES_KNOWLEDGE_BASE: List[Dict[str, Any]] = [
         "scheme_name": "Jal Jeevan Mission (JJM) - Har Ghar Jal",
         "ministry": "Ministry of Jal Shakti",
         "category": "Water Supply",
+        "official_portal_url": "https://jaljeevanmission.gov.in",
+        "eligibility_criteria": "Rural habitations with potable drinking water supply below 55 Liters Per Day (LPD) per capita.",
         "keywords": [
             "drinking water",
             "tap water connection",
@@ -42,8 +44,8 @@ GOVERNMENT_SCHEMES_KNOWLEDGE_BASE: List[Dict[str, Any]] = [
         ),
         "primary_trigger_field": "water_deficit_lpd",
         "min_deficit_threshold": 1.0,
-        "base_budget_lakhs": 12.0,
-        "deficit_multiplier": 0.00075,  # ₹ 0.00075 Lakhs per Liter of daily deficit
+        "base_budget_lakhs": 14.0,
+        "deficit_multiplier": 0.00085,  # ₹ 0.00085 Lakhs per Liter of daily deficit
         "per_capita_multiplier": 0.0020,
     },
     {
@@ -51,6 +53,8 @@ GOVERNMENT_SCHEMES_KNOWLEDGE_BASE: List[Dict[str, Any]] = [
         "scheme_name": "Pradhan Mantri Gram Sadak Yojana (PMGSY - III)",
         "ministry": "Ministry of Rural Development",
         "category": "Roads & Infrastructure",
+        "official_portal_url": "https://omms.nic.in",
+        "eligibility_criteria": "Rural habitations lacking all-weather bitumen road connectivity (under 1.25 km / 1,000 population).",
         "keywords": [
             "road connectivity",
             "paved road deficit",
@@ -68,8 +72,8 @@ GOVERNMENT_SCHEMES_KNOWLEDGE_BASE: List[Dict[str, Any]] = [
         ),
         "primary_trigger_field": "paved_road_deficit_km",
         "min_deficit_threshold": 0.1,
-        "base_budget_lakhs": 22.0,
-        "deficit_multiplier": 32.5,     # ₹ 32.5 Lakhs per km of paved road construction
+        "base_budget_lakhs": 25.0,
+        "deficit_multiplier": 35.0,     # ₹ 35.0 Lakhs per km of paved road construction
         "per_capita_multiplier": 0.0,
     },
     {
@@ -77,6 +81,8 @@ GOVERNMENT_SCHEMES_KNOWLEDGE_BASE: List[Dict[str, Any]] = [
         "scheme_name": "PM SHRI Schools Scheme & Samagra Shiksha",
         "ministry": "Ministry of Education",
         "category": "Education",
+        "official_portal_url": "https://pmshrischools.education.gov.in",
+        "eligibility_criteria": "Government schools requiring classroom expansion to meet 1:30 pupil ratio (RTE Act) and STEM laboratories.",
         "keywords": [
             "school classroom deficit gap",
             "smart digital classrooms",
@@ -94,8 +100,8 @@ GOVERNMENT_SCHEMES_KNOWLEDGE_BASE: List[Dict[str, Any]] = [
         ),
         "primary_trigger_field": "classroom_gap",
         "min_deficit_threshold": 1.0,
-        "base_budget_lakhs": 9.0,
-        "deficit_multiplier": 5.50,     # ₹ 5.50 Lakhs per classroom constructed/upgraded
+        "base_budget_lakhs": 10.5,
+        "deficit_multiplier": 6.20,     # ₹ 6.20 Lakhs per classroom constructed/upgraded
         "per_capita_multiplier": 0.0015,
     },
     {
@@ -103,6 +109,8 @@ GOVERNMENT_SCHEMES_KNOWLEDGE_BASE: List[Dict[str, Any]] = [
         "scheme_name": "Swachh Bharat Mission - Gramin (SBM-G Phase II)",
         "ministry": "Ministry of Jal Shakti (DDWS)",
         "category": "Sanitation",
+        "official_portal_url": "https://swachhbharatmission.ddws.gov.in",
+        "eligibility_criteria": "ODF Plus model villages executing Solid & Liquid Waste Management (SLWM) and micro-composting.",
         "keywords": [
             "sanitation",
             "solid waste management",
@@ -120,15 +128,17 @@ GOVERNMENT_SCHEMES_KNOWLEDGE_BASE: List[Dict[str, Any]] = [
         ),
         "primary_trigger_field": "population_projected",
         "min_deficit_threshold": 0.0,
-        "base_budget_lakhs": 7.5,
+        "base_budget_lakhs": 8.5,
         "deficit_multiplier": 0.0,
         "per_capita_multiplier": 0.0028,
     },
     {
         "scheme_id": "CSS-PMAYG-005",
-        "scheme_name": "Pradhan Mantri Awas Yojana - Gramin (PMAY-G)",
+        "scheme_name": "Pradhan Mantri Awaas Yojana - Gramin (PMAY-G)",
         "ministry": "Ministry of Rural Development",
         "category": "Housing & Infrastructure",
+        "official_portal_url": "https://pmayg.nic.in",
+        "eligibility_criteria": "Houseless rural families and households residing in kutcha or unpaved dwellings.",
         "keywords": [
             "pucca concrete housing",
             "rural shelter",
@@ -143,15 +153,17 @@ GOVERNMENT_SCHEMES_KNOWLEDGE_BASE: List[Dict[str, Any]] = [
         ),
         "primary_trigger_field": "population_projected",
         "min_deficit_threshold": 0.0,
-        "base_budget_lakhs": 15.0,
+        "base_budget_lakhs": 16.0,
         "deficit_multiplier": 0.0,
         "per_capita_multiplier": 0.0035,
     },
     {
         "scheme_id": "CSS-AMRIT-006",
-        "scheme_name": "Mission Amrit Sarovar",
-        "ministry": "Ministry of Rural Development & Jal Shakti",
+        "scheme_name": "Mission Amrit Sarovar & Atal Bhujal Yojana",
+        "ministry": "Ministry of Jal Shakti & Rural Development",
         "category": "Water Resources",
+        "official_portal_url": "https://ataljal.mowr.gov.in",
+        "eligibility_criteria": "Gram Panchayats prioritizing community lake rejuvenation, farm ponds, and groundwater recharge.",
         "keywords": [
             "water body rejuvenation",
             "amrit sarovar pond desilting",
@@ -160,20 +172,22 @@ GOVERNMENT_SCHEMES_KNOWLEDGE_BASE: List[Dict[str, Any]] = [
             "groundwater recharge check dam",
         ],
         "description": (
-            "National mission aimed at developing and rejuvenating at least 75 water bodies (Amrit Sarovars) "
-            "in every rural district to harvest rainwater, recharge depleted groundwater, and provide irrigation security."
+            "National mission aimed at developing and rejuvenating community water bodies (Amrit Sarovars) "
+            "to harvest rainwater, recharge depleted groundwater tables, and provide irrigation security."
         ),
         "primary_trigger_field": "water_deficit_lpd",
         "min_deficit_threshold": 5000.0,
         "base_budget_lakhs": 18.0,
-        "deficit_multiplier": 0.00035,
+        "deficit_multiplier": 0.00040,
         "per_capita_multiplier": 0.0012,
     },
     {
         "scheme_id": "CSS-KUSUM-007",
-        "scheme_name": "PM-KUSUM (Solar Agricultural Pumps)",
+        "scheme_name": "PM-KUSUM (Solar Irrigation & Green Energy)",
         "ministry": "Ministry of New and Renewable Energy",
         "category": "Renewable Energy",
+        "official_portal_url": "https://pmkusum.mnre.gov.in",
+        "eligibility_criteria": "Agricultural feeders and rural habitations transitioning to decentralized standalone solar power.",
         "keywords": [
             "solar irrigation pump",
             "pm kusum solar grid",
@@ -187,15 +201,17 @@ GOVERNMENT_SCHEMES_KNOWLEDGE_BASE: List[Dict[str, Any]] = [
         ),
         "primary_trigger_field": "population_projected",
         "min_deficit_threshold": 0.0,
-        "base_budget_lakhs": 14.0,
+        "base_budget_lakhs": 15.0,
         "deficit_multiplier": 0.0,
         "per_capita_multiplier": 0.0022,
     },
     {
         "scheme_id": "CSS-MGNREGS-008",
-        "scheme_name": "Mahatma Gandhi NREGA (Infrastructure Assets)",
+        "scheme_name": "Mahatma Gandhi NREGA (Rural Asset Creation)",
         "ministry": "Ministry of Rural Development",
         "category": "Rural Employment & Assets",
+        "official_portal_url": "https://nrega.nic.in",
+        "eligibility_criteria": "Rural job-card holders executing soil conservation, drainage channels, and tree plantations.",
         "keywords": [
             "mgnrega rural employment",
             "check dam construction",
@@ -209,7 +225,7 @@ GOVERNMENT_SCHEMES_KNOWLEDGE_BASE: List[Dict[str, Any]] = [
         ),
         "primary_trigger_field": "population_projected",
         "min_deficit_threshold": 0.0,
-        "base_budget_lakhs": 25.0,
+        "base_budget_lakhs": 28.0,
         "deficit_multiplier": 0.0,
         "per_capita_multiplier": 0.0040,
     },
@@ -235,14 +251,12 @@ class SchemeMatcherEngine:
         """Initializes ChromaDB collection and indexes all schemes."""
         try:
             import chromadb
-            # Initialize persistent/in-memory ephemeral Chroma client
             self._chroma_client = chromadb.Client()
             self._collection = self._chroma_client.get_or_create_collection(
                 name="government_welfare_schemes",
                 metadata={"hnsw:space": "cosine"},
             )
 
-            # Add documents to ChromaDB
             ids = [s["scheme_id"] for s in self.schemes]
             documents = [
                 f"{s['scheme_name']} | Category: {s['category']} | Ministry: {s['ministry']} | "
@@ -260,7 +274,6 @@ class SchemeMatcherEngine:
                 for s in self.schemes
             ]
 
-            # Clear existing if any and insert fresh
             existing = self._collection.get()
             if existing and existing.get("ids"):
                 self._collection.delete(ids=existing["ids"])
@@ -275,7 +288,6 @@ class SchemeMatcherEngine:
         except Exception as exc:
             logger.warning(f"ChromaDB initialization note ({exc}); activating high-speed vector index.")
 
-        # Always maintain in-memory sparse-dense index for sub-1ms fallback
         self._build_dense_index()
 
     def _build_dense_index(self) -> None:
@@ -291,7 +303,6 @@ class SchemeMatcherEngine:
             for t in tokens:
                 if len(t) >= 3:
                     term_freq[t] = term_freq.get(t, 0) + 1
-            # Normalize
             norm = math.sqrt(sum(v * v for v in term_freq.values())) or 1.0
             for t in term_freq:
                 term_freq[t] /= norm
@@ -377,7 +388,6 @@ class SchemeMatcherEngine:
                     distances = chroma_res.get("distances", [[]])[0]
                     for idx, s_id in enumerate(retrieved_ids):
                         dist = distances[idx] if idx < len(distances) else 0.5
-                        # Cosine distance to similarity: 1 - dist
                         sim = max(0.2, min(0.98, 1.0 - (dist / 2.0)))
                         vector_scores[s_id] = sim
             except Exception as e:
@@ -437,7 +447,6 @@ class SchemeMatcherEngine:
             if not is_eligible:
                 continue
 
-            # Composite match score calculation (40.0% to 98.5%)
             final_score = min(0.985, max(0.45, base_sim * boost_factor))
 
             # Dynamic Budget Allocation Formula
@@ -469,12 +478,13 @@ class SchemeMatcherEngine:
                 "match_score_percent": round(final_score * 100.0, 1),
                 "score": round(final_score * 100.0, 1),
                 "estimated_budget_lakhs": budget_lakhs,
-                "estimated_budget": f"Rs. {budget_lakhs:,.2f} Lakhs",
-                "budget": f"Rs. {budget_lakhs:,.2f} Lakhs",
+                "estimated_budget": f"₹ {budget_lakhs:,.2f} Lakhs",
+                "budget": f"₹ {budget_lakhs:,.2f} Lakhs",
                 "description": scheme["description"],
+                "eligibility_criteria": scheme.get("eligibility_criteria", "Habitations with quantified infrastructure gaps."),
+                "official_portal_url": scheme.get("official_portal_url", "https://rural.gov.in"),
             })
 
-        # Rank by match score descending
         matched_results.sort(key=lambda s: s["match_score"], reverse=True)
         return matched_results[:top_k]
 
