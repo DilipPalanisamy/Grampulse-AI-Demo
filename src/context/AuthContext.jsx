@@ -149,7 +149,7 @@ export const AuthProvider = ({ children }) => {
   /**
    * Citizen Sign-In with Username or Gmail ID & Password
    */
-  const loginWithCredentials = useCallback(async (identifier, password) => {
+  const loginWithCredentials = useCallback(async (identifier, password, profileMeta = {}) => {
     setAuthError(null);
     setLoading(true);
 
@@ -164,19 +164,23 @@ export const AuthProvider = ({ children }) => {
       return false;
     }
 
-    let name = 'Citizen Resident';
+    let name = profileMeta?.name || 'Citizen Resident';
     let email = cleanIdentifier;
 
-    if (cleanIdentifier.includes('@')) {
-      const prefix = cleanIdentifier.split('@')[0];
-      name = prefix
-        .split(/[._-]/)
-        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-        .join(' ');
-    } else {
-      name = cleanIdentifier.charAt(0).toUpperCase() + cleanIdentifier.slice(1);
-      email = `${cleanIdentifier.toLowerCase()}@punsari.in`;
+    if (!profileMeta?.name) {
+      if (cleanIdentifier.includes('@')) {
+        const prefix = cleanIdentifier.split('@')[0];
+        name = prefix
+          .split(/[._-]/)
+          .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+          .join(' ');
+      } else {
+        name = cleanIdentifier.charAt(0).toUpperCase() + cleanIdentifier.slice(1);
+        email = `${cleanIdentifier.toLowerCase()}@grampulse.gov.in`;
+      }
     }
+
+    const villageName = profileMeta?.village || 'Gram Panchayat';
 
     const token = `ey_citizen_session_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 
@@ -188,11 +192,11 @@ export const AuthProvider = ({ children }) => {
       avatar: null,
       role: 'CITIZEN',
       roleLabel: 'Verified Citizen Resident',
-      designation: 'Citizen / Gram Sabha Member',
-      gpId: 2,
-      gpName: 'Punsari GP, Gujarat',
-      district: 'Sabarkantha',
-      state: 'Gujarat',
+      designation: `${villageName} Resident & Citizen Member`,
+      gpId: 4,
+      gpName: `${villageName}`,
+      district: 'District',
+      state: 'India',
       provider: 'credentials',
       loginTimestamp: new Date().toISOString(),
     };

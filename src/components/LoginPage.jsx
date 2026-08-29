@@ -40,7 +40,7 @@ export default function LoginPage() {
   // Sign Up Form States
   const [signUpName, setSignUpName] = useState('');
   const [signUpIdentifier, setSignUpIdentifier] = useState('');
-  const [signUpVillage, setSignUpVillage] = useState('Odanthurai GP');
+  const [villageOrCity, setVillageOrCity] = useState('');
   const [signUpPassword, setSignUpPassword] = useState('');
   const [showSignUpPassword, setShowSignUpPassword] = useState(false);
 
@@ -85,14 +85,17 @@ export default function LoginPage() {
 
   const handleSignUpSubmit = async (e) => {
     e.preventDefault();
-    if (!signUpName.trim() || !signUpIdentifier.trim() || !signUpPassword.trim()) {
+    if (!signUpName.trim() || !signUpIdentifier.trim() || !villageOrCity.trim() || !signUpPassword.trim()) {
       setAuthError('Please fill out all registration fields.');
       return;
     }
 
     setIsSubmitting(true);
     try {
-      await loginWithCredentials(signUpIdentifier, signUpPassword);
+      await loginWithCredentials(signUpIdentifier, signUpPassword, {
+        name: signUpName.trim(),
+        village: villageOrCity.trim(),
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -333,24 +336,19 @@ export default function LoginPage() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-[var(--text-muted)]">Panchayat Jurisdiction</label>
+                <label className="text-xs font-semibold text-[var(--text-muted)]">Village or City</label>
                 <div className="relative flex items-center">
                   <div className="absolute left-3.5 text-slate-400 pointer-events-none">
                     <MapPin className="w-4 h-4" />
                   </div>
-                  <select
-                    value={signUpVillage}
-                    onChange={(e) => setSignUpVillage(e.target.value)}
-                    aria-label="Select Panchayat Jurisdiction"
-                    className="w-full pl-10 pr-4 py-2.5 bg-[var(--bg-primary)] border border-[var(--border-subtle)] focus:border-emerald-500 rounded-xl text-xs text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition-all cursor-pointer"
-                  >
-                    <option value="Odanthurai GP">Odanthurai Gram Panchayat (TN)</option>
-                    <option value="Punsari GP">Punsari Gram Panchayat (GJ)</option>
-                    <option value="Hiware Bazar GP">Hiware Bazar Gram Panchayat (MH)</option>
-                    <option value="Keeladi GP">Keeladi Gram Panchayat (TN)</option>
-                    <option value="Thiruvaiyaru GP">Thiruvaiyaru Gram Panchayat (TN)</option>
-                    <option value="Kuthambakkam GP">Kuthambakkam Gram Panchayat (TN)</option>
-                  </select>
+                  <input
+                    type="text"
+                    required
+                    value={villageOrCity}
+                    onChange={(e) => setVillageOrCity(e.target.value)}
+                    placeholder="e.g. Odanthurai, Peelamedu, or Namakkal"
+                    className="w-full pl-10 pr-4 py-2.5 bg-[var(--bg-primary)] border border-[var(--border-subtle)] focus:border-emerald-500 rounded-xl text-xs text-[var(--text-main)] placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition-all font-sans"
+                  />
                 </div>
               </div>
 
