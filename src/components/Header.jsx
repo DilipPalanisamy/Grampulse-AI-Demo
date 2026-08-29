@@ -10,7 +10,6 @@ import {
   Building2,
   Loader2,
   X,
-  Compass,
   Globe,
   LayoutDashboard,
   Map,
@@ -52,7 +51,7 @@ export default function Header({ onOpenReportModal }) {
   }, []);
 
   const getInitials = (name) => {
-    if (!name) return 'C';
+    if (!name) return 'CI';
     const parts = name.trim().split(' ');
     if (parts.length >= 2) {
       return (parts[0][0] + parts[1][0]).toUpperCase();
@@ -79,7 +78,7 @@ export default function Header({ onOpenReportModal }) {
     setLocalInput(village.gp_name);
   };
 
-  // Determine items to display: search results if typing, or top Tamil Nadu villages by default
+  // Determine items to display: search results if typing, or top villages by default
   const displayResults =
     localInput.trim().length > 0
       ? searchResults
@@ -87,9 +86,12 @@ export default function Header({ onOpenReportModal }) {
 
   return (
     <header className="sticky top-0 z-50 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 shadow-xl">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
-        {/* Logo & Branding */}
-        <div className="flex items-center gap-3 flex-shrink-0">
+      <div className="w-full px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+        
+        {/* ================================================================= */}
+        {/* 1. LOGO & BRANDING (FAR LEFT CORNER)                              */}
+        {/* ================================================================= */}
+        <div className="flex items-center gap-3 flex-shrink-0 justify-start">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 via-emerald-500 to-teal-400 flex items-center justify-center text-white shadow-md shadow-emerald-950/60 ring-2 ring-emerald-400/20 flex-shrink-0">
             <Sparkles className="w-5 h-5" />
           </div>
@@ -108,37 +110,11 @@ export default function Header({ onOpenReportModal }) {
           </div>
         </div>
 
-        {/* Navigation Page Tabs (Dashboard vs Dedicated GIS Map) */}
-        <div className="hidden md:flex items-center gap-1 bg-slate-950/80 p-1 rounded-xl border border-slate-800">
-          <button
-            type="button"
-            onClick={() => setActiveTab('dashboard')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-              activeTab === 'dashboard'
-                ? 'bg-emerald-600 text-white shadow-md'
-                : 'text-slate-400 hover:text-white hover:bg-slate-850'
-            }`}
-          >
-            <LayoutDashboard className="w-3.5 h-3.5" />
-            <span>Dashboard</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('map')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-              activeTab === 'map'
-                ? 'bg-emerald-600 text-white shadow-md'
-                : 'text-slate-400 hover:text-white hover:bg-slate-850'
-            }`}
-          >
-            <Map className="w-3.5 h-3.5" />
-            <span>Interactive Map</span>
-          </button>
-        </div>
-
-        {/* PROMINENT REAL VILLAGE LIVE SEARCH BAR */}
-        <div className="flex-1 max-w-sm lg:max-w-md mx-1 relative" ref={searchContainerRef}>
-          <div className="relative">
+        {/* ================================================================= */}
+        {/* 2. PROMINENT EXPANDED SEARCH BAR & DYNAMIC AUTOCOMPLETE OVERLAY   */}
+        {/* ================================================================= */}
+        <div className="relative flex-shrink-0 w-72 sm:w-80 md:w-96" ref={searchContainerRef}>
+          <div className="relative flex items-center">
             <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-emerald-400">
               <Search className="w-4 h-4" />
             </div>
@@ -152,8 +128,8 @@ export default function Header({ onOpenReportModal }) {
                   handleSearch('');
                 }
               }}
-              placeholder="Search village (e.g. Odanthurai, Keeladi...)"
-              className="w-full pl-10 pr-9 py-2 bg-slate-950/90 border border-slate-700/90 hover:border-emerald-500/50 focus:border-emerald-500 rounded-xl text-xs sm:text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-all font-sans shadow-inner"
+              placeholder="Search village, city, or Panchayat..."
+              className="w-80 md:w-96 px-4 py-2 pl-10 pr-9 bg-slate-900 border border-slate-700 focus:border-emerald-500 rounded-xl text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-all font-sans text-xs sm:text-sm shadow-inner"
             />
             {localInput ? (
               <button
@@ -170,21 +146,21 @@ export default function Header({ onOpenReportModal }) {
             ) : null}
           </div>
 
-          {/* Real-time Search Results & Autocomplete Dropdown */}
+          {/* Real-time Search Results & Autocomplete Dropdown Overlay */}
           {isSearchOpen && (
-            <div className="absolute left-0 right-0 top-full mt-2 bg-slate-900 border border-slate-700/90 rounded-2xl shadow-2xl z-50 p-2 space-y-1.5 backdrop-blur-2xl animate-fadeIn max-h-80 overflow-y-auto custom-scrollbar">
+            <div className="absolute left-0 right-0 top-full mt-2 w-full bg-slate-900 border border-slate-700/90 rounded-2xl shadow-2xl z-50 p-2 space-y-1.5 backdrop-blur-2xl animate-fadeIn max-h-80 overflow-y-auto custom-scrollbar">
               <div className="flex items-center justify-between px-2 py-1 border-b border-slate-800 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                 <span className="flex items-center gap-1 text-emerald-400">
                   <Globe className="w-3 h-3" />
-                  {localInput.trim().length > 0 ? 'Live Search & Geocoded Matches' : 'Tamil Nadu Model Panchayats'}
+                  {localInput.trim().length > 0 ? 'Live Search & Geocoded Matches' : 'Popular Panchayats'}
                 </span>
-                <span>{displayResults.length} Habitations</span>
+                <span>{displayResults.length} Found</span>
               </div>
 
               {displayResults.length === 0 ? (
                 <div className="py-6 text-center text-xs text-slate-400 space-y-1">
                   <p className="font-semibold text-slate-300">Searching for &ldquo;{localInput}&rdquo;...</p>
-                  <p className="text-[11px] text-slate-500">Querying OpenStreetMap Tamil Nadu Geocoding API</p>
+                  <p className="text-[11px] text-slate-500">Querying OpenStreetMap Geocoding API</p>
                 </div>
               ) : (
                 displayResults.map((village) => {
@@ -242,10 +218,40 @@ export default function Header({ onOpenReportModal }) {
           )}
         </div>
 
-        {/* Right Controls: Horizon, Actions, Profile */}
-        <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+        {/* ================================================================= */}
+        {/* 3. ACTION BUTTONS & NAVIGATION TABS (CENTER-RIGHT)                */}
+        {/* ================================================================= */}
+        <div className="flex items-center gap-2 sm:gap-2.5 flex-shrink-0">
+          {/* Navigation Page Tabs (Dashboard vs Dedicated GIS Map) */}
+          <div className="hidden lg:flex items-center gap-1 bg-slate-950/80 p-1 rounded-xl border border-slate-800">
+            <button
+              type="button"
+              onClick={() => setActiveTab('dashboard')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                activeTab === 'dashboard'
+                  ? 'bg-emerald-600 text-white shadow-md'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-850'
+              }`}
+            >
+              <LayoutDashboard className="w-3.5 h-3.5" />
+              <span>Dashboard</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('map')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                activeTab === 'map'
+                  ? 'bg-emerald-600 text-white shadow-md'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-850'
+              }`}
+            >
+              <Map className="w-3.5 h-3.5" />
+              <span>Interactive Map</span>
+            </button>
+          </div>
+
           {/* Planning Horizon Selector */}
-          <div className="hidden lg:flex items-center gap-1.5 bg-slate-800 px-2.5 py-1.5 rounded-xl border border-slate-700 text-xs text-slate-300">
+          <div className="hidden md:flex items-center gap-1.5 bg-slate-800 px-2.5 py-1.5 rounded-xl border border-slate-700 text-xs text-slate-300">
             <Calendar className="w-3.5 h-3.5 text-slate-400" />
             <span className="text-[11px]">Horizon:</span>
             <select
@@ -276,45 +282,48 @@ export default function Header({ onOpenReportModal }) {
             gpName={selectedLocation?.gp_name || 'Panchayat'}
             horizonYears={planningHorizon}
           />
-
-          {/* User Profile & Logout Header Section */}
-          <div className="flex items-center gap-2 pl-2 border-l border-slate-800">
-            <div className="flex items-center gap-2.5">
-              {user?.avatar ? (
-                <img
-                  src={user.avatar}
-                  alt={user.name || 'Citizen'}
-                  className="w-8 h-8 rounded-xl object-cover ring-2 ring-emerald-500/40 shadow-sm"
-                />
-              ) : (
-                <div
-                  className="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white text-xs font-black shadow-md border border-white/10"
-                  title={`${user?.name || 'Citizen'} (${user?.email || ''})`}
-                >
-                  {getInitials(user?.name)}
-                </div>
-              )}
-              <div className="hidden xl:flex flex-col text-left">
-                <span className="text-xs font-bold text-slate-200 leading-tight truncate max-w-[130px]">
-                  {user?.name || 'Citizen Resident'}
-                </span>
-                <span className="text-[10px] text-slate-400 font-mono leading-none truncate max-w-[130px]" title={user?.email}>
-                  {user?.email || 'citizen@punsari.in'}
-                </span>
-              </div>
-            </div>
-
-            {/* Logout Button */}
-            <button
-              onClick={logout}
-              title="Logout from GramPulse AI"
-              className="p-2 rounded-xl bg-slate-800/80 hover:bg-rose-950/40 text-slate-400 hover:text-rose-400 border border-slate-700/80 hover:border-rose-500/30 transition-all active:scale-95 flex items-center gap-1 cursor-pointer"
-            >
-              <LogOut className="w-4 h-4" />
-              <span className="text-xs font-medium hidden md:inline">Sign Out</span>
-            </button>
-          </div>
         </div>
+
+        {/* ================================================================= */}
+        {/* 4. USER PROFILE & LOGOUT MENU (FAR RIGHT CORNER)                  */}
+        {/* ================================================================= */}
+        <div className="flex items-center gap-2 pl-2 border-l border-slate-800 flex-shrink-0">
+          <div className="flex items-center gap-2.5">
+            {user?.avatar ? (
+              <img
+                src={user.avatar}
+                alt={user.name || 'Citizen'}
+                className="w-8 h-8 rounded-xl object-cover ring-2 ring-emerald-500/40 shadow-sm"
+              />
+            ) : (
+              <div
+                className="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white text-xs font-black shadow-md border border-white/10"
+                title={`${user?.name || 'Citizen'} (${user?.email || ''})`}
+              >
+                {getInitials(user?.name)}
+              </div>
+            )}
+            <div className="hidden xl:flex flex-col text-left">
+              <span className="text-xs font-bold text-slate-200 leading-tight truncate max-w-[130px]">
+                {user?.name || 'Citizen Resident'}
+              </span>
+              <span className="text-[10px] text-slate-400 font-mono leading-none truncate max-w-[130px]" title={user?.email}>
+                {user?.email || 'citizen@punsari.in'}
+              </span>
+            </div>
+          </div>
+
+          {/* Logout Button */}
+          <button
+            onClick={logout}
+            title="Logout from GramPulse AI"
+            className="p-2 rounded-xl bg-slate-800/80 hover:bg-rose-950/40 text-slate-400 hover:text-rose-400 border border-slate-700/80 hover:border-rose-500/30 transition-all active:scale-95 flex items-center gap-1 cursor-pointer"
+          >
+            <LogOut className="w-4 h-4" />
+            <span className="text-xs font-medium hidden md:inline">Sign Out</span>
+          </button>
+        </div>
+
       </div>
     </header>
   );
