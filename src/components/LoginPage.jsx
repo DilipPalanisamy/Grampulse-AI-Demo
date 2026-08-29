@@ -10,6 +10,7 @@ import {
   EyeOff,
   CheckCircle2,
   ShieldCheck,
+  Award,
 } from 'lucide-react';
 import { useGoogleLogin } from '@react-oauth/google';
 import { useAuth, DEMO_CITIZEN } from '../context/AuthContext';
@@ -73,39 +74,50 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-center items-center px-4 py-8 relative overflow-hidden selection:bg-emerald-500 selection:text-white">
-      {/* Dynamic Background Glows & Grid Pattern */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b12_1px,transparent_1px),linear-gradient(to_bottom,#1e293b12_1px,transparent_1px)] bg-[size:28px_28px] pointer-events-none" />
-      <div className="absolute top-1/4 -left-20 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-1/4 -right-20 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-center items-center px-4 py-10 relative overflow-hidden selection:bg-emerald-500 selection:text-white font-sans">
+      
+      {/* =================================================================== */}
+      {/* Dynamic Background Glows & High-Tech AI Grid Pattern                */}
+      {/* =================================================================== */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b18_1px,transparent_1px),linear-gradient(to_bottom,#1e293b18_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
+      <div className="absolute top-1/4 -left-28 w-[420px] h-[420px] bg-emerald-500/15 rounded-full blur-[120px] pointer-events-none animate-pulse" />
+      <div className="absolute bottom-1/4 -right-28 w-[420px] h-[420px] bg-teal-500/15 rounded-full blur-[120px] pointer-events-none animate-pulse [animation-delay:2s]" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-emerald-900/10 rounded-full blur-[160px] pointer-events-none" />
 
       <div className="w-full max-w-md relative z-10 space-y-6">
+        
         {/* Brand Header */}
-        <div className="text-center space-y-2.5">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-600 via-emerald-500 to-teal-400 text-white shadow-xl shadow-emerald-950/60 ring-4 ring-emerald-500/20">
-            <Sparkles className="w-7 h-7" />
+        <div className="text-center space-y-3">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-emerald-600 via-emerald-500 to-teal-400 text-white shadow-2xl shadow-emerald-950/80 ring-4 ring-emerald-500/20 transform hover:scale-105 transition-transform duration-300">
+            <Sparkles className="w-8 h-8" />
           </div>
-          <div className="space-y-1">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-300 border border-emerald-500/30">
+          
+          <div className="space-y-1.5">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 backdrop-blur-md">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-              Citizen Governance Portal
+              MoPR Rural AI & Geospatial Platform
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white font-sans">
-              GramPulse <span className="text-emerald-400">AI</span>
+            
+            <h1 className="text-3xl font-black tracking-tight text-white font-sans">
+              GramPulse <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300">AI</span>
             </h1>
-            <p className="text-xs sm:text-sm text-slate-400 max-w-sm mx-auto">
-              Predictive GPDP Planning, Geospatial Grievance Redressal & Scheme Benefits
+            
+            <p className="text-xs sm:text-sm text-slate-400 max-w-sm mx-auto leading-relaxed">
+              Predictive GPDP Planning, Spatial Telemetry & Centrally Sponsored Schemes
             </p>
           </div>
         </div>
 
-        {/* Login Form Container */}
-        <div className="bg-slate-900/90 backdrop-blur-xl border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl shadow-black/80 space-y-5">
-          {/* Quick Demo Helper Card */}
-          <div className="bg-slate-950/70 p-3 rounded-2xl border border-slate-800 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <span className="p-1 rounded-lg bg-emerald-500/10 text-emerald-400">
-                <CheckCircle2 className="w-3.5 h-3.5" />
+        {/* =================================================================== */}
+        {/* Modern Dark Glassmorphism Login Card                                */}
+        {/* =================================================================== */}
+        <div className="bg-slate-900/80 backdrop-blur-md border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-2xl shadow-black/90 space-y-5">
+          
+          {/* Quick 1-Click Demo Citizen Card */}
+          <div className="bg-slate-950/70 p-3 rounded-xl border border-slate-800/80 flex items-center justify-between gap-3 shadow-inner">
+            <div className="flex items-center gap-2.5">
+              <span className="p-1.5 rounded-lg bg-emerald-500/15 text-emerald-400 flex-shrink-0">
+                <CheckCircle2 className="w-4 h-4" />
               </span>
               <div className="text-left">
                 <p className="text-[11px] font-bold text-slate-200">1-Click Demo Citizen</p>
@@ -116,16 +128,16 @@ export default function LoginPage() {
               type="button"
               onClick={handleQuickFill}
               disabled={isSubmitting || isGoogleLoading}
-              className="px-3 py-1.5 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 text-xs font-semibold transition-all active:scale-95 disabled:opacity-50"
+              className="px-3 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 text-xs font-bold transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
             >
-              Auto-Fill & Sign In
+              Auto-Fill
             </button>
           </div>
 
           {/* Form */}
           <form onSubmit={handleCredentialsSubmit} className="space-y-4">
             {authError && (
-              <div className="flex items-center gap-2 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs animate-shake">
+              <div className="flex items-center gap-2.5 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs animate-shake">
                 <AlertCircle className="w-4 h-4 flex-shrink-0 text-rose-400" />
                 <span>{authError}</span>
               </div>
@@ -133,7 +145,7 @@ export default function LoginPage() {
 
             {/* Username or Gmail ID */}
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-slate-300">Username or Gmail ID</label>
+              <label className="text-xs font-semibold text-slate-300">Username / Gmail ID</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
                   <User className="w-4 h-4" />
@@ -144,7 +156,7 @@ export default function LoginPage() {
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
                   placeholder="e.g. rahul.sharma@gmail.com or citizen_punsari"
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs sm:text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all font-mono"
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-950/90 border border-slate-700/80 rounded-xl text-xs sm:text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/50 transition-all font-mono shadow-inner"
                 />
               </div>
             </div>
@@ -152,8 +164,8 @@ export default function LoginPage() {
             {/* Password */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-medium text-slate-300">Password</label>
-                <span className="text-[11px] text-slate-500">Secure entry</span>
+                <label className="text-xs font-semibold text-slate-300">Password</label>
+                <span className="text-[11px] text-slate-500">Encrypted</span>
               </div>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
@@ -165,12 +177,12 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full pl-10 pr-10 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs sm:text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all font-mono"
+                  className="w-full pl-10 pr-10 py-2.5 bg-slate-950/90 border border-slate-700/80 rounded-xl text-xs sm:text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/50 transition-all font-mono shadow-inner"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-500 hover:text-slate-300"
+                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-500 hover:text-slate-300 cursor-pointer"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -181,16 +193,16 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isSubmitting || isGoogleLoading}
-              className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 shadow-xl shadow-emerald-950/60 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.99]"
+              className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-bold text-slate-950 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 shadow-xl shadow-emerald-950/60 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.99] cursor-pointer"
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Signing In...</span>
+                  <Loader2 className="w-4 h-4 animate-spin text-slate-950" />
+                  <span>Authenticating...</span>
                 </>
               ) : (
                 <>
-                  <span>Sign In</span>
+                  <span>Sign In to Citizen Portal</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
@@ -206,7 +218,7 @@ export default function LoginPage() {
             <div className="border-t border-slate-800 w-full" />
           </div>
 
-          {/* Continue with Google Button */}
+          {/* Official Prominent Continue with Google Button */}
           <button
             type="button"
             onClick={() => {
@@ -214,7 +226,7 @@ export default function LoginPage() {
               triggerGoogleLogin();
             }}
             disabled={isGoogleLoading || isSubmitting}
-            className="w-full flex items-center justify-center gap-3 py-2.5 px-4 rounded-xl bg-slate-950 hover:bg-slate-850 text-slate-100 border border-slate-700/80 hover:border-slate-600 font-semibold text-xs sm:text-sm shadow-md transition-all active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            className="w-full flex items-center justify-center gap-3 py-2.5 px-4 rounded-xl bg-slate-950/80 hover:bg-slate-900 text-slate-100 border border-slate-700/80 hover:border-slate-600 font-semibold text-xs sm:text-sm shadow-md hover:shadow-lg transition-all active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             {isGoogleLoading ? (
               <>
@@ -246,13 +258,25 @@ export default function LoginPage() {
               </>
             )}
           </button>
+
+          {/* Security & Persistent Session Notice */}
+          <div className="flex items-center justify-center gap-1.5 text-[11px] text-slate-500 pt-1">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Encrypted Citizen Authentication • MoPR Compliant</span>
+          </div>
         </div>
 
-        {/* Security & Permanent Session Notice */}
-        <div className="flex items-center justify-center gap-1.5 text-[11px] text-slate-500">
-          <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-          <span>Persistent session active • Stay signed in automatically</span>
+        {/* =================================================================== */}
+        {/* Presenter Acknowledgment Badge (Dilip & Isanth)                     */}
+        {/* =================================================================== */}
+        <div className="flex items-center justify-center gap-2 py-2 px-4 rounded-xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-sm text-center text-xs text-slate-400">
+          <Award className="w-3.5 h-3.5 text-emerald-400" />
+          <span>
+            GramPulse AI Architecture & Demonstration presented by{' '}
+            <strong className="text-slate-200 font-bold">Dilip &amp; Isanth</strong>
+          </span>
         </div>
+
       </div>
     </div>
   );
