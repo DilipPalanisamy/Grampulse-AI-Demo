@@ -105,10 +105,22 @@ class MatchedSchemeResponse(BaseModel):
     scheme_name: str
     ministry: Optional[str] = "Government of India"
     category: str
-    match_score: float = Field(..., description="Similarity score between 0.00 and 1.00")
-    match_score_percent: float = Field(..., description="Match percentage score e.g. 98.0%")
+    match_score: Optional[float] = Field(default=0.85, description="Similarity score between 0.00 and 1.00")
+    match_score_percent: Optional[float] = Field(default=85.0, description="Match percentage score e.g. 98.0%")
+    priority_tier: Optional[str] = Field(default="P3", description="P1 Critical, P2 High, P3 Planned")
+    priority_label: Optional[str] = Field(default="PLANNED UPGRADE", description="Priority level label")
+    priority_color: Optional[str] = Field(default="#10B981", description="Hex color code")
+    priority_badge_class: Optional[str] = None
+    severity_score: Optional[float] = None
+    deficit_pct: Optional[float] = None
+    estimated_budget_lakhs: Optional[float] = None
     estimated_budget: str = Field(..., description="Formatted budget allocation in INR Lakhs")
+    budget: Optional[str] = None
+    budget_formula_breakdown: Optional[str] = None
     description: str
+    eligibility_criteria: Optional[str] = None
+    benchmark_norm: Optional[str] = None
+    official_portal_url: Optional[str] = None
 
 
 class AnalyticsResponse(BaseModel):
@@ -120,6 +132,7 @@ class AnalyticsResponse(BaseModel):
     planning_horizon_years: int
     target_year: int
     baseline_metrics: Optional[Dict[str, Any]] = None
+    priority_analysis: Optional[Dict[str, Any]] = None
     predictions: Dict[str, Any] = Field(
         ...,
         description="Forecasted demographics, baseline metrics, and calculated deficits",

@@ -48,6 +48,8 @@ from backend.spatial_service import (
 )
 from backend.census_service import derive_deterministic_village_metrics
 from backend.chat_engine import RuralGovernanceChatEngine
+from backend.services.scheme_rag_engine import scheme_rag_engine, SchemeRAGEngine
+from backend.utils.priority_analyzer import calculate_deficit_priorities
 from ai_engine.predictive_model import calculate_infrastructure_deficits
 from ai_engine.scheme_matcher import SchemeMatcherEngine
 from utils.pdf_generator import generate_gpdp_pdf
@@ -106,7 +108,7 @@ app.add_middleware(
 _ANALYTICS_CACHE: Dict[str, Dict[str, Any]] = {}
 
 # Initialize AI RAG Scheme Matcher & Chat Engine Singletons
-scheme_matcher = SchemeMatcherEngine()
+scheme_matcher = scheme_rag_engine
 chat_engine = RuralGovernanceChatEngine()
 
 
@@ -401,8 +403,12 @@ async def get_panchayat_analytics(
         current_metrics=metrics,
     )
 
-    # 2. Execute ChromaDB RAG Vector Scheme Matching Engine
-    matched_schemes = scheme_matcher.match_schemes_for_deficits(predictions, top_k=5)
+    # 2. Execute Deficit Priority & Severity Analysis Algorithm (P1, P2, P3)
+    priority_analysis = calculate_deficit_priorities(predictions)
+    predictions["priority_analysis"] = priority_analysis
+
+    # 3. Execute ChromaDB RAG Vector Scheme Matching Engine
+    matched_schemes = scheme_rag_engine.match_schemes(predictions, top_k=5)
 
     analytics_data = {
         "gp_id": gp.get("gp_id", gp_id),
@@ -419,6 +425,7 @@ async def get_panchayat_analytics(
             "road_coverage_km": float(metrics.get("road_coverage_km", 0.0)),
         },
         "predictions": predictions,
+        "priority_analysis": priority_analysis,
         "matched_schemes": matched_schemes,
         "generated_at": datetime.now(),
     }
@@ -519,8 +526,8 @@ async def download_panchayat_gpdp_pdf(
         current_metrics=metrics,
     )
 
-    # 2. Run ChromaDB Scheme Matcher
-    matched_schemes = scheme_matcher.match_schemes_for_deficits(predictions, top_k=5)
+    # 2. Run ChromaDB RAG Vector Scheme Matcher
+    matched_schemes = scheme_rag_engine.match_schemes(predictions, top_k=5)
 
     # 3. Compile PDF in memory using ReportLab
     try:
