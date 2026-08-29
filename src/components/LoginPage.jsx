@@ -11,20 +11,18 @@ import {
   EyeOff,
   CheckCircle2,
   ShieldCheck,
-  HelpCircle,
   X,
   MapPin,
   KeyRound,
 } from 'lucide-react';
 import { useGoogleLogin } from '@react-oauth/google';
-import { useAuth, DEMO_CITIZEN } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 
 export default function LoginPage() {
   const {
     loginWithCredentials,
     loginWithGoogleAccessToken,
-    quickDemoLogin,
     authError,
     setAuthError,
   } = useAuth();
@@ -95,17 +93,6 @@ export default function LoginPage() {
     setIsSubmitting(true);
     try {
       await loginWithCredentials(signUpIdentifier, signUpPassword);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleQuickFill = async () => {
-    setIdentifier(DEMO_CITIZEN.identifier);
-    setPassword(DEMO_CITIZEN.password);
-    setIsSubmitting(true);
-    try {
-      await quickDemoLogin();
     } finally {
       setIsSubmitting(false);
     }
@@ -216,7 +203,7 @@ export default function LoginPage() {
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-[var(--text-muted)] flex items-center justify-between">
                   <span>Username or Gmail ID</span>
-                  <span className="text-[10px] text-slate-500">e.g. resident@punsari.in</span>
+                  <span className="text-[10px] text-[var(--text-muted)]">e.g. resident@gmail.com</span>
                 </label>
                 <div className="relative flex items-center">
                   <div className="absolute left-3.5 text-slate-400 pointer-events-none">
@@ -240,7 +227,7 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={() => setIsForgotPasswordOpen(true)}
-                    className="text-[11px] font-semibold text-emerald-400 hover:text-emerald-300 transition-colors"
+                    className="text-[11px] font-semibold text-emerald-500 hover:text-emerald-400 transition-colors cursor-pointer"
                   >
                     Forgot Password?
                   </button>
@@ -260,7 +247,7 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 text-slate-400 hover:text-white p-1 rounded-md transition-colors"
+                    className="absolute right-3 text-slate-400 hover:text-[var(--text-main)] p-1 rounded-md transition-colors cursor-pointer"
                     title={showPassword ? 'Hide password' : 'Show password'}
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -285,7 +272,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={isSubmitting || isGoogleLoading}
-                className="w-full py-3 px-4 rounded-xl text-xs font-bold text-slate-950 transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/50 hover:shadow-emerald-900/60 active:scale-98 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-3 px-4 rounded-xl text-xs font-bold text-slate-950 transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/40 hover:shadow-emerald-900/50 active:scale-98 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{
                   background: `linear-gradient(135deg, ${activePalette.primary}, ${activePalette.secondary})`,
                 }}
@@ -384,7 +371,7 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={() => setShowSignUpPassword(!showSignUpPassword)}
-                    className="absolute right-3 text-slate-400 hover:text-white p-1 rounded-md transition-colors"
+                    className="absolute right-3 text-slate-400 hover:text-[var(--text-main)] p-1 rounded-md transition-colors cursor-pointer"
                   >
                     {showSignUpPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -394,7 +381,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={isSubmitting || isGoogleLoading}
-                className="w-full py-3 px-4 rounded-xl text-xs font-bold text-slate-950 transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/50 hover:shadow-emerald-900/60 active:scale-98 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+                className="w-full py-3 px-4 rounded-xl text-xs font-bold text-slate-950 transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/40 hover:shadow-emerald-900/50 active:scale-98 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed mt-2"
                 style={{
                   background: `linear-gradient(135deg, ${activePalette.primary}, ${activePalette.secondary})`,
                 }}
@@ -417,7 +404,7 @@ export default function LoginPage() {
           {/* Divider */}
           <div className="relative flex items-center justify-center">
             <div className="border-t border-[var(--border-subtle)] w-full" />
-            <span className="bg-[var(--bg-card)] px-3 text-[10px] uppercase font-bold text-[var(--text-subtle)] tracking-wider absolute">
+            <span className="bg-[var(--bg-card)] px-3 text-[10px] uppercase font-bold text-[var(--text-muted)] tracking-wider absolute">
               Or Authenticate With
             </span>
           </div>
@@ -431,7 +418,7 @@ export default function LoginPage() {
           >
             {isGoogleLoading ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin text-emerald-400" />
+                <Loader2 className="w-4 h-4 animate-spin text-emerald-500" />
                 <span>Connecting to Google OAuth 2.0...</span>
               </>
             ) : (
@@ -459,26 +446,9 @@ export default function LoginPage() {
             )}
           </button>
 
-          {/* Instant 1-Click Demo Citizen Account Button */}
-          <button
-            type="button"
-            onClick={handleQuickFill}
-            disabled={isSubmitting || isGoogleLoading}
-            className="w-full py-2 px-4 rounded-xl text-xs font-semibold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98"
-          >
-            {isSubmitting ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-            ) : (
-              <>
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>1-Click Demo Citizen Login (Pre-filled)</span>
-              </>
-            )}
-          </button>
-
           {/* Security & Persistent Session Notice */}
-          <div className="flex items-center justify-center gap-1.5 text-[11px] text-[var(--text-subtle)] pt-1">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" style={{ color: activePalette.primary }} />
+          <div className="flex items-center justify-center gap-1.5 text-[11px] text-[var(--text-muted)] pt-1">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" style={{ color: activePalette.primary }} />
             <span>Encrypted Citizen Authentication • MoPR Compliant</span>
           </div>
         </div>
@@ -492,14 +462,14 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={() => setIsForgotPasswordOpen(false)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 cursor-pointer"
+              className="absolute top-4 right-4 text-slate-400 hover:text-[var(--text-main)] p-1 rounded-lg hover:bg-[var(--bg-card-hover)] cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
 
             <div className="flex items-center gap-2.5">
               <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center text-white"
+                className="w-10 h-10 rounded-2xl flex items-center justify-center text-white"
                 style={{ backgroundColor: `${activePalette.primary}25`, color: activePalette.primary }}
               >
                 <KeyRound className="w-5 h-5" />
@@ -511,7 +481,7 @@ export default function LoginPage() {
             </div>
 
             {forgotSuccess ? (
-              <div className="p-3 bg-emerald-500/15 border border-emerald-500/30 rounded-xl text-xs text-emerald-300 flex items-center gap-2">
+              <div className="p-3 bg-emerald-500/15 border border-emerald-500/30 rounded-xl text-xs text-emerald-500 flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
                 <span>Password reset instructions sent to your email!</span>
               </div>
@@ -524,7 +494,7 @@ export default function LoginPage() {
                     required
                     value={forgotEmail}
                     onChange={(e) => setForgotEmail(e.target.value)}
-                    placeholder="e.g. resident@punsari.in"
+                    placeholder="e.g. resident@gmail.com"
                     className="w-full px-3.5 py-2 bg-[var(--bg-primary)] border border-[var(--border-subtle)] rounded-xl text-xs text-[var(--text-main)] placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   />
                 </div>
