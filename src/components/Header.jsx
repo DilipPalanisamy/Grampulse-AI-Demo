@@ -15,7 +15,6 @@ import {
   Map,
   Sun,
   Moon,
-  FileDown,
   CheckCircle2,
   AlertCircle,
   Compass,
@@ -23,7 +22,6 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { useLocation } from '../context/LocationContext';
 import { useTheme } from '../context/ThemeContext';
-import { exportVillagePDFReport } from '../services/PDFExportService';
 
 /**
  * Highlights substring matches within a text string.
@@ -79,8 +77,6 @@ export default function Header({ onOpenReportModal }) {
 
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [localInput, setLocalInput] = useState('');
-  const [isDownloadingPDF, setIsDownloadingPDF] = useState(false);
-  const [downloadSuccess, setDownloadSuccess] = useState(false);
   const searchContainerRef = useRef(null);
 
   // Close search dropdown on outside click
@@ -130,29 +126,6 @@ export default function Header({ onOpenReportModal }) {
       }
     } else if (e.key === 'Escape') {
       setIsSearchOpen(false);
-    }
-  };
-
-  // Trigger Client-Side PDF Generation and Instant Download
-  const handleDownloadReport = async () => {
-    if (isDownloadingPDF) return;
-    setIsDownloadingPDF(true);
-    setDownloadSuccess(false);
-
-    try {
-      await exportVillagePDFReport({
-        location: selectedLocation,
-        analytics,
-        infrastructure,
-        schemes: analytics?.matched_schemes || [],
-        planningHorizon,
-      });
-      setDownloadSuccess(true);
-      setTimeout(() => setDownloadSuccess(false), 3500);
-    } catch (err) {
-      console.error('PDF Generation Failed:', err);
-    } finally {
-      setIsDownloadingPDF(false);
     }
   };
 
@@ -369,37 +342,6 @@ export default function Header({ onOpenReportModal }) {
               <option value={7} className="bg-[var(--bg-card)] text-[var(--text-main)]">7 Yrs</option>
             </select>
           </div>
-
-          {/* Prominent Action Button: Download Full Report (PDF) */}
-          <button
-            type="button"
-            onClick={handleDownloadReport}
-            disabled={isDownloadingPDF}
-            className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold shadow-lg transition-all duration-200 cursor-pointer active:scale-95 flex-shrink-0 ${
-              downloadSuccess
-                ? 'bg-emerald-600 text-white shadow-emerald-950/60 ring-2 ring-emerald-400'
-                : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-emerald-950/40 ring-1 ring-emerald-400/40 hover:shadow-emerald-900/50'
-            } disabled:opacity-50 disabled:cursor-not-allowed`}
-            title="Generate & Download Full Executive GPDP PDF Report"
-          >
-            {isDownloadingPDF ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin text-white" />
-                <span className="hidden sm:inline">Generating PDF...</span>
-              </>
-            ) : downloadSuccess ? (
-              <>
-                <CheckCircle2 className="w-4 h-4 text-white animate-bounce" />
-                <span className="hidden sm:inline">Report Downloaded!</span>
-              </>
-            ) : (
-              <>
-                <FileDown className="w-4 h-4 text-white" />
-                <span className="hidden sm:inline">Download Full Report (PDF)</span>
-                <span className="sm:hidden">PDF</span>
-              </>
-            )}
-          </button>
 
           {/* Report Citizen Issue Action Button */}
           <button

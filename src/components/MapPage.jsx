@@ -20,7 +20,6 @@ import {
 } from 'lucide-react';
 import { useLocation } from '../context/LocationContext';
 import MapView from './MapView';
-import ReportDownloadButton from './ReportDownloadButton';
 import IssueReportForm from './IssueReportForm';
 
 export default function MapPage({ onBackToDashboard, onOpenChatbot }) {
@@ -114,13 +113,6 @@ export default function MapPage({ onBackToDashboard, onOpenChatbot }) {
             <PlusCircle className="w-3.5 h-3.5 text-emerald-500" />
             <span className="hidden sm:inline">Report</span>
           </button>
-
-          {/* Export GPDP PDF Report */}
-          <ReportDownloadButton
-            gpId={selectedLocation?.gp_id || selectedGpId}
-            gpName={selectedLocation?.gp_name || 'Panchayat'}
-            horizonYears={planningHorizon}
-          />
         </div>
       </div>
 
