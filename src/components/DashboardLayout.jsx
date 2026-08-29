@@ -248,7 +248,13 @@ function DashboardLayout() {
                 infrastructure={infrastructure}
                 selectedLocation={selectedLocation}
                 selectedGpId={selectedGpId}
-                onSelectLocation={(loc) => selectLocation(loc)}
+                onSelectLocation={(loc) => selectLocation(loc, false)}
+                onAnalyzeLocation={(loc) => {
+                  selectLocation(loc, false);
+                  if (typeof window !== 'undefined') {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }
+                }}
                 className="border-[var(--border-subtle)] shadow-2xl h-[480px]"
               />
             </Suspense>

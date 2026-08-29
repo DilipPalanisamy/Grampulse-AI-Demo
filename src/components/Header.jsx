@@ -117,13 +117,9 @@ export default function Header({ onOpenReportModal }) {
   };
 
   const handleSelectVillage = (village) => {
-    selectLocation(village);
+    selectLocation(village, false);
     setIsSearchOpen(false);
     setLocalInput(village.gp_name || '');
-    if (setActiveTab) {
-      setActiveTab('dashboard');
-    }
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleKeyDown = (e) => {

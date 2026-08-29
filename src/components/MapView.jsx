@@ -370,6 +370,7 @@ const MapView = ({
   selectedLocation = null,
   selectedGpId = 4,
   onSelectLocation,
+  onAnalyzeLocation,
   className = '',
 }) => {
   const { selectLocation, setActiveTab } = useLocation();
@@ -402,6 +403,7 @@ const MapView = ({
 
   /**
    * Universal handler to analyze selected location and switch to Dashboard view
+   * Executes ONLY when the explicit "Analyze This Location" / "Analyze The Village" button is clicked.
    */
   const handleAnalyzeLocation = useCallback(
     (loc) => {
@@ -420,23 +422,29 @@ const MapView = ({
         gp_code: loc.gp_code || `GP-${loc.gp_id || 'PIN'}`,
       };
 
-      if (onSelectLocation) {
-        onSelectLocation(locationPayload);
-      } else if (selectLocation) {
-        selectLocation(locationPayload);
-      }
+      if (onAnalyzeLocation) {
+        onAnalyzeLocation(locationPayload);
+      } else {
+        if (onSelectLocation) {
+          onSelectLocation(locationPayload);
+        } else if (selectLocation) {
+          selectLocation(locationPayload, false);
+        }
 
-      if (setActiveTab) {
-        setActiveTab('dashboard');
-      }
+        if (setActiveTab) {
+          setActiveTab('dashboard');
+        }
 
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+        if (typeof window !== 'undefined') {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      }
     },
-    [onSelectLocation, selectLocation, setActiveTab]
+    [onAnalyzeLocation, onSelectLocation, selectLocation, setActiveTab]
   );
 
   /**
-   * Handles Manual Pin Drop anywhere on the Map
+   * Handles Manual Pin Drop anywhere on the Map (Stays on map view)
    */
   const handleMapClick = useCallback(
     async (latlng) => {
@@ -463,9 +471,11 @@ const MapView = ({
         const resolved = { ...tempLoc, ...geocoded };
         setManualPinnedLocation(resolved);
 
-        // Automatically update active global state and trigger ML analytics & schemes
+        // Update active location metadata without routing to dashboard
         if (onSelectLocation) {
           onSelectLocation(resolved);
+        } else if (selectLocation) {
+          selectLocation(resolved, false);
         }
       } catch (err) {
         console.error('Error reverse geocoding manual pin:', err);
@@ -473,7 +483,7 @@ const MapView = ({
         setIsGeocodingPin(false);
       }
     },
-    [onSelectLocation]
+    [onSelectLocation, selectLocation]
   );
 
   return (
@@ -723,10 +733,10 @@ const MapView = ({
                 <button
                   type="button"
                   onClick={() => handleAnalyzeLocation(manualPinnedLocation)}
-                  className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold shadow-md transition-all flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer"
+                  className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold shadow-md transition-all flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer"
                 >
-                  <Activity className="w-3.5 h-3.5" />
-                  <span>Analyze This Location</span>
+                  <Activity className="w-4 h-4" />
+                  <span>Analyze The Village</span>
                 </button>
               </div>
             </Popup>
@@ -788,10 +798,10 @@ const MapView = ({
                   <button
                     type="button"
                     onClick={() => handleAnalyzeLocation(loc)}
-                    className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold shadow-md transition-all flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer"
+                    className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold shadow-md transition-all flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer"
                   >
-                    <Activity className="w-3.5 h-3.5" />
-                    <span>Analyze This Location</span>
+                    <Activity className="w-4 h-4" />
+                    <span>Analyze The Village</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -893,6 +903,7 @@ MapView.propTypes = {
   selectedLocation: PropTypes.object,
   selectedGpId: PropTypes.number,
   onSelectLocation: PropTypes.func,
+  onAnalyzeLocation: PropTypes.func,
   className: PropTypes.string,
 };
 

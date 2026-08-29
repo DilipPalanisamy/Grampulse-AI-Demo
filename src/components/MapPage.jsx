@@ -134,7 +134,11 @@ export default function MapPage({ onBackToDashboard, onOpenChatbot }) {
           infrastructure={infrastructure}
           selectedLocation={selectedLocation}
           selectedGpId={selectedGpId}
-          onSelectLocation={(loc) => selectLocation(loc)}
+          onSelectLocation={(loc) => selectLocation(loc, false)}
+          onAnalyzeLocation={(loc) => {
+            selectLocation(loc, false);
+            onBackToDashboard();
+          }}
           className="w-full h-full rounded-none border-none"
         />
       </div>
