@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import {
   Users,
@@ -20,6 +20,7 @@ import {
   Compass,
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
+import { useLocation } from '../context/LocationContext';
 
 /**
  * Returns formatted priority badge object with icon, colors, and label.
@@ -74,6 +75,21 @@ const AnalyticsPanel = ({
   loading = false,
 }) => {
   const { activePalette } = useTheme();
+  const { selectedLocation, loadAnalytics, loadInfrastructure } = useLocation();
+
+  // Automatic Data Refresh on Navigation when selectedLocation changes
+  useEffect(() => {
+    if (selectedLocation?.gp_id || (selectedLocation?.lat && selectedLocation?.lng)) {
+      loadAnalytics();
+      loadInfrastructure();
+    }
+  }, [
+    selectedLocation?.gp_id,
+    selectedLocation?.lat,
+    selectedLocation?.lng,
+    loadAnalytics,
+    loadInfrastructure,
+  ]);
 
   if (loading) {
     return (
@@ -200,7 +216,13 @@ const AnalyticsPanel = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-2 font-mono text-xs sm:text-sm">
+        <div className="flex flex-wrap items-center gap-2 font-mono text-xs sm:text-sm">
+          {selectedLocation?.gp_name && (
+            <span className="px-3 py-1.5 rounded-xl bg-[var(--bg-primary)] text-[var(--text-main)] border border-[var(--border-subtle)] font-bold flex items-center gap-1.5">
+              <MapPin className="w-3.5 h-3.5 text-emerald-500" />
+              <span>{selectedLocation.gp_name}</span>
+            </span>
+          )}
           <span className="px-3.5 py-1.5 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 font-bold">
             P1: {waterTier === 'P1' ? 'Water ' : ''}{classTier === 'P1' ? 'Education ' : ''}{roadTier === 'P1' ? 'Roads ' : ''}{healthTier === 'P1' ? 'Health' : ''}
           </span>

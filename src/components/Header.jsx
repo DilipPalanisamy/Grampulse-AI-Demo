@@ -120,6 +120,10 @@ export default function Header({ onOpenReportModal }) {
     selectLocation(village);
     setIsSearchOpen(false);
     setLocalInput(village.gp_name || '');
+    if (setActiveTab) {
+      setActiveTab('dashboard');
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleKeyDown = (e) => {
@@ -166,16 +170,30 @@ export default function Header({ onOpenReportModal }) {
         {/* ================================================================= */}
         {/* 1. FAR LEFT: BRANDING & PLATFORM LOGO                             */}
         {/* ================================================================= */}
-        <div className="flex items-center gap-2.5 sm:gap-3 flex-shrink-0 justify-start">
+        <div
+          onClick={() => {
+            if (setActiveTab) setActiveTab('dashboard');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          className="flex items-center gap-2.5 sm:gap-3 flex-shrink-0 justify-start cursor-pointer group"
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              if (setActiveTab) setActiveTab('dashboard');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+          }}
+        >
           <div
-            className="w-10 h-10 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-emerald-950/40 ring-2 ring-emerald-400/30 flex-shrink-0"
+            className="w-10 h-10 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-emerald-950/40 ring-2 ring-emerald-400/30 flex-shrink-0 group-hover:scale-105 transition-transform"
             style={{ backgroundColor: `${activePalette.primary}25`, color: activePalette.primary }}
           >
             <Sparkles className="w-5 h-5" />
           </div>
           <div className="hidden sm:block">
             <div className="flex items-center gap-1.5">
-              <h1 className="text-base sm:text-lg font-black tracking-tight text-[var(--text-main)] font-sans">
+              <h1 className="text-base sm:text-lg font-black tracking-tight text-[var(--text-main)] font-sans group-hover:text-emerald-500 transition-colors">
                 GramPulse <span style={{ color: activePalette.primary }} className="font-extrabold">AI</span>
               </h1>
               <span

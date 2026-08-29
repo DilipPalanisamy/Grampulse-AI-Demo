@@ -26,6 +26,7 @@ import {
   Loader2,
   Activity,
 } from 'lucide-react';
+import { useLocation } from '../context/LocationContext';
 import { reverseGeocodeCoordinates } from '../services/villageSearchService';
 
 // =============================================================================
@@ -371,6 +372,7 @@ const MapView = ({
   onSelectLocation,
   className = '',
 }) => {
+  const { selectLocation, setActiveTab } = useLocation();
   const [mapStyle, setMapStyle] = useState('satellite');
   const [showInfra, setShowInfra] = useState(true);
 
@@ -397,6 +399,41 @@ const MapView = ({
 
   const activeProvider = MAP_PROVIDERS[mapStyle] || MAP_PROVIDERS.satellite;
   const activeGeoJson = selectedLocation?.geojson || null;
+
+  /**
+   * Universal handler to analyze selected location and switch to Dashboard view
+   */
+  const handleAnalyzeLocation = useCallback(
+    (loc) => {
+      if (!loc) return;
+      const locationPayload = {
+        gp_id: loc.gp_id || Math.floor(1000 + Math.random() * 9000),
+        gp_name: loc.gp_name || loc.name || 'Habitation',
+        district: loc.district || 'District',
+        state: loc.state || 'Tamil Nadu',
+        lat: Number(loc.lat),
+        lng: Number(loc.lng),
+        population: loc.population || 5000,
+        daily_water_supply_liters: loc.daily_water_supply_liters || 275000,
+        school_classrooms_count: loc.school_classrooms_count || 24,
+        road_coverage_km: loc.road_coverage_km || 18.5,
+        gp_code: loc.gp_code || `GP-${loc.gp_id || 'PIN'}`,
+      };
+
+      if (onSelectLocation) {
+        onSelectLocation(locationPayload);
+      } else if (selectLocation) {
+        selectLocation(locationPayload);
+      }
+
+      if (setActiveTab) {
+        setActiveTab('dashboard');
+      }
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    },
+    [onSelectLocation, selectLocation, setActiveTab]
+  );
 
   /**
    * Handles Manual Pin Drop anywhere on the Map
@@ -685,9 +722,7 @@ const MapView = ({
 
                 <button
                   type="button"
-                  onClick={() => {
-                    if (onSelectLocation) onSelectLocation(manualPinnedLocation);
-                  }}
+                  onClick={() => handleAnalyzeLocation(manualPinnedLocation)}
                   className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold shadow-md transition-all flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer"
                 >
                   <Activity className="w-3.5 h-3.5" />
@@ -752,12 +787,11 @@ const MapView = ({
 
                   <button
                     type="button"
-                    onClick={() => {
-                      if (onSelectLocation) onSelectLocation(loc);
-                    }}
-                    className="w-full py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md transition-all flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer"
+                    onClick={() => handleAnalyzeLocation(loc)}
+                    className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold shadow-md transition-all flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer"
                   >
-                    <span>View Live Analytics &amp; GPDP Plan</span>
+                    <Activity className="w-3.5 h-3.5" />
+                    <span>Analyze This Location</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
