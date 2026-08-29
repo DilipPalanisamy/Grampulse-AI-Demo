@@ -1,8 +1,11 @@
 import React from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { LocationProvider } from './context/LocationContext';
+import { ThemeProvider } from './context/ThemeContext';
 import LoginPage from './components/LoginPage';
 import DashboardLayout from './components/DashboardLayout';
+import LiveBackgroundCanvas from './components/LiveBackgroundCanvas';
+import ThemeCustomizer from './components/ThemeCustomizer';
 import { Loader2, Sparkles, AlertTriangle, RefreshCw } from 'lucide-react';
 
 class ErrorBoundary extends React.Component {
@@ -71,23 +74,36 @@ function AppContent() {
     );
   }
 
-  if (!isAuthenticated) {
-    return <LoginPage />;
-  }
-
   return (
-    <LocationProvider>
-      <DashboardLayout />
-    </LocationProvider>
+    <>
+      {/* Interactive Global Animated Background Canvas (z-0) */}
+      <LiveBackgroundCanvas />
+
+      {/* Main Route Content */}
+      <div className="relative z-10">
+        {!isAuthenticated ? (
+          <LoginPage />
+        ) : (
+          <LocationProvider>
+            <DashboardLayout />
+          </LocationProvider>
+        )}
+      </div>
+
+      {/* Slide-out Theme Customizer Drawer & Floating Launcher */}
+      <ThemeCustomizer />
+    </>
   );
 }
 
 export default function App() {
   return (
     <ErrorBoundary>
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
+      </ThemeProvider>
     </ErrorBoundary>
   );
 }

@@ -3,6 +3,7 @@ import {
   Sparkles,
   User,
   Lock,
+  Mail,
   ArrowRight,
   Loader2,
   AlertCircle,
@@ -11,9 +12,14 @@ import {
   CheckCircle2,
   ShieldCheck,
   Award,
+  HelpCircle,
+  X,
+  MapPin,
+  KeyRound,
 } from 'lucide-react';
 import { useGoogleLogin } from '@react-oauth/google';
 import { useAuth, DEMO_CITIZEN } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 
 export default function LoginPage() {
   const {
@@ -23,12 +29,30 @@ export default function LoginPage() {
     authError,
     setAuthError,
   } = useAuth();
+  const { activePalette } = useTheme();
 
+  // Tab State: 'signin' | 'signup'
+  const [activeTab, setActiveTab] = useState('signin');
+
+  // Sign In Form States
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
+
+  // Sign Up Form States
+  const [signUpName, setSignUpName] = useState('');
+  const [signUpIdentifier, setSignUpIdentifier] = useState('');
+  const [signUpVillage, setSignUpVillage] = useState('Odanthurai GP');
+  const [signUpPassword, setSignUpPassword] = useState('');
+  const [showSignUpPassword, setShowSignUpPassword] = useState(false);
+
+  // Loading States
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotSuccess, setForgotSuccess] = useState(false);
 
   // Google OAuth 2.0 Popup Trigger
   const triggerGoogleLogin = useGoogleLogin({
@@ -47,7 +71,7 @@ export default function LoginPage() {
     },
   });
 
-  const handleCredentialsSubmit = async (e) => {
+  const handleSignInSubmit = async (e) => {
     e.preventDefault();
     if (!identifier.trim() || !password.trim()) {
       setAuthError('Please enter your Username or Gmail ID and Password.');
@@ -57,6 +81,21 @@ export default function LoginPage() {
     setIsSubmitting(true);
     try {
       await loginWithCredentials(identifier, password);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSignUpSubmit = async (e) => {
+    e.preventDefault();
+    if (!signUpName.trim() || !signUpIdentifier.trim() || !signUpPassword.trim()) {
+      setAuthError('Please fill out all registration fields.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await loginWithCredentials(signUpIdentifier, signUpPassword);
     } finally {
       setIsSubmitting(false);
     }
@@ -73,144 +112,346 @@ export default function LoginPage() {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-center items-center px-4 py-10 relative overflow-hidden selection:bg-emerald-500 selection:text-white font-sans">
-      
-      {/* =================================================================== */}
-      {/* Dynamic Background Glows & High-Tech AI Grid Pattern                */}
-      {/* =================================================================== */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b18_1px,transparent_1px),linear-gradient(to_bottom,#1e293b18_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
-      <div className="absolute top-1/4 -left-28 w-[420px] h-[420px] bg-emerald-500/15 rounded-full blur-[120px] pointer-events-none animate-pulse" />
-      <div className="absolute bottom-1/4 -right-28 w-[420px] h-[420px] bg-teal-500/15 rounded-full blur-[120px] pointer-events-none animate-pulse [animation-delay:2s]" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-emerald-900/10 rounded-full blur-[160px] pointer-events-none" />
+  const handleForgotPasswordSubmit = (e) => {
+    e.preventDefault();
+    if (forgotEmail.trim()) {
+      setForgotSuccess(true);
+      setTimeout(() => {
+        setIsForgotPasswordOpen(false);
+        setForgotSuccess(false);
+        setForgotEmail('');
+      }, 2500);
+    }
+  };
 
-      <div className="w-full max-w-md relative z-10 space-y-6">
+  return (
+    <div className="min-h-screen bg-slate-950/80 text-slate-100 flex flex-col justify-center items-center px-4 py-10 relative selection:bg-emerald-500 selection:text-white font-sans">
+      
+      <div className="w-full max-w-md relative z-10 space-y-5">
         
         {/* Brand Header */}
-        <div className="text-center space-y-3">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-emerald-600 via-emerald-500 to-teal-400 text-white shadow-2xl shadow-emerald-950/80 ring-4 ring-emerald-500/20 transform hover:scale-105 transition-transform duration-300">
-            <Sparkles className="w-8 h-8" />
+        <div className="text-center space-y-2.5">
+          <div
+            className="inline-flex items-center justify-center w-14 h-14 rounded-2xl text-white shadow-2xl ring-4 ring-white/10 transform hover:scale-105 transition-transform duration-300"
+            style={{
+              background: `linear-gradient(135deg, ${activePalette.primary}, ${activePalette.secondary})`,
+              boxShadow: `0 20px 35px -10px ${activePalette.primary}50`,
+            }}
+          >
+            <Sparkles className="w-7 h-7" />
           </div>
           
-          <div className="space-y-1.5">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 backdrop-blur-md">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-              MoPR Rural AI & Geospatial Platform
+          <div className="space-y-1">
+            <div className="inline-flex items-center gap-2 px-3 py-0.5 rounded-full text-xs font-semibold bg-slate-900/80 text-emerald-300 border border-white/10 backdrop-blur-md">
+              <span
+                className="w-2 h-2 rounded-full animate-ping"
+                style={{ backgroundColor: activePalette.primary }}
+              />
+              <span style={{ color: activePalette.primary }}>MoPR Rural AI &amp; Geospatial Platform</span>
             </div>
             
-            <h1 className="text-3xl font-black tracking-tight text-white font-sans">
-              GramPulse <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300">AI</span>
+            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white font-sans">
+              GramPulse <span style={{ color: activePalette.primary }}>AI</span>
             </h1>
             
-            <p className="text-xs sm:text-sm text-slate-400 max-w-sm mx-auto leading-relaxed">
-              Predictive GPDP Planning, Spatial Telemetry & Centrally Sponsored Schemes
+            <p className="text-xs text-slate-400 max-w-sm mx-auto leading-relaxed">
+              Predictive GPDP Planning, Spatial Telemetry &amp; Centrally Sponsored Schemes
             </p>
           </div>
         </div>
 
         {/* =================================================================== */}
-        {/* Modern Dark Glassmorphism Login Card                                */}
+        {/* Modern Glassmorphic Auth Card                                       */}
         {/* =================================================================== */}
-        <div className="bg-slate-900/80 backdrop-blur-md border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-2xl shadow-black/90 space-y-5">
+        <div className="bg-slate-900/75 backdrop-blur-xl border border-white/10 rounded-2xl p-6 sm:p-8 shadow-2xl shadow-black/90 space-y-5">
           
-          {/* Quick 1-Click Demo Citizen Card */}
-          <div className="bg-slate-950/70 p-3 rounded-xl border border-slate-800/80 flex items-center justify-between gap-3 shadow-inner">
-            <div className="flex items-center gap-2.5">
-              <span className="p-1.5 rounded-lg bg-emerald-500/15 text-emerald-400 flex-shrink-0">
-                <CheckCircle2 className="w-4 h-4" />
-              </span>
-              <div className="text-left">
-                <p className="text-[11px] font-bold text-slate-200">1-Click Demo Citizen</p>
-                <p className="text-[10px] text-slate-400 font-mono">citizen@punsari.in / citizen123</p>
-              </div>
-            </div>
+          {/* Sign In vs Sign Up Tab Switcher */}
+          <div className="grid grid-cols-2 gap-1 bg-slate-950/80 p-1 rounded-xl border border-slate-800">
             <button
               type="button"
-              onClick={handleQuickFill}
-              disabled={isSubmitting || isGoogleLoading}
-              className="px-3 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 text-xs font-bold transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
+              onClick={() => {
+                setActiveTab('signin');
+                setAuthError(null);
+              }}
+              className={`py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                activeTab === 'signin'
+                  ? 'bg-slate-850 text-white shadow-md'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+              style={{
+                backgroundColor: activeTab === 'signin' ? `${activePalette.primary}20` : undefined,
+                color: activeTab === 'signin' ? activePalette.primary : undefined,
+                border: activeTab === 'signin' ? `1px solid ${activePalette.primary}40` : undefined,
+              }}
             >
-              Auto-Fill
+              Sign In
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setActiveTab('signup');
+                setAuthError(null);
+              }}
+              className={`py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                activeTab === 'signup'
+                  ? 'bg-slate-850 text-white shadow-md'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+              style={{
+                backgroundColor: activeTab === 'signup' ? `${activePalette.primary}20` : undefined,
+                color: activeTab === 'signup' ? activePalette.primary : undefined,
+                border: activeTab === 'signup' ? `1px solid ${activePalette.primary}40` : undefined,
+              }}
+            >
+              Sign Up
             </button>
           </div>
 
-          {/* Form */}
-          <form onSubmit={handleCredentialsSubmit} className="space-y-4">
-            {authError && (
-              <div className="flex items-center gap-2.5 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs animate-shake">
-                <AlertCircle className="w-4 h-4 flex-shrink-0 text-rose-400" />
-                <span>{authError}</span>
-              </div>
-            )}
-
-            {/* Username or Gmail ID */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-300">Username / Gmail ID</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
-                  <User className="w-4 h-4" />
-                </div>
-                <input
-                  type="text"
-                  required
-                  value={identifier}
-                  onChange={(e) => setIdentifier(e.target.value)}
-                  placeholder="e.g. rahul.sharma@gmail.com or citizen_punsari"
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-950/90 border border-slate-700/80 rounded-xl text-xs sm:text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/50 transition-all font-mono shadow-inner"
-                />
-              </div>
-            </div>
-
-            {/* Password */}
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <label className="text-xs font-semibold text-slate-300">Password</label>
-                <span className="text-[11px] text-slate-500">Encrypted</span>
-              </div>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
-                  <Lock className="w-4 h-4" />
-                </div>
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full pl-10 pr-10 py-2.5 bg-slate-950/90 border border-slate-700/80 rounded-xl text-xs sm:text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/50 transition-all font-mono shadow-inner"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-500 hover:text-slate-300 cursor-pointer"
+          {/* Quick 1-Click Demo Citizen Card (Only on Sign In tab) */}
+          {activeTab === 'signin' && (
+            <div className="bg-slate-950/70 p-3 rounded-xl border border-slate-800/80 flex items-center justify-between gap-3 shadow-inner">
+              <div className="flex items-center gap-2.5">
+                <span
+                  className="p-1.5 rounded-lg flex-shrink-0"
+                  style={{ backgroundColor: `${activePalette.primary}20`, color: activePalette.primary }}
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
+                  <CheckCircle2 className="w-4 h-4" />
+                </span>
+                <div className="text-left">
+                  <p className="text-[11px] font-bold text-slate-200">1-Click Demo Citizen</p>
+                  <p className="text-[10px] text-slate-400 font-mono">citizen@punsari.in / citizen123</p>
+                </div>
               </div>
+              <button
+                type="button"
+                onClick={handleQuickFill}
+                disabled={isSubmitting || isGoogleLoading}
+                className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all active:scale-95 disabled:opacity-50 cursor-pointer border"
+                style={{
+                  backgroundColor: `${activePalette.primary}20`,
+                  color: activePalette.primary,
+                  borderColor: `${activePalette.primary}40`,
+                }}
+              >
+                Auto-Fill
+              </button>
             </div>
+          )}
 
-            {/* Primary Sign In Button */}
-            <button
-              type="submit"
-              disabled={isSubmitting || isGoogleLoading}
-              className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-bold text-slate-950 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 shadow-xl shadow-emerald-950/60 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.99] cursor-pointer"
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin text-slate-950" />
-                  <span>Authenticating...</span>
-                </>
-              ) : (
-                <>
-                  <span>Sign In to Citizen Portal</span>
-                  <ArrowRight className="w-4 h-4" />
-                </>
-              )}
-            </button>
-          </form>
+          {/* Error Banner */}
+          {authError && (
+            <div className="flex items-center gap-2.5 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs animate-shake">
+              <AlertCircle className="w-4 h-4 flex-shrink-0 text-rose-400" />
+              <span>{authError}</span>
+            </div>
+          )}
+
+          {/* ----------------------------------------------------------------- */}
+          {/* TAB 1: SIGN IN FORM                                               */}
+          {/* ----------------------------------------------------------------- */}
+          {activeTab === 'signin' ? (
+            <form onSubmit={handleSignInSubmit} className="space-y-3.5">
+              {/* Username or Gmail ID */}
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-300">Username or Gmail ID</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                    <User className="w-4 h-4" />
+                  </div>
+                  <input
+                    type="text"
+                    required
+                    value={identifier}
+                    onChange={(e) => setIdentifier(e.target.value)}
+                    placeholder="e.g. citizen@punsari.in or dilip_tamilnadu"
+                    className="w-full pl-10 pr-4 py-2.5 bg-slate-950/90 border border-slate-700/80 rounded-xl text-xs sm:text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all font-mono shadow-inner"
+                    style={{ borderColor: identifier ? `${activePalette.primary}60` : undefined }}
+                  />
+                </div>
+              </div>
+
+              {/* Password */}
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-slate-300">Password</label>
+                  <button
+                    type="button"
+                    onClick={() => setIsForgotPasswordOpen(true)}
+                    className="text-[11px] text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
+                  >
+                    Forgot Password?
+                  </button>
+                </div>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                    <Lock className="w-4 h-4" />
+                  </div>
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full pl-10 pr-10 py-2.5 bg-slate-950/90 border border-slate-700/80 rounded-xl text-xs sm:text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all font-mono shadow-inner"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-500 hover:text-slate-300 cursor-pointer"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Remember Me Checkbox */}
+              <div className="flex items-center justify-between pt-1 text-xs text-slate-400">
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    className="w-4 h-4 rounded bg-slate-950 border-slate-700 text-emerald-500 focus:ring-0 cursor-pointer"
+                    style={{ accentColor: activePalette.primary }}
+                  />
+                  <span>Remember me across sessions</span>
+                </label>
+              </div>
+
+              {/* Primary Sign In Button */}
+              <button
+                type="submit"
+                disabled={isSubmitting || isGoogleLoading}
+                className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-bold text-slate-950 shadow-xl transition-all active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                style={{
+                  background: `linear-gradient(135deg, ${activePalette.primary}, ${activePalette.secondary})`,
+                  boxShadow: `0 10px 25px -5px ${activePalette.primary}60`,
+                }}
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin text-slate-950" />
+                    <span>Authenticating...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Sign In to Citizen Portal</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
+              </button>
+            </form>
+          ) : (
+            /* --------------------------------------------------------------- */
+            /* TAB 2: SIGN UP FORM                                             */
+            /* --------------------------------------------------------------- */
+            <form onSubmit={handleSignUpSubmit} className="space-y-3">
+              {/* Full Name */}
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-300">Full Name</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                    <User className="w-4 h-4" />
+                  </div>
+                  <input
+                    type="text"
+                    required
+                    value={signUpName}
+                    onChange={(e) => setSignUpName(e.target.value)}
+                    placeholder="e.g. Ramesh Kumar"
+                    className="w-full pl-10 pr-4 py-2 bg-slate-950/90 border border-slate-700/80 rounded-xl text-xs sm:text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all font-sans"
+                  />
+                </div>
+              </div>
+
+              {/* Username or Email */}
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-300">Gmail or Username</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                    <Mail className="w-4 h-4" />
+                  </div>
+                  <input
+                    type="text"
+                    required
+                    value={signUpIdentifier}
+                    onChange={(e) => setSignUpIdentifier(e.target.value)}
+                    placeholder="e.g. ramesh.kumar@gmail.com"
+                    className="w-full pl-10 pr-4 py-2 bg-slate-950/90 border border-slate-700/80 rounded-xl text-xs sm:text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all font-mono"
+                  />
+                </div>
+              </div>
+
+              {/* Habitation / Panchayat */}
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-300">Gram Panchayat / Village</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                    <MapPin className="w-4 h-4" />
+                  </div>
+                  <input
+                    type="text"
+                    required
+                    value={signUpVillage}
+                    onChange={(e) => setSignUpVillage(e.target.value)}
+                    placeholder="e.g. Odanthurai GP, Coimbatore"
+                    className="w-full pl-10 pr-4 py-2 bg-slate-950/90 border border-slate-700/80 rounded-xl text-xs sm:text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all font-sans"
+                  />
+                </div>
+              </div>
+
+              {/* Password */}
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-300">Password</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                    <Lock className="w-4 h-4" />
+                  </div>
+                  <input
+                    type={showSignUpPassword ? 'text' : 'password'}
+                    required
+                    value={signUpPassword}
+                    onChange={(e) => setSignUpPassword(e.target.value)}
+                    placeholder="Create a strong password"
+                    className="w-full pl-10 pr-10 py-2 bg-slate-950/90 border border-slate-700/80 rounded-xl text-xs sm:text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all font-mono"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowSignUpPassword(!showSignUpPassword)}
+                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-500 hover:text-slate-300 cursor-pointer"
+                  >
+                    {showSignUpPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Primary Register Button */}
+              <button
+                type="submit"
+                disabled={isSubmitting || isGoogleLoading}
+                className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-bold text-slate-950 shadow-xl transition-all active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer mt-2"
+                style={{
+                  background: `linear-gradient(135deg, ${activePalette.primary}, ${activePalette.secondary})`,
+                  boxShadow: `0 10px 25px -5px ${activePalette.primary}60`,
+                }}
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin text-slate-950" />
+                    <span>Registering Account...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Create Citizen Account</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
+              </button>
+            </form>
+          )}
 
           {/* OR Separator */}
-          <div className="relative flex items-center justify-center my-4">
+          <div className="relative flex items-center justify-center my-3">
             <div className="border-t border-slate-800 w-full" />
             <span className="bg-slate-900 px-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider relative z-10">
               OR
@@ -261,7 +502,7 @@ export default function LoginPage() {
 
           {/* Security & Persistent Session Notice */}
           <div className="flex items-center justify-center gap-1.5 text-[11px] text-slate-500 pt-1">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" style={{ color: activePalette.primary }} />
             <span>Encrypted Citizen Authentication • MoPR Compliant</span>
           </div>
         </div>
@@ -270,14 +511,74 @@ export default function LoginPage() {
         {/* Presenter Acknowledgment Badge (Dilip & Isanth)                     */}
         {/* =================================================================== */}
         <div className="flex items-center justify-center gap-2 py-2 px-4 rounded-xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-sm text-center text-xs text-slate-400">
-          <Award className="w-3.5 h-3.5 text-emerald-400" />
+          <Award className="w-3.5 h-3.5 text-emerald-400" style={{ color: activePalette.primary }} />
           <span>
-            GramPulse AI Architecture & Demonstration presented by{' '}
+            GramPulse AI Architecture &amp; Demonstration presented by{' '}
             <strong className="text-slate-200 font-bold">Dilip &amp; Isanth</strong>
           </span>
         </div>
 
       </div>
+
+      {/* Forgot Password Dialog Modal */}
+      {isForgotPasswordOpen && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 max-w-sm w-full shadow-2xl space-y-4 relative">
+            <button
+              type="button"
+              onClick={() => setIsForgotPasswordOpen(false)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <div className="flex items-center gap-2.5">
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center text-white"
+                style={{ backgroundColor: `${activePalette.primary}25`, color: activePalette.primary }}
+              >
+                <KeyRound className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-white">Reset Citizen Password</h3>
+                <p className="text-[11px] text-slate-400">Enter your registered email ID</p>
+              </div>
+            </div>
+
+            {forgotSuccess ? (
+              <div className="p-3 bg-emerald-500/15 border border-emerald-500/30 rounded-xl text-xs text-emerald-300 flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+                <span>Password reset instructions sent to your email!</span>
+              </div>
+            ) : (
+              <form onSubmit={handleForgotPasswordSubmit} className="space-y-3">
+                <div className="space-y-1">
+                  <label className="text-xs text-slate-300 font-semibold">Registered Email ID</label>
+                  <input
+                    type="email"
+                    required
+                    value={forgotEmail}
+                    onChange={(e) => setForgotEmail(e.target.value)}
+                    placeholder="e.g. resident@punsari.in"
+                    className="w-full px-3.5 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full py-2.5 px-4 rounded-xl text-xs font-bold text-slate-950 transition-all cursor-pointer active:scale-95"
+                  style={{
+                    background: `linear-gradient(135deg, ${activePalette.primary}, ${activePalette.secondary})`,
+                  }}
+                >
+                  Send Reset Link
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

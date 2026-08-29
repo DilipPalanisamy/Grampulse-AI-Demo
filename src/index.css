@@ -2,10 +2,40 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --theme-primary: #10b981;
+  --theme-primary-hover: #059669;
+  --theme-secondary: #14b8a6;
+  --theme-glow: rgba(16, 185, 129, 0.25);
+  --theme-accent-bg: rgba(16, 185, 129, 0.12);
+  --theme-badge-border: rgba(16, 185, 129, 0.35);
+}
+
 @layer base {
   body {
-    @apply bg-slate-950 text-slate-100 antialiased selection:bg-emerald-500 selection:text-white;
+    @apply bg-slate-950 text-slate-100 antialiased selection:bg-emerald-500 selection:text-white transition-colors duration-200;
   }
+
+  html.light body {
+    @apply bg-slate-900 text-slate-100;
+  }
+}
+
+/* Theme accent utilities */
+.theme-text-primary {
+  color: var(--theme-primary);
+}
+
+.theme-bg-primary {
+  background-color: var(--theme-primary);
+}
+
+.theme-border-primary {
+  border-color: var(--theme-primary);
+}
+
+.theme-glow-card {
+  box-shadow: 0 10px 30px -5px var(--theme-glow);
 }
 
 /* Custom scrollbars */
@@ -22,6 +52,50 @@
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #475569;
+}
+
+/* Drawer & Modal Animations */
+@keyframes slideLeft {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-slideLeft {
+  animation: slideLeft 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-slideUp {
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.25s ease-out forwards;
 }
 
 /* Leaflet map custom popup overrides */
