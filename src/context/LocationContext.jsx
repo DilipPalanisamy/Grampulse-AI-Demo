@@ -181,11 +181,30 @@ export const LocationProvider = ({ children }) => {
   }, []);
 
   /**
-   * Switches active location and resolves it dynamically
+   * Unified Location Selection Handler:
+   * 1. Normalizes location data (name/gp_name, district, state, lat/latitude, lng/longitude, gp_code)
+   * 2. Resolves PostGIS baseline data & updates state
+   * 3. Optionally switches activeTab to 'dashboard'
+   * 4. Smoothly scrolls window to top
    */
-  const selectLocation = useCallback(async (locationOrId) => {
+  const handleSelectLocation = useCallback(async (locationOrId, shouldRouteToDashboard = true) => {
     if (typeof locationOrId === 'object' && locationOrId !== null) {
-      const locObj = locationOrId;
+      const rawName = locationOrId.gp_name || locationOrId.name || 'Habitation';
+      const locObj = {
+        gp_id: locationOrId.gp_id || Math.floor(1000 + Math.random() * 9000),
+        gp_name: rawName,
+        district: locationOrId.district || 'District',
+        state: locationOrId.state || 'Tamil Nadu',
+        lat: Number(locationOrId.lat ?? locationOrId.latitude ?? 11.2982),
+        lng: Number(locationOrId.lng ?? locationOrId.longitude ?? 76.9366),
+        population: locationOrId.population || 5000,
+        daily_water_supply_liters: locationOrId.daily_water_supply_liters || 275000,
+        school_classrooms_count: locationOrId.school_classrooms_count || 24,
+        road_coverage_km: locationOrId.road_coverage_km || 18.5,
+        gp_code: locationOrId.gp_code || `GP-${locationOrId.gp_id || 'PIN'}`,
+        ...locationOrId,
+      };
+
       try {
         // Dynamically resolve baseline metrics & register in backend PostGIS
         const resolved = await resolveLivePanchayat(locObj);
@@ -199,6 +218,12 @@ export const LocationProvider = ({ children }) => {
         });
         setSelectedGpId(Number(mergedObj.gp_id));
       } catch (e) {
+        setLocations((prev) => {
+          if (!prev.some((p) => Number(p.gp_id) === Number(locObj.gp_id))) {
+            return [locObj, ...prev];
+          }
+          return prev;
+        });
         setSelectedGpId(Number(locObj.gp_id));
       }
     } else {
@@ -206,7 +231,16 @@ export const LocationProvider = ({ children }) => {
       if (!gpId) return;
       setSelectedGpId(gpId);
     }
+
+    if (shouldRouteToDashboard) {
+      setActiveTab('dashboard');
+      if (typeof window !== 'undefined') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
   }, []);
+
+  const selectLocation = handleSelectLocation;
 
   const handleIssueCreated = useCallback((newIssue) => {
     setIssues((prev) => [newIssue, ...prev]);
@@ -218,6 +252,7 @@ export const LocationProvider = ({ children }) => {
     selectedGpId,
     mapCenter,
     selectLocation,
+    handleSelectLocation,
     planningHorizon,
     setPlanningHorizon,
     analytics,

@@ -619,7 +619,7 @@ const MapView = ({
             <button
               key={`chip-${loc.gp_id}-${loc.gp_name}`}
               type="button"
-              onClick={() => onSelectLocation && onSelectLocation(loc)}
+              onClick={() => handleAnalyzeLocation(loc)}
               className={`px-2.5 py-1 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1 flex-shrink-0 cursor-pointer ${
                 isSelected
                   ? 'bg-emerald-600 text-white shadow-md shadow-emerald-950 scale-105'
