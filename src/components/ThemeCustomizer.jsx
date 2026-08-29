@@ -52,40 +52,6 @@ export default function ThemeCustomizer() {
 
   return (
     <>
-      {/* Floating Theme Control Pill (Bottom-Left) */}
-      <div className="fixed bottom-6 left-6 z-[1100] flex items-center gap-1 p-1 rounded-full bg-slate-900/95 border border-slate-700/80 shadow-2xl shadow-black/80 backdrop-blur-xl transition-transform hover:scale-105">
-        <button
-          type="button"
-          onClick={toggleCustomizer}
-          className="flex items-center gap-2 px-3 py-2 rounded-full hover:bg-slate-800 text-white transition-all cursor-pointer group"
-          title="Open Visual Theme Customizer"
-          aria-label="Open Theme Customizer"
-        >
-          <div
-            className="w-3.5 h-3.5 rounded-full shadow-sm"
-            style={{ backgroundColor: activePalette.primary }}
-          />
-          <Palette className="w-3.5 h-3.5 text-slate-300 group-hover:rotate-45 transition-transform duration-300" />
-          <span className="text-xs font-bold text-slate-200 hidden sm:inline">Theme</span>
-        </button>
-
-        <div className="w-[1px] h-4 bg-slate-700" />
-
-        <button
-          type="button"
-          onClick={toggleMode}
-          className="p-2 rounded-full hover:bg-slate-800 text-slate-300 hover:text-white transition-all cursor-pointer"
-          title={themeConfig.mode === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
-          aria-label="Toggle Dark/Light Mode"
-        >
-          {themeConfig.mode === 'light' ? (
-            <Sun className="w-4 h-4 text-amber-400" />
-          ) : (
-            <Moon className="w-4 h-4" style={{ color: activePalette.primary }} />
-          )}
-        </button>
-      </div>
-
       {/* Slide-out Theme Drawer Overlay */}
       {isCustomizerOpen && (
         <div className="fixed inset-0 z-[1300] bg-black/60 backdrop-blur-sm flex justify-end animate-fadeIn">

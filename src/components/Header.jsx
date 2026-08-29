@@ -15,6 +15,7 @@ import {
   Map,
   Sun,
   Moon,
+  Palette,
   CheckCircle2,
   AlertCircle,
   Compass,
@@ -58,7 +59,7 @@ HighlightMatch.propTypes = {
 
 export default function Header({ onOpenReportModal }) {
   const { user, logout } = useAuth();
-  const { themeConfig, toggleMode, activePalette } = useTheme();
+  const { themeConfig, toggleMode, activePalette, toggleCustomizer } = useTheme();
   const {
     locations,
     selectedLocation,
@@ -343,30 +344,40 @@ export default function Header({ onOpenReportModal }) {
             </select>
           </div>
 
-          {/* Report Citizen Issue Action Button */}
-          <button
-            onClick={onOpenReportModal}
-            className="hidden md:inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-[var(--bg-primary)] hover:bg-[var(--bg-card-hover)] text-[var(--text-main)] border border-[var(--border-subtle)] transition-colors shadow-sm active:scale-95 cursor-pointer flex-shrink-0"
-            title="Submit a new geotagged citizen grievance"
-          >
-            <PlusCircle className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Report</span>
-          </button>
+          {/* Visual Theme Toggle & Customizer Control in Top Navigation */}
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            {/* Primary Dark/Light Mode Toggle with Label */}
+            <button
+              type="button"
+              onClick={toggleMode}
+              className="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold bg-[var(--bg-primary)] hover:bg-[var(--bg-card-hover)] text-[var(--text-main)] border border-[var(--border-subtle)] hover:border-emerald-500/40 transition-all shadow-sm active:scale-95 cursor-pointer"
+              title={themeConfig.mode === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
+              aria-label="Toggle Dark/Light Mode"
+            >
+              {themeConfig.mode === 'light' ? (
+                <>
+                  <Sun className="w-4 h-4 text-amber-500" />
+                  <span className="font-semibold text-xs hidden sm:inline">Light Mode</span>
+                </>
+              ) : (
+                <>
+                  <Moon className="w-4 h-4 text-emerald-400" style={{ color: activePalette.primary }} />
+                  <span className="font-semibold text-xs hidden sm:inline">Dark Mode</span>
+                </>
+              )}
+            </button>
 
-          {/* Quick Theme Toggle Button */}
-          <button
-            type="button"
-            onClick={toggleMode}
-            className="p-2 rounded-xl bg-[var(--bg-primary)] hover:bg-[var(--bg-card-hover)] text-[var(--text-main)] border border-[var(--border-subtle)] transition-colors shadow-sm cursor-pointer"
-            title={themeConfig.mode === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
-            aria-label="Toggle Dark/Light Mode"
-          >
-            {themeConfig.mode === 'light' ? (
-              <Sun className="w-4 h-4 text-amber-500" />
-            ) : (
-              <Moon className="w-4 h-4 text-emerald-400" style={{ color: activePalette.primary }} />
-            )}
-          </button>
+            {/* Visual Palette Customizer Trigger */}
+            <button
+              type="button"
+              onClick={toggleCustomizer}
+              className="p-2 rounded-xl bg-[var(--bg-primary)] hover:bg-[var(--bg-card-hover)] text-[var(--text-main)] border border-[var(--border-subtle)] hover:border-emerald-500/40 transition-all shadow-sm cursor-pointer active:scale-95"
+              title="Open Visual Theme & Palette Customizer"
+              aria-label="Open Theme Customizer"
+            >
+              <Palette className="w-4 h-4 text-emerald-500" style={{ color: activePalette.primary }} />
+            </button>
+          </div>
 
           {/* User Profile Avatar & Sign Out */}
           <div className="flex items-center gap-2 pl-2 border-l border-[var(--border-subtle)]">
@@ -394,5 +405,5 @@ export default function Header({ onOpenReportModal }) {
 }
 
 Header.propTypes = {
-  onOpenReportModal: PropTypes.func.isRequired,
+  onOpenReportModal: PropTypes.func,
 };
