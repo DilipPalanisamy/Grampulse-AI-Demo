@@ -118,15 +118,22 @@ function DashboardLayout() {
       {/* ------------------------------------------------------------------- */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         {/* Citizen Portal Welcome & Contextual Status */}
-        <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 rounded-xl border text-xs bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-300 backdrop-blur-md">
+        <div
+          className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 rounded-xl border text-xs backdrop-blur-md"
+          style={{
+            backgroundColor: `${activePalette.primary}12`,
+            borderColor: `${activePalette.primary}30`,
+            color: activePalette.primary,
+          }}
+        >
           <div className="flex items-center gap-2">
-            <UserIcon className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+            <UserIcon className="w-4 h-4 flex-shrink-0" style={{ color: activePalette.primary }} />
             <span>
               <strong>Citizen Portal:</strong> Welcome, {user?.name || 'Resident'} ({user?.email}) • Active Multi-Location GPDP Planning &amp; Grievance Access
             </span>
           </div>
           <div className="flex items-center gap-2 text-[11px] text-[var(--text-muted)]">
-            <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="inline-block w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: activePalette.primary }} />
             <span>PostGIS Cluster Active</span>
           </div>
         </div>
@@ -137,7 +144,13 @@ function DashboardLayout() {
         {/* 2. Active GP Banner with Rich Dynamic Statistics */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-3xl p-5 sm:p-6 backdrop-blur-xl shadow-xl">
           <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-400 border border-emerald-400/40 flex items-center justify-center text-white shadow-lg shadow-emerald-950/40 flex-shrink-0">
+            <div
+              className="w-12 h-12 rounded-2xl border border-white/10 flex items-center justify-center text-white shadow-lg flex-shrink-0"
+              style={{
+                background: `linear-gradient(135deg, ${activePalette.primary}, ${activePalette.secondary})`,
+                boxShadow: `0 10px 25px -5px ${activePalette.primary}50`,
+              }}
+            >
               <Building2 className="w-6 h-6" />
             </div>
             <div className="space-y-1">
@@ -149,7 +162,14 @@ function DashboardLayout() {
                     ? selectedLocation.gp_name
                     : `${selectedLocation.gp_name} Gram Panchayat`}
                 </h2>
-                <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-lg bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30">
+                <span
+                  className="text-xs font-mono font-bold px-2 py-0.5 rounded-lg border"
+                  style={{
+                    backgroundColor: `${activePalette.primary}15`,
+                    color: activePalette.primary,
+                    borderColor: `${activePalette.primary}30`,
+                  }}
+                >
                   {selectedLocation.gp_code || `GP-${selectedLocation.gp_id}`}
                 </span>
                 <span className="text-xs px-2.5 py-0.5 rounded-full bg-[var(--bg-primary)] text-[var(--text-muted)] border border-[var(--border-subtle)] font-medium">
@@ -157,7 +177,7 @@ function DashboardLayout() {
                 </span>
               </div>
               {selectedLocation.tagline && (
-                <p className="text-xs text-emerald-600 dark:text-emerald-300/90 font-medium italic">
+                <p className="text-xs font-medium italic" style={{ color: activePalette.primary }}>
                   &ldquo;{selectedLocation.tagline}&rdquo;
                 </p>
               )}
@@ -175,7 +195,10 @@ function DashboardLayout() {
             <button
               type="button"
               onClick={handleNavigateToMap}
-              className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold shadow-md shadow-emerald-950/40 transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
+              className="px-3.5 py-2 rounded-xl text-white text-xs font-bold shadow-md transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
+              style={{
+                background: `linear-gradient(135deg, ${activePalette.primary}, ${activePalette.secondary})`,
+              }}
             >
               <Compass className="w-3.5 h-3.5" />
               <span>Fullscreen Map</span>
@@ -185,9 +208,10 @@ function DashboardLayout() {
             <button
               type="button"
               onClick={handleOpenChatbot}
-              className="px-3.5 py-2 rounded-xl bg-[var(--bg-primary)] hover:bg-[var(--bg-card-hover)] text-emerald-600 dark:text-emerald-300 border border-[var(--border-subtle)] transition-all flex items-center gap-1.5 text-xs font-bold shadow-sm cursor-pointer active:scale-95"
+              className="px-3.5 py-2 rounded-xl bg-[var(--bg-primary)] hover:bg-[var(--bg-card-hover)] border border-[var(--border-subtle)] transition-all flex items-center gap-1.5 text-xs font-bold shadow-sm cursor-pointer active:scale-95"
+              style={{ color: activePalette.primary }}
             >
-              <Bot className="w-3.5 h-3.5 text-emerald-500" />
+              <Bot className="w-3.5 h-3.5" style={{ color: activePalette.primary }} />
               <span>AI Assistant</span>
             </button>
 
@@ -202,8 +226,9 @@ function DashboardLayout() {
             >
               <RefreshCw
                 className={`w-3.5 h-3.5 ${
-                  loadingAnalytics || loadingIssues ? 'animate-spin text-emerald-500' : ''
+                  loadingAnalytics || loadingIssues ? 'animate-spin' : ''
                 }`}
+                style={{ color: loadingAnalytics || loadingIssues ? activePalette.primary : undefined }}
               />
             </button>
           </div>

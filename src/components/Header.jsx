@@ -188,7 +188,7 @@ export default function Header({ onOpenReportModal }) {
         {/* ================================================================= */}
         <div className="flex-1 max-w-2xl mx-1 sm:mx-4 relative overflow-visible" ref={searchContainerRef}>
           <div className="relative flex items-center group">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-emerald-500 transition-colors">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors" style={{ color: activePalette.primary }}>
               <Search className="w-5 h-5" />
             </div>
 
@@ -203,7 +203,7 @@ export default function Header({ onOpenReportModal }) {
                   ? `Search Indian village, town, or Panchayat (Active: ${selectedLocation.gp_name})...`
                   : 'Search village, town, district, or Gram Panchayat across India...'
               }
-              className="w-full pl-11 pr-10 py-3 text-sm sm:text-base font-medium shadow-lg rounded-xl bg-[var(--bg-primary)] border border-[var(--border-subtle)] focus:border-emerald-500 text-[var(--text-main)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-emerald-400/40 transition-all font-sans"
+              className="w-full pl-11 pr-10 py-3 text-sm sm:text-base font-medium shadow-lg rounded-xl bg-[var(--bg-primary)] border border-[var(--border-subtle)] focus:border-[var(--color-primary)] text-[var(--text-main)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-glow)] transition-all font-sans"
             />
 
             {/* Clear Button or Spinner */}
@@ -217,7 +217,7 @@ export default function Header({ onOpenReportModal }) {
                 <X className="w-4 h-4" />
               </button>
             ) : isSearching ? (
-              <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-emerald-400 pointer-events-none">
+              <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none" style={{ color: activePalette.primary }}>
                 <Loader2 className="w-4 h-4 animate-spin" />
               </div>
             ) : null}
@@ -227,7 +227,7 @@ export default function Header({ onOpenReportModal }) {
           {isSearchOpen && (
             <div className="absolute left-0 right-0 top-full mt-2 w-full bg-[var(--bg-card)] border border-[var(--border-strong)] rounded-2xl shadow-2xl z-[1500] p-2 space-y-1 backdrop-blur-2xl animate-fadeIn max-h-84 overflow-y-auto custom-scrollbar">
               <div className="flex items-center justify-between px-3 py-1.5 border-b border-[var(--border-subtle)] text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">
-                <span className="flex items-center gap-1.5 text-emerald-400">
+                <span className="flex items-center gap-1.5" style={{ color: activePalette.primary }}>
                   <Globe className="w-3.5 h-3.5" />
                   {localInput.trim().length > 0 ? 'Live Geocoded Matches (Nominatim GIS)' : 'Registered Habitations'}
                 </span>
@@ -250,17 +250,22 @@ export default function Header({ onOpenReportModal }) {
                       onClick={() => handleSelectVillage(village)}
                       className={`w-full flex items-center justify-between p-3 rounded-xl text-left transition-all cursor-pointer ${
                         isSelected
-                          ? 'bg-emerald-500/15 border border-emerald-500/40 text-[var(--text-main)] shadow-sm'
+                          ? 'border text-[var(--text-main)] shadow-sm'
                           : 'hover:bg-[var(--bg-card-hover)] text-[var(--text-muted)] hover:text-[var(--text-main)] border border-transparent'
                       }`}
+                      style={{
+                        backgroundColor: isSelected ? `${activePalette.primary}15` : undefined,
+                        borderColor: isSelected ? `${activePalette.primary}40` : undefined,
+                      }}
                     >
                       <div className="flex items-center gap-3 min-w-0">
                         <div
-                          className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0 ${
-                            isSelected
-                              ? 'bg-emerald-500 text-white shadow-sm'
-                              : 'bg-[var(--bg-primary)] text-emerald-400 border border-[var(--border-subtle)]'
-                          }`}
+                          className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0"
+                          style={{
+                            backgroundColor: isSelected ? activePalette.primary : 'var(--bg-primary)',
+                            color: isSelected ? '#fff' : activePalette.primary,
+                            border: isSelected ? 'none' : '1px solid var(--border-subtle)',
+                          }}
                         >
                           <MapPin className="w-4 h-4" />
                         </div>
@@ -278,7 +283,14 @@ export default function Header({ onOpenReportModal }) {
                       </div>
 
                       <div className="flex flex-col items-end flex-shrink-0 ml-2">
-                        <span className="text-[10px] font-mono text-emerald-400 font-semibold px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20">
+                        <span
+                          className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded border"
+                          style={{
+                            color: activePalette.primary,
+                            backgroundColor: `${activePalette.primary}15`,
+                            borderColor: `${activePalette.primary}30`,
+                          }}
+                        >
                           {village.gp_code || `GP-${village.gp_id || 9001}`}
                         </span>
                         {village.population && (
@@ -307,9 +319,12 @@ export default function Header({ onOpenReportModal }) {
               onClick={() => setActiveTab('dashboard')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                 activeTab === 'dashboard'
-                  ? 'bg-emerald-600 text-white shadow-md'
+                  ? 'text-white shadow-md'
                   : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-card-hover)]'
               }`}
+              style={{
+                backgroundColor: activeTab === 'dashboard' ? activePalette.primary : undefined,
+              }}
             >
               <LayoutDashboard className="w-3.5 h-3.5" />
               <span>Dashboard</span>
@@ -319,9 +334,12 @@ export default function Header({ onOpenReportModal }) {
               onClick={() => setActiveTab('map')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                 activeTab === 'map'
-                  ? 'bg-emerald-600 text-white shadow-md'
+                  ? 'text-white shadow-md'
                   : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-card-hover)]'
               }`}
+              style={{
+                backgroundColor: activeTab === 'map' ? activePalette.primary : undefined,
+              }}
             >
               <Map className="w-3.5 h-3.5" />
               <span>Map</span>
@@ -336,7 +354,8 @@ export default function Header({ onOpenReportModal }) {
               value={planningHorizon}
               onChange={(e) => setPlanningHorizon(Number(e.target.value))}
               aria-label="Select Planning Horizon"
-              className="bg-transparent text-emerald-400 font-bold focus:outline-none cursor-pointer text-xs"
+              className="bg-transparent font-bold focus:outline-none cursor-pointer text-xs"
+              style={{ color: activePalette.primary }}
             >
               <option value={3} className="bg-[var(--bg-card)] text-[var(--text-main)]">3 Yrs</option>
               <option value={5} className="bg-[var(--bg-card)] text-[var(--text-main)]">5 Yrs</option>

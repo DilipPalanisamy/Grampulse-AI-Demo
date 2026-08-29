@@ -50,11 +50,24 @@ export const THEME_PALETTES = {
     primary: '#6366F1', // indigo-500
     primaryHover: '#4F46E5', // indigo-600
     secondary: '#8B5CF6', // violet-500
-    glow: 'rgba(99, 102, 241, 0.20)',
-    accentBg: 'rgba(99, 102, 241, 0.10)',
+    glow: 'rgba(99, 102, 241, 0.25)',
+    accentBg: 'rgba(99, 102, 241, 0.12)',
     badgeBorder: 'rgba(99, 102, 241, 0.30)',
     gradient: 'from-indigo-600 via-indigo-500 to-violet-400',
     swatch: '#6366F1',
+  },
+  purple: {
+    id: 'purple',
+    name: 'Purple Governance',
+    description: 'Executive Policy & Machine Learning',
+    primary: '#7C3AED', // purple-600
+    primaryHover: '#6D28D9', // purple-700
+    secondary: '#8B5CF6', // violet-500
+    glow: 'rgba(124, 58, 237, 0.25)',
+    accentBg: 'rgba(124, 58, 237, 0.12)',
+    badgeBorder: 'rgba(124, 58, 237, 0.35)',
+    gradient: 'from-purple-600 via-purple-500 to-indigo-400',
+    swatch: '#7C3AED',
   },
   amber: {
     id: 'amber',
@@ -63,8 +76,8 @@ export const THEME_PALETTES = {
     primary: '#F59E0B', // amber-500
     primaryHover: '#D97706', // amber-600
     secondary: '#EA580C', // orange-600
-    glow: 'rgba(245, 158, 11, 0.20)',
-    accentBg: 'rgba(245, 158, 11, 0.10)',
+    glow: 'rgba(245, 158, 11, 0.25)',
+    accentBg: 'rgba(245, 158, 11, 0.12)',
     badgeBorder: 'rgba(245, 158, 11, 0.30)',
     gradient: 'from-amber-600 via-amber-500 to-orange-400',
     swatch: '#F59E0B',
@@ -116,8 +129,9 @@ export const ThemeProvider = ({ children }) => {
     const palette = THEME_PALETTES[themeConfig.palette] || THEME_PALETTES.emerald;
     const root = document.documentElement;
 
-    // 1. Data attribute and class list on root HTML element
+    // 1. Data attributes on root HTML element
     root.setAttribute('data-theme', themeConfig.mode);
+    root.setAttribute('data-accent', themeConfig.palette || 'emerald');
     if (themeConfig.mode === 'light') {
       root.classList.remove('dark');
       root.classList.add('light');
@@ -126,9 +140,15 @@ export const ThemeProvider = ({ children }) => {
       root.classList.add('dark');
     }
 
-    // 2. Palette CSS Variables
+    // 2. Dynamic Primary Accent CSS Variables
+    root.style.setProperty('--color-primary', palette.primary);
+    root.style.setProperty('--color-primary-hover', palette.primaryHover);
+    root.style.setProperty('--color-primary-light', palette.accentBg || `${palette.primary}20`);
+    root.style.setProperty('--color-primary-glow', palette.glow || `${palette.primary}40`);
     root.style.setProperty('--theme-primary', palette.primary);
     root.style.setProperty('--theme-primary-hover', palette.primaryHover);
+    root.style.setProperty('--theme-primary-light', palette.accentBg || `${palette.primary}20`);
+    root.style.setProperty('--theme-primary-glow', palette.glow || `${palette.primary}40`);
     root.style.setProperty('--theme-secondary', palette.secondary);
     root.style.setProperty('--theme-glow', palette.glow);
     root.style.setProperty('--theme-accent-bg', palette.accentBg);

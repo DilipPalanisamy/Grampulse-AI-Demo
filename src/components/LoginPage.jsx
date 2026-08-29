@@ -14,6 +14,9 @@ import {
   X,
   MapPin,
   KeyRound,
+  Sun,
+  Moon,
+  Palette,
 } from 'lucide-react';
 import { useGoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../context/AuthContext';
@@ -26,7 +29,7 @@ export default function LoginPage() {
     authError,
     setAuthError,
   } = useAuth();
-  const { activePalette } = useTheme();
+  const { themeConfig, toggleMode, activePalette, toggleCustomizer } = useTheme();
 
   // Tab State: 'signin' | 'signup'
   const [activeTab, setActiveTab] = useState('signin');
@@ -116,6 +119,37 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex flex-col justify-center items-center px-4 py-10 relative selection:bg-emerald-500 selection:text-white font-sans">
       
+      {/* Top Floating Theme & Appearance Selector on Login Page */}
+      <div className="absolute top-5 right-5 z-20 flex items-center gap-2">
+        <button
+          type="button"
+          onClick={toggleMode}
+          className="p-2.5 rounded-2xl bg-[var(--bg-card-glass)] hover:bg-[var(--bg-card-hover)] text-[var(--text-main)] border border-[var(--border-subtle)] backdrop-blur-xl shadow-lg transition-all cursor-pointer active:scale-95 flex items-center gap-1.5"
+          title={themeConfig.mode === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
+          aria-label="Toggle Dark/Light Mode"
+        >
+          {themeConfig.mode === 'light' ? (
+            <Sun className="w-4 h-4 text-amber-500" />
+          ) : (
+            <Moon className="w-4 h-4" style={{ color: activePalette.primary }} />
+          )}
+          <span className="text-xs font-bold hidden sm:inline">
+            {themeConfig.mode === 'light' ? 'Light' : 'Dark'}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={toggleCustomizer}
+          className="flex items-center gap-1.5 px-3 py-2.5 rounded-2xl bg-[var(--bg-card-glass)] hover:bg-[var(--bg-card-hover)] text-[var(--text-main)] border border-[var(--border-subtle)] backdrop-blur-xl shadow-lg transition-all cursor-pointer active:scale-95"
+          title="Open Visual Theme & Palette Customizer"
+          aria-label="Open Theme Customizer"
+        >
+          <Palette className="w-4 h-4" style={{ color: activePalette.primary }} />
+          <span className="text-xs font-bold hidden sm:inline">Theme</span>
+        </button>
+      </div>
+
       <div className="w-full max-w-md relative z-10 space-y-5">
         
         {/* Brand Header */}
@@ -218,7 +252,7 @@ export default function LoginPage() {
                     value={identifier}
                     onChange={(e) => setIdentifier(e.target.value)}
                     placeholder="Enter citizen username or email"
-                    className="w-full pl-10 pr-4 py-2.5 bg-[var(--bg-primary)] border border-[var(--border-subtle)] focus:border-emerald-500 rounded-xl text-xs text-[var(--text-main)] placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition-all font-sans"
+                    className="w-full pl-10 pr-4 py-2.5 bg-[var(--bg-primary)] border border-[var(--border-subtle)] focus:border-[var(--color-primary)] rounded-xl text-xs text-[var(--text-main)] placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-glow)] transition-all font-sans"
                   />
                 </div>
               </div>
@@ -230,7 +264,8 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={() => setIsForgotPasswordOpen(true)}
-                    className="text-[11px] font-semibold text-emerald-500 hover:text-emerald-400 transition-colors cursor-pointer"
+                    className="text-[11px] font-semibold transition-opacity hover:opacity-80 cursor-pointer"
+                    style={{ color: activePalette.primary }}
                   >
                     Forgot Password?
                   </button>
@@ -245,7 +280,7 @@ export default function LoginPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••••••"
-                    className="w-full pl-10 pr-10 py-2.5 bg-[var(--bg-primary)] border border-[var(--border-subtle)] focus:border-emerald-500 rounded-xl text-xs text-[var(--text-main)] placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition-all font-sans"
+                    className="w-full pl-10 pr-10 py-2.5 bg-[var(--bg-primary)] border border-[var(--border-subtle)] focus:border-[var(--color-primary)] rounded-xl text-xs text-[var(--text-main)] placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-glow)] transition-all font-sans"
                   />
                   <button
                     type="button"
@@ -265,7 +300,8 @@ export default function LoginPage() {
                     type="checkbox"
                     checked={rememberMe}
                     onChange={(e) => setRememberMe(e.target.checked)}
-                    className="w-4 h-4 rounded bg-[var(--bg-primary)] border-[var(--border-subtle)] text-emerald-500 focus:ring-emerald-400 cursor-pointer"
+                    className="w-4 h-4 rounded bg-[var(--bg-primary)] border-[var(--border-subtle)] focus:ring-2 cursor-pointer"
+                    style={{ accentColor: activePalette.primary }}
                   />
                   <span>Remember my session</span>
                 </label>
@@ -275,14 +311,15 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={isSubmitting || isGoogleLoading}
-                className="w-full py-3 px-4 rounded-xl text-xs font-bold text-slate-950 transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/40 hover:shadow-emerald-900/50 active:scale-98 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-3 px-4 rounded-xl text-xs font-bold text-white transition-all duration-200 flex items-center justify-center gap-2 shadow-lg active:scale-98 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{
                   background: `linear-gradient(135deg, ${activePalette.primary}, ${activePalette.secondary})`,
+                  boxShadow: `0 10px 25px -5px ${activePalette.primary}60`,
                 }}
               >
                 {isSubmitting ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin text-slate-950" />
+                    <Loader2 className="w-4 h-4 animate-spin text-white" />
                     <span>Verifying Citizen Credentials...</span>
                   </>
                 ) : (
@@ -313,7 +350,7 @@ export default function LoginPage() {
                     value={signUpName}
                     onChange={(e) => setSignUpName(e.target.value)}
                     placeholder="e.g. Ramesh Kumar"
-                    className="w-full pl-10 pr-4 py-2.5 bg-[var(--bg-primary)] border border-[var(--border-subtle)] focus:border-emerald-500 rounded-xl text-xs text-[var(--text-main)] placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition-all"
+                    className="w-full pl-10 pr-4 py-2.5 bg-[var(--bg-primary)] border border-[var(--border-subtle)] focus:border-[var(--color-primary)] rounded-xl text-xs text-[var(--text-main)] placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-glow)] transition-all"
                   />
                 </div>
               </div>
@@ -330,7 +367,7 @@ export default function LoginPage() {
                     value={signUpIdentifier}
                     onChange={(e) => setSignUpIdentifier(e.target.value)}
                     placeholder="e.g. ramesh.kumar@gmail.com"
-                    className="w-full pl-10 pr-4 py-2.5 bg-[var(--bg-primary)] border border-[var(--border-subtle)] focus:border-emerald-500 rounded-xl text-xs text-[var(--text-main)] placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition-all"
+                    className="w-full pl-10 pr-4 py-2.5 bg-[var(--bg-primary)] border border-[var(--border-subtle)] focus:border-[var(--color-primary)] rounded-xl text-xs text-[var(--text-main)] placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-glow)] transition-all"
                   />
                 </div>
               </div>
@@ -347,7 +384,7 @@ export default function LoginPage() {
                     value={villageOrCity}
                     onChange={(e) => setVillageOrCity(e.target.value)}
                     placeholder="e.g. Odanthurai, Peelamedu, or Namakkal"
-                    className="w-full pl-10 pr-4 py-2.5 bg-[var(--bg-primary)] border border-[var(--border-subtle)] focus:border-emerald-500 rounded-xl text-xs text-[var(--text-main)] placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition-all font-sans"
+                    className="w-full pl-10 pr-4 py-2.5 bg-[var(--bg-primary)] border border-[var(--border-subtle)] focus:border-[var(--color-primary)] rounded-xl text-xs text-[var(--text-main)] placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-glow)] transition-all font-sans"
                   />
                 </div>
               </div>
@@ -364,12 +401,13 @@ export default function LoginPage() {
                     value={signUpPassword}
                     onChange={(e) => setSignUpPassword(e.target.value)}
                     placeholder="Create a strong password"
-                    className="w-full pl-10 pr-10 py-2.5 bg-[var(--bg-primary)] border border-[var(--border-subtle)] focus:border-emerald-500 rounded-xl text-xs text-[var(--text-main)] placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition-all"
+                    className="w-full pl-10 pr-10 py-2.5 bg-[var(--bg-primary)] border border-[var(--border-subtle)] focus:border-[var(--color-primary)] rounded-xl text-xs text-[var(--text-main)] placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-glow)] transition-all"
                   />
                   <button
                     type="button"
                     onClick={() => setShowSignUpPassword(!showSignUpPassword)}
                     className="absolute right-3 text-slate-400 hover:text-[var(--text-main)] p-1 rounded-md transition-colors cursor-pointer"
+                    title={showSignUpPassword ? 'Hide password' : 'Show password'}
                   >
                     {showSignUpPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -379,9 +417,10 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={isSubmitting || isGoogleLoading}
-                className="w-full py-3 px-4 rounded-xl text-xs font-bold text-slate-950 transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/40 hover:shadow-emerald-900/50 active:scale-98 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+                className="w-full py-3 px-4 rounded-xl text-xs font-bold text-white transition-all duration-200 flex items-center justify-center gap-2 shadow-lg active:scale-98 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed mt-2"
                 style={{
                   background: `linear-gradient(135deg, ${activePalette.primary}, ${activePalette.secondary})`,
+                  boxShadow: `0 10px 25px -5px ${activePalette.primary}60`,
                 }}
               >
                 {isSubmitting ? (

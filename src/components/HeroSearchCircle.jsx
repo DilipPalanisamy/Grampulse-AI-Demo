@@ -13,8 +13,10 @@ import {
   Layers,
 } from 'lucide-react';
 import { useLocation } from '../context/LocationContext';
+import { useTheme } from '../context/ThemeContext';
 
 function HeroSearchCircle({ onNavigateToMap }) {
+  const { activePalette } = useTheme();
   const {
     locations,
     selectedLocation,
@@ -75,20 +77,42 @@ function HeroSearchCircle({ onNavigateToMap }) {
       {/* Central Search Circle Hub Container */}
       <div className="relative group">
         {/* Ambient Gradient Glow Rings */}
-        <div className="absolute -inset-4 bg-gradient-to-tr from-emerald-500/30 via-teal-500/20 to-sky-500/30 rounded-full blur-2xl group-hover:blur-3xl transition-all duration-500 animate-pulse pointer-events-none" />
-        <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500/40 via-teal-400/50 to-emerald-600/40 rounded-full blur-sm group-hover:blur-md transition-all duration-300 pointer-events-none" />
+        <div
+          className="absolute -inset-4 rounded-full blur-2xl group-hover:blur-3xl transition-all duration-500 animate-pulse pointer-events-none"
+          style={{
+            background: `radial-gradient(circle, ${activePalette.primary}40, ${activePalette.secondary}25, transparent)`,
+          }}
+        />
+        <div
+          className="absolute -inset-1 rounded-full blur-sm group-hover:blur-md transition-all duration-300 pointer-events-none"
+          style={{
+            background: `linear-gradient(135deg, ${activePalette.primary}50, ${activePalette.secondary}40)`,
+          }}
+        />
 
         {/* Search Circle Core Frame */}
         <div
           ref={dropdownRef}
-          className="relative w-72 h-72 sm:w-80 sm:h-80 md:w-96 md:h-96 rounded-full border-4 border-emerald-500/40 bg-[var(--bg-card-glass)] shadow-2xl shadow-emerald-950/40 backdrop-blur-2xl flex flex-col items-center justify-center p-6 text-center z-20"
+          className="relative w-72 h-72 sm:w-80 sm:h-80 md:w-96 md:h-96 rounded-full border-4 bg-[var(--bg-card-glass)] shadow-2xl backdrop-blur-2xl flex flex-col items-center justify-center p-6 text-center z-20"
+          style={{
+            borderColor: `${activePalette.primary}50`,
+            boxShadow: `0 20px 40px -10px ${activePalette.primary}40`,
+          }}
         >
           {/* Top Emblem & Badge */}
           <div className="flex flex-col items-center space-y-1 mb-2">
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-400 border border-emerald-400/40 flex items-center justify-center text-white shadow-lg shadow-emerald-950/40 ring-2 ring-emerald-500/30">
+            <div
+              className="w-11 h-11 rounded-2xl border flex items-center justify-center text-white shadow-lg ring-2"
+              style={{
+                background: `linear-gradient(135deg, ${activePalette.primary}, ${activePalette.secondary})`,
+                borderColor: `${activePalette.primary}60`,
+                boxShadow: `0 10px 20px -5px ${activePalette.primary}60`,
+                ringColor: `${activePalette.primary}30`,
+              }}
+            >
               <Compass className="w-6 h-6 animate-spin-slow" />
             </div>
-            <span className="text-[10px] font-bold tracking-widest text-emerald-500 uppercase">
+            <span className="text-[10px] font-bold tracking-widest uppercase" style={{ color: activePalette.primary }}>
               GIS Spatial Hub
             </span>
           </div>
@@ -104,7 +128,7 @@ function HeroSearchCircle({ onNavigateToMap }) {
           {/* Search Input Box */}
           <div className="w-full max-w-[250px] sm:max-w-[280px] relative mb-3">
             <div className="relative flex items-center">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-emerald-500">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none" style={{ color: activePalette.primary }}>
                 <Search className="w-4 h-4" />
               </div>
               <input
@@ -113,7 +137,10 @@ function HeroSearchCircle({ onNavigateToMap }) {
                 onChange={handleInputChange}
                 onFocus={() => setIsDropdownOpen(true)}
                 placeholder="Search Village or City..."
-                className="w-full pl-9 pr-8 py-2 bg-[var(--bg-primary)] border border-[var(--border-strong)] hover:border-emerald-500/60 focus:border-emerald-500 rounded-full text-xs text-[var(--text-main)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-emerald-500/40 transition-all font-sans shadow-inner text-center"
+                className="w-full pl-9 pr-8 py-2 bg-[var(--bg-primary)] border border-[var(--border-strong)] rounded-full text-xs text-[var(--text-main)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 transition-all font-sans shadow-inner text-center"
+                style={{
+                  borderColor: inputVal ? activePalette.primary : undefined,
+                }}
               />
               {inputVal ? (
                 <button
@@ -127,7 +154,7 @@ function HeroSearchCircle({ onNavigateToMap }) {
                   <X className="w-3.5 h-3.5" />
                 </button>
               ) : isSearching ? (
-                <div className="absolute inset-y-0 right-0 pr-2.5 flex items-center text-emerald-500 pointer-events-none">
+                <div className="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none" style={{ color: activePalette.primary }}>
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
                 </div>
               ) : null}
@@ -137,7 +164,7 @@ function HeroSearchCircle({ onNavigateToMap }) {
             {isDropdownOpen && (
               <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-72 sm:w-80 bg-[var(--bg-card)] border border-[var(--border-strong)] rounded-2xl shadow-2xl z-50 p-2 space-y-1 backdrop-blur-2xl max-h-56 overflow-y-auto custom-scrollbar text-left">
                 <div className="flex items-center justify-between px-2 py-1 border-b border-[var(--border-subtle)] text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">
-                  <span className="flex items-center gap-1 text-emerald-500">
+                  <span className="flex items-center gap-1" style={{ color: activePalette.primary }}>
                     <Globe className="w-3 h-3" />
                     {inputVal ? 'Live Matches' : 'Verified Panchayats'}
                   </span>
@@ -157,7 +184,7 @@ function HeroSearchCircle({ onNavigateToMap }) {
                       className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-[var(--bg-card-hover)] text-[var(--text-muted)] hover:text-[var(--text-main)] transition-all cursor-pointer text-left"
                     >
                       <div className="flex items-center gap-2 truncate">
-                        <MapPin className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
+                        <MapPin className="w-3.5 h-3.5 flex-shrink-0" style={{ color: activePalette.primary }} />
                         <div className="truncate">
                           <p className="text-xs font-bold text-[var(--text-main)] leading-tight truncate">
                             {village.gp_name}
@@ -167,7 +194,14 @@ function HeroSearchCircle({ onNavigateToMap }) {
                           </p>
                         </div>
                       </div>
-                      <span className="text-[9px] font-mono text-emerald-600 dark:text-emerald-400 font-semibold px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 flex-shrink-0">
+                      <span
+                        className="text-[9px] font-mono font-semibold px-1.5 py-0.5 rounded border flex-shrink-0"
+                        style={{
+                          color: activePalette.primary,
+                          backgroundColor: `${activePalette.primary}15`,
+                          borderColor: `${activePalette.primary}30`,
+                        }}
+                      >
                         {village.gp_code || 'GP-LIVE'}
                       </span>
                     </button>
@@ -181,7 +215,11 @@ function HeroSearchCircle({ onNavigateToMap }) {
           <button
             type="button"
             onClick={onNavigateToMap}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold shadow-lg shadow-emerald-950/40 hover:shadow-emerald-900/60 transition-all active:scale-95 cursor-pointer"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-white text-xs font-bold shadow-lg transition-all active:scale-95 cursor-pointer"
+            style={{
+              background: `linear-gradient(135deg, ${activePalette.primary}, ${activePalette.secondary})`,
+              boxShadow: `0 10px 20px -5px ${activePalette.primary}60`,
+            }}
           >
             <span>Launch Satellite Map</span>
             <ArrowRight className="w-3.5 h-3.5" />
@@ -192,7 +230,7 @@ function HeroSearchCircle({ onNavigateToMap }) {
       {/* Quick-Pick Popular Panchayats Bar */}
       <div className="mt-5 flex flex-wrap items-center justify-center gap-2 max-w-xl px-4">
         <span className="text-[11px] font-bold text-[var(--text-muted)] flex items-center gap-1 mr-1">
-          <Sparkles className="w-3 h-3 text-emerald-500" /> Quick Habitations:
+          <Sparkles className="w-3 h-3" style={{ color: activePalette.primary }} /> Quick Habitations:
         </span>
         {quickPanchayats.map((p) => {
           const isSelected = Number(selectedGpId) === Number(p.id);
@@ -208,9 +246,12 @@ function HeroSearchCircle({ onNavigateToMap }) {
               }}
               className={`px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${
                 isSelected
-                  ? 'bg-emerald-600 text-white shadow-md shadow-emerald-950/40 ring-1 ring-emerald-400/40 scale-105'
+                  ? 'text-white shadow-md scale-105'
                   : 'bg-[var(--bg-card)] hover:bg-[var(--bg-card-hover)] text-[var(--text-muted)] hover:text-[var(--text-main)] border border-[var(--border-subtle)]'
               }`}
+              style={{
+                backgroundColor: isSelected ? activePalette.primary : undefined,
+              }}
             >
               {p.name}
             </button>
