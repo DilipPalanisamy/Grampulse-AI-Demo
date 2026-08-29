@@ -36,7 +36,7 @@ services:
       - key: PYTHONUNBUFFERED
         value: "1"
       - key: CORS_ORIGINS
-        value: "http://localhost:5173,http://127.0.0.1:5173"
+        value: "http://localhost:5173,http://127.0.0.1:5173,https://grampulse-frontend.onrender.com"
 
   # ---------------------------------------------------------------------------
   # 3. React + Vite Frontend (Production Static Site)
@@ -45,7 +45,6 @@ services:
     name: grampulse-frontend
     runtime: static
     plan: free
-    region: oregon
     buildCommand: npm install && npm run build
     staticPublishPath: ./dist
     routes:
@@ -55,10 +54,6 @@ services:
         destination: /index.html
     envVars:
       - key: VITE_API_BASE_URL
-        fromService:
-          name: grampulse-backend
-          type: web
-          property: host
         value: https://grampulse-backend.onrender.com/api/v1
       - key: VITE_GOOGLE_CLIENT_ID
         value: 490045634434-h09m0avfvfkcfcj06vpcg4hk1v1q2jq1.apps.googleusercontent.com
