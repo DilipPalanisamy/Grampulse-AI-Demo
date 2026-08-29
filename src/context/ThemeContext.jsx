@@ -105,7 +105,7 @@ export const ThemeProvider = ({ children }) => {
 
   const [isCustomizerOpen, setIsCustomizerOpen] = useState(false);
 
-  // Apply Professional CSS Variables & Data Attributes to Document Root
+  // Apply Theme Mode, Classes, and CSS Variables directly to document.documentElement
   useEffect(() => {
     try {
       localStorage.setItem(THEME_STORAGE_KEY, JSON.stringify(themeConfig));
@@ -116,8 +116,17 @@ export const ThemeProvider = ({ children }) => {
     const palette = THEME_PALETTES[themeConfig.palette] || THEME_PALETTES.emerald;
     const root = document.documentElement;
 
+    // 1. Data attribute and class list on root HTML element
     root.setAttribute('data-theme', themeConfig.mode);
+    if (themeConfig.mode === 'light') {
+      root.classList.remove('dark');
+      root.classList.add('light');
+    } else {
+      root.classList.remove('light');
+      root.classList.add('dark');
+    }
 
+    // 2. Palette CSS Variables
     root.style.setProperty('--theme-primary', palette.primary);
     root.style.setProperty('--theme-primary-hover', palette.primaryHover);
     root.style.setProperty('--theme-secondary', palette.secondary);
@@ -125,24 +134,29 @@ export const ThemeProvider = ({ children }) => {
     root.style.setProperty('--theme-accent-bg', palette.accentBg);
     root.style.setProperty('--theme-badge-border', palette.badgeBorder);
 
+    // 3. Mode CSS Variables
     if (themeConfig.mode === 'light') {
-      root.classList.remove('dark');
-      root.classList.add('light');
-      root.style.setProperty('--bg-primary', '#F8FAFC');
+      root.style.setProperty('--bg-primary', '#F1F5F9');
+      root.style.setProperty('--bg-secondary', '#E2E8F0');
       root.style.setProperty('--bg-card', '#FFFFFF');
-      root.style.setProperty('--bg-card-glass', 'rgba(255, 255, 255, 0.90)');
+      root.style.setProperty('--bg-card-glass', 'rgba(255, 255, 255, 0.94)');
+      root.style.setProperty('--bg-card-hover', '#F8FAFC');
+      root.style.setProperty('--bg-card-inner', '#F8FAFC');
       root.style.setProperty('--text-main', '#0F172A');
       root.style.setProperty('--text-muted', '#475569');
+      root.style.setProperty('--text-subtle', '#64748B');
       root.style.setProperty('--border-subtle', '#E2E8F0');
       root.style.setProperty('--border-strong', '#CBD5E1');
     } else {
-      root.classList.remove('light');
-      root.classList.add('dark');
       root.style.setProperty('--bg-primary', '#0B0F19');
+      root.style.setProperty('--bg-secondary', '#0F172A');
       root.style.setProperty('--bg-card', '#111827');
-      root.style.setProperty('--bg-card-glass', 'rgba(17, 24, 39, 0.85)');
+      root.style.setProperty('--bg-card-glass', 'rgba(17, 24, 39, 0.88)');
+      root.style.setProperty('--bg-card-hover', '#1F2937');
+      root.style.setProperty('--bg-card-inner', '#0B0F19');
       root.style.setProperty('--text-main', '#F9FAFB');
       root.style.setProperty('--text-muted', '#9CA3AF');
+      root.style.setProperty('--text-subtle', '#6B7280');
       root.style.setProperty('--border-subtle', '#1F2937');
       root.style.setProperty('--border-strong', '#374151');
     }

@@ -4,9 +4,11 @@
 
 :root, [data-theme="dark"], html.dark {
   --bg-primary: #0B0F19;
+  --bg-secondary: #0F172A;
   --bg-card: #111827;
-  --bg-card-glass: rgba(17, 24, 39, 0.85);
+  --bg-card-glass: rgba(17, 24, 39, 0.88);
   --bg-card-hover: #1F2937;
+  --bg-card-inner: #0B0F19;
   --text-main: #F9FAFB;
   --text-muted: #9CA3AF;
   --text-subtle: #6B7280;
@@ -18,13 +20,16 @@
   --theme-glow: rgba(16, 185, 129, 0.20);
   --theme-accent-bg: rgba(16, 185, 129, 0.10);
   --theme-badge-border: rgba(16, 185, 129, 0.30);
+  color-scheme: dark;
 }
 
 [data-theme="light"], html.light {
-  --bg-primary: #F8FAFC;
+  --bg-primary: #F1F5F9;
+  --bg-secondary: #E2E8F0;
   --bg-card: #FFFFFF;
-  --bg-card-glass: rgba(255, 255, 255, 0.92);
-  --bg-card-hover: #F1F5F9;
+  --bg-card-glass: rgba(255, 255, 255, 0.94);
+  --bg-card-hover: #F8FAFC;
+  --bg-card-inner: #F8FAFC;
   --text-main: #0F172A;
   --text-muted: #475569;
   --text-subtle: #64748B;
@@ -36,6 +41,7 @@
   --theme-glow: rgba(5, 150, 105, 0.15);
   --theme-accent-bg: rgba(5, 150, 105, 0.08);
   --theme-badge-border: rgba(5, 150, 105, 0.25);
+  color-scheme: light;
 }
 
 @layer base {
@@ -44,14 +50,9 @@
     color: var(--text-main);
     @apply antialiased selection:bg-emerald-500 selection:text-white transition-colors duration-200;
   }
-
-  html.light body {
-    background-color: var(--bg-primary);
-    color: var(--text-main);
-  }
 }
 
-/* Theme accent utilities */
+/* Theme variable utilities */
 .theme-text-primary {
   color: var(--theme-primary);
 }
@@ -112,7 +113,7 @@
     opacity: 0;
   }
   to {
-    opacity: 1;
+    transform: 1;
   }
 }
 
@@ -130,15 +131,16 @@
 
 /* Leaflet map custom popup overrides */
 .leaflet-popup-content-wrapper {
-  background: rgba(255, 255, 255, 0.98) !important;
+  background: var(--bg-card) !important;
+  color: var(--text-main) !important;
   border-radius: 1rem !important;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.2) !important;
   padding: 4px !important;
-  border: 1px solid #e2e8f0 !important;
+  border: 1px solid var(--border-subtle) !important;
 }
 
 .leaflet-popup-tip {
-  background: #ffffff !important;
+  background: var(--bg-card) !important;
 }
 
 .leaflet-popup-content {

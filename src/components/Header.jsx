@@ -41,7 +41,7 @@ function HighlightMatch({ text = '', query = '' }) {
         regex.test(part) ? (
           <span
             key={i}
-            className="text-emerald-300 font-extrabold bg-emerald-500/20 px-0.5 rounded shadow-sm"
+            className="text-emerald-400 font-extrabold bg-emerald-500/20 px-0.5 rounded shadow-sm"
           >
             {part}
           </span>
@@ -82,13 +82,6 @@ export default function Header({ onOpenReportModal }) {
   const [isDownloadingPDF, setIsDownloadingPDF] = useState(false);
   const [downloadSuccess, setDownloadSuccess] = useState(false);
   const searchContainerRef = useRef(null);
-
-  // Sync local input with selected location name if input is empty
-  useEffect(() => {
-    if (selectedLocation?.gp_name && !localInput) {
-      // Don't force localInput so user sees placeholder or selected village
-    }
-  }, [selectedLocation, localInput]);
 
   // Close search dropdown on outside click
   useEffect(() => {
@@ -163,12 +156,11 @@ export default function Header({ onOpenReportModal }) {
     }
   };
 
-  // Determine items to display: search results if typing, or registered habitations by default
   const displayResults =
     localInput.trim().length > 0 ? searchResults : locations.slice(0, 8);
 
   return (
-    <header className="sticky top-0 z-[1200] overflow-visible bg-slate-950/95 border-b border-slate-800/90 text-white shadow-2xl backdrop-blur-2xl">
+    <header className="sticky top-0 z-[1200] overflow-visible bg-[var(--bg-card-glass)] border-b border-[var(--border-subtle)] text-[var(--text-main)] shadow-xl backdrop-blur-2xl transition-colors duration-200">
       <div className="flex items-center justify-between w-full px-3 sm:px-6 py-2.5 min-h-[70px] gap-2 sm:gap-4 overflow-visible">
         
         {/* ================================================================= */}
@@ -176,14 +168,14 @@ export default function Header({ onOpenReportModal }) {
         {/* ================================================================= */}
         <div className="flex items-center gap-2.5 sm:gap-3 flex-shrink-0 justify-start">
           <div
-            className="w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-lg shadow-emerald-950/60 ring-2 ring-emerald-400/30 flex-shrink-0"
+            className="w-10 h-10 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-emerald-950/40 ring-2 ring-emerald-400/30 flex-shrink-0"
             style={{ backgroundColor: `${activePalette.primary}25`, color: activePalette.primary }}
           >
             <Sparkles className="w-5 h-5" />
           </div>
           <div className="hidden sm:block">
             <div className="flex items-center gap-1.5">
-              <h1 className="text-base sm:text-lg font-black tracking-tight text-white font-sans">
+              <h1 className="text-base sm:text-lg font-black tracking-tight text-[var(--text-main)] font-sans">
                 GramPulse <span style={{ color: activePalette.primary }} className="font-extrabold">AI</span>
               </h1>
               <span
@@ -197,8 +189,8 @@ export default function Header({ onOpenReportModal }) {
                 MoPR RAG Engine
               </span>
             </div>
-            <p className="text-[10.5px] text-slate-400 font-medium truncate max-w-[220px]">
-              Predictive Rural Governance & GIS
+            <p className="text-[10.5px] text-[var(--text-muted)] font-medium truncate max-w-[220px]">
+              Predictive Rural Governance &amp; GIS
             </p>
           </div>
         </div>
@@ -208,7 +200,7 @@ export default function Header({ onOpenReportModal }) {
         {/* ================================================================= */}
         <div className="flex-1 max-w-2xl mx-1 sm:mx-4 relative overflow-visible" ref={searchContainerRef}>
           <div className="relative flex items-center group">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-emerald-400 group-focus-within:text-emerald-300 transition-colors">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-emerald-500 transition-colors">
               <Search className="w-5 h-5" />
             </div>
 
@@ -223,7 +215,7 @@ export default function Header({ onOpenReportModal }) {
                   ? `Search Indian village, town, or Panchayat (Active: ${selectedLocation.gp_name})...`
                   : 'Search village, town, district, or Gram Panchayat across India...'
               }
-              className="w-full pl-11 pr-10 py-3 text-sm sm:text-base font-medium shadow-lg rounded-xl bg-slate-800/90 border border-emerald-500/30 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all font-sans"
+              className="w-full pl-11 pr-10 py-3 text-sm sm:text-base font-medium shadow-lg rounded-xl bg-[var(--bg-primary)] border border-[var(--border-subtle)] focus:border-emerald-500 text-[var(--text-main)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-emerald-400/40 transition-all font-sans"
             />
 
             {/* Clear Button or Spinner */}
@@ -231,7 +223,7 @@ export default function Header({ onOpenReportModal }) {
               <button
                 type="button"
                 onClick={handleClear}
-                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-white cursor-pointer transition-colors"
+                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[var(--text-muted)] hover:text-[var(--text-main)] cursor-pointer transition-colors"
                 title="Clear query"
               >
                 <X className="w-4 h-4" />
@@ -245,8 +237,8 @@ export default function Header({ onOpenReportModal }) {
 
           {/* Autocomplete Dropdown with Highlighted Text Matches */}
           {isSearchOpen && (
-            <div className="absolute left-0 right-0 top-full mt-2 w-full bg-slate-900/95 border border-slate-700/90 rounded-2xl shadow-2xl z-[1500] p-2 space-y-1 backdrop-blur-2xl animate-fadeIn max-h-84 overflow-y-auto custom-scrollbar">
-              <div className="flex items-center justify-between px-3 py-1.5 border-b border-slate-800 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+            <div className="absolute left-0 right-0 top-full mt-2 w-full bg-[var(--bg-card)] border border-[var(--border-strong)] rounded-2xl shadow-2xl z-[1500] p-2 space-y-1 backdrop-blur-2xl animate-fadeIn max-h-84 overflow-y-auto custom-scrollbar">
+              <div className="flex items-center justify-between px-3 py-1.5 border-b border-[var(--border-subtle)] text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">
                 <span className="flex items-center gap-1.5 text-emerald-400">
                   <Globe className="w-3.5 h-3.5" />
                   {localInput.trim().length > 0 ? 'Live Geocoded Matches (Nominatim GIS)' : 'Registered Habitations'}
@@ -255,9 +247,9 @@ export default function Header({ onOpenReportModal }) {
               </div>
 
               {displayResults.length === 0 ? (
-                <div className="py-7 text-center text-xs text-slate-400 space-y-1">
-                  <p className="font-semibold text-slate-300">No habitations found for &ldquo;{localInput}&rdquo;</p>
-                  <p className="text-[11px] text-slate-500">Querying OpenStreetMap live geocoding directory...</p>
+                <div className="py-7 text-center text-xs text-[var(--text-muted)] space-y-1">
+                  <p className="font-semibold text-[var(--text-main)]">No habitations found for &ldquo;{localInput}&rdquo;</p>
+                  <p className="text-[11px] text-[var(--text-subtle)]">Querying OpenStreetMap live geocoding directory...</p>
                 </div>
               ) : (
                 displayResults.map((village, idx) => {
@@ -270,8 +262,8 @@ export default function Header({ onOpenReportModal }) {
                       onClick={() => handleSelectVillage(village)}
                       className={`w-full flex items-center justify-between p-3 rounded-xl text-left transition-all cursor-pointer ${
                         isSelected
-                          ? 'bg-emerald-950/70 border border-emerald-500/50 text-white shadow-md'
-                          : 'hover:bg-slate-800/90 text-slate-300 hover:text-white border border-transparent'
+                          ? 'bg-emerald-500/15 border border-emerald-500/40 text-[var(--text-main)] shadow-sm'
+                          : 'hover:bg-[var(--bg-card-hover)] text-[var(--text-muted)] hover:text-[var(--text-main)] border border-transparent'
                       }`}
                     >
                       <div className="flex items-center gap-3 min-w-0">
@@ -279,16 +271,16 @@ export default function Header({ onOpenReportModal }) {
                           className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0 ${
                             isSelected
                               ? 'bg-emerald-500 text-white shadow-sm'
-                              : 'bg-slate-800 text-emerald-400 border border-slate-700'
+                              : 'bg-[var(--bg-primary)] text-emerald-400 border border-[var(--border-subtle)]'
                           }`}
                         >
                           <MapPin className="w-4 h-4" />
                         </div>
                         <div className="min-w-0 truncate">
-                          <p className="text-xs sm:text-sm font-bold text-white leading-tight truncate">
+                          <p className="text-xs sm:text-sm font-bold text-[var(--text-main)] leading-tight truncate">
                             <HighlightMatch text={village.gp_name} query={localInput} />
                           </p>
-                          <p className="text-[11px] text-slate-400 truncate">
+                          <p className="text-[11px] text-[var(--text-muted)] truncate">
                             <HighlightMatch
                               text={`${village.district || 'District'} District, ${village.state || 'India'}`}
                               query={localInput}
@@ -302,7 +294,7 @@ export default function Header({ onOpenReportModal }) {
                           {village.gp_code || `GP-${village.gp_id || 9001}`}
                         </span>
                         {village.population && (
-                          <span className="text-[9.5px] text-slate-400 font-mono mt-0.5">
+                          <span className="text-[9.5px] text-[var(--text-subtle)] font-mono mt-0.5">
                             Pop: {Number(village.population).toLocaleString()}
                           </span>
                         )}
@@ -321,14 +313,14 @@ export default function Header({ onOpenReportModal }) {
         <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0 justify-end">
           
           {/* Navigation Page Tabs (Dashboard vs Interactive Map) */}
-          <div className="hidden xl:flex items-center gap-1 bg-slate-900 p-1 rounded-xl border border-slate-800 flex-shrink-0">
+          <div className="hidden xl:flex items-center gap-1 bg-[var(--bg-primary)] p-1 rounded-xl border border-[var(--border-subtle)] flex-shrink-0">
             <button
               type="button"
               onClick={() => setActiveTab('dashboard')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                 activeTab === 'dashboard'
                   ? 'bg-emerald-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-card-hover)]'
               }`}
             >
               <LayoutDashboard className="w-3.5 h-3.5" />
@@ -340,7 +332,7 @@ export default function Header({ onOpenReportModal }) {
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                 activeTab === 'map'
                   ? 'bg-emerald-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-card-hover)]'
               }`}
             >
               <Map className="w-3.5 h-3.5" />
@@ -349,18 +341,18 @@ export default function Header({ onOpenReportModal }) {
           </div>
 
           {/* Planning Horizon Selector */}
-          <div className="hidden lg:flex items-center gap-1.5 bg-slate-900 px-2.5 py-2 rounded-xl border border-slate-800 text-xs text-slate-300 flex-shrink-0">
-            <Calendar className="w-3.5 h-3.5 text-slate-400" />
-            <span className="text-[11px] font-semibold text-slate-400">Horizon:</span>
+          <div className="hidden lg:flex items-center gap-1.5 bg-[var(--bg-primary)] px-2.5 py-2 rounded-xl border border-[var(--border-subtle)] text-xs text-[var(--text-muted)] flex-shrink-0">
+            <Calendar className="w-3.5 h-3.5 text-[var(--text-subtle)]" />
+            <span className="text-[11px] font-semibold text-[var(--text-muted)]">Horizon:</span>
             <select
               value={planningHorizon}
               onChange={(e) => setPlanningHorizon(Number(e.target.value))}
               aria-label="Select Planning Horizon"
               className="bg-transparent text-emerald-400 font-bold focus:outline-none cursor-pointer text-xs"
             >
-              <option value={3} className="bg-slate-900 text-white">3 Yrs</option>
-              <option value={5} className="bg-slate-900 text-white">5 Yrs</option>
-              <option value={7} className="bg-slate-900 text-white">7 Yrs</option>
+              <option value={3} className="bg-[var(--bg-card)] text-[var(--text-main)]">3 Yrs</option>
+              <option value={5} className="bg-[var(--bg-card)] text-[var(--text-main)]">5 Yrs</option>
+              <option value={7} className="bg-[var(--bg-card)] text-[var(--text-main)]">7 Yrs</option>
             </select>
           </div>
 
@@ -372,7 +364,7 @@ export default function Header({ onOpenReportModal }) {
             className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold shadow-lg transition-all duration-200 cursor-pointer active:scale-95 flex-shrink-0 ${
               downloadSuccess
                 ? 'bg-emerald-600 text-white shadow-emerald-950/60 ring-2 ring-emerald-400'
-                : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-emerald-950/60 ring-1 ring-emerald-400/40 hover:shadow-emerald-900/50'
+                : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-emerald-950/40 ring-1 ring-emerald-400/40 hover:shadow-emerald-900/50'
             } disabled:opacity-50 disabled:cursor-not-allowed`}
             title="Generate & Download Full Executive GPDP PDF Report"
           >
@@ -398,7 +390,7 @@ export default function Header({ onOpenReportModal }) {
           {/* Report Citizen Issue Action Button */}
           <button
             onClick={onOpenReportModal}
-            className="hidden md:inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 hover:border-slate-700 transition-colors shadow-sm active:scale-95 cursor-pointer flex-shrink-0"
+            className="hidden md:inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-[var(--bg-primary)] hover:bg-[var(--bg-card-hover)] text-[var(--text-main)] border border-[var(--border-subtle)] transition-colors shadow-sm active:scale-95 cursor-pointer flex-shrink-0"
             title="Submit a new geotagged citizen grievance"
           >
             <PlusCircle className="w-3.5 h-3.5 text-emerald-400" />
@@ -409,19 +401,19 @@ export default function Header({ onOpenReportModal }) {
           <button
             type="button"
             onClick={toggleMode}
-            className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 hover:border-slate-700 transition-colors shadow-sm cursor-pointer"
+            className="p-2 rounded-xl bg-[var(--bg-primary)] hover:bg-[var(--bg-card-hover)] text-[var(--text-main)] border border-[var(--border-subtle)] transition-colors shadow-sm cursor-pointer"
             title={themeConfig.mode === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
             aria-label="Toggle Dark/Light Mode"
           >
             {themeConfig.mode === 'light' ? (
-              <Sun className="w-4 h-4 text-amber-400" />
+              <Sun className="w-4 h-4 text-amber-500" />
             ) : (
               <Moon className="w-4 h-4 text-emerald-400" style={{ color: activePalette.primary }} />
             )}
           </button>
 
           {/* User Profile Avatar & Sign Out */}
-          <div className="flex items-center gap-2 pl-2 border-l border-slate-800">
+          <div className="flex items-center gap-2 pl-2 border-l border-[var(--border-subtle)]">
             <div
               className="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white text-xs font-black shadow-md border border-white/10"
               title={`${user?.name || 'Citizen'} (${user?.email || ''})`}

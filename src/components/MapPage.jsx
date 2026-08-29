@@ -48,38 +48,38 @@ export default function MapPage({ onBackToDashboard, onOpenChatbot }) {
   const severity = predictions?.severity_ratings || {};
 
   return (
-    <div className="relative w-full h-[calc(100vh-64px)] bg-slate-950 overflow-hidden flex flex-col selection:bg-emerald-500 selection:text-white">
+    <div className="relative w-full h-[calc(100vh-64px)] bg-[var(--bg-primary)] overflow-hidden flex flex-col selection:bg-emerald-500 selection:text-white transition-colors duration-200">
       {/* Floating Top Control Overlay Bar */}
       <div className="absolute top-4 left-4 right-4 z-[1000] pointer-events-none flex flex-wrap items-center justify-between gap-3">
         {/* Left Action: Back Button & Village Title Card */}
-        <div className="pointer-events-auto flex items-center gap-2.5 bg-slate-900/95 backdrop-blur-xl p-2 sm:p-2.5 rounded-2xl border border-slate-700/80 shadow-2xl">
+        <div className="pointer-events-auto flex items-center gap-2.5 bg-[var(--bg-card-glass)] backdrop-blur-xl p-2 sm:p-2.5 rounded-2xl border border-[var(--border-strong)] shadow-2xl">
           <button
             type="button"
             onClick={onBackToDashboard}
-            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-all flex items-center gap-1.5 text-xs font-bold shadow-sm cursor-pointer active:scale-95"
+            className="p-2 rounded-xl bg-[var(--bg-primary)] hover:bg-[var(--bg-card-hover)] text-[var(--text-muted)] hover:text-[var(--text-main)] transition-all flex items-center gap-1.5 text-xs font-bold shadow-sm cursor-pointer active:scale-95"
             title="Return to Dashboard Overview"
           >
-            <ArrowLeft className="w-4 h-4 text-emerald-400" />
+            <ArrowLeft className="w-4 h-4 text-emerald-500" />
             <span className="hidden sm:inline">Dashboard</span>
           </button>
 
-          <div className="h-6 w-px bg-slate-800 hidden sm:block" />
+          <div className="h-6 w-px bg-[var(--border-subtle)] hidden sm:block" />
 
           {/* Active Village Info */}
           <div className="flex items-center gap-2 pr-1">
-            <div className="w-8 h-8 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+            <div className="w-8 h-8 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-500">
               <Building2 className="w-4 h-4" />
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <h2 className="text-xs sm:text-sm font-black text-white leading-tight truncate max-w-[140px] sm:max-w-[200px]">
+                <h2 className="text-xs sm:text-sm font-black text-[var(--text-main)] leading-tight truncate max-w-[140px] sm:max-w-[200px]">
                   {selectedLocation.gp_name}
                 </h2>
-                <span className="text-[10px] font-mono text-emerald-400 font-bold px-1.5 py-0.2 rounded bg-emerald-500/10 border border-emerald-500/20">
+                <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 font-bold px-1.5 py-0.2 rounded bg-emerald-500/10 border border-emerald-500/20">
                   {selectedLocation.gp_code || `GP-${selectedLocation.gp_id}`}
                 </span>
               </div>
-              <p className="text-[10px] text-slate-400 truncate max-w-[180px]">
+              <p className="text-[10px] text-[var(--text-muted)] truncate max-w-[180px]">
                 {selectedLocation.district} District, {selectedLocation.state}
               </p>
             </div>
@@ -87,20 +87,20 @@ export default function MapPage({ onBackToDashboard, onOpenChatbot }) {
         </div>
 
         {/* Right Actions: Horizon, Report Grievance, Export GPDP PDF */}
-        <div className="pointer-events-auto flex items-center gap-2 bg-slate-900/95 backdrop-blur-xl p-2 rounded-2xl border border-slate-700/80 shadow-2xl">
+        <div className="pointer-events-auto flex items-center gap-2 bg-[var(--bg-card-glass)] backdrop-blur-xl p-2 rounded-2xl border border-[var(--border-strong)] shadow-2xl">
           {/* Planning Horizon */}
-          <div className="hidden md:flex items-center gap-1 bg-slate-800 px-2.5 py-1.5 rounded-xl border border-slate-700 text-xs text-slate-300">
+          <div className="hidden md:flex items-center gap-1 bg-[var(--bg-primary)] px-2.5 py-1.5 rounded-xl border border-[var(--border-subtle)] text-xs text-[var(--text-muted)]">
             <Calendar className="w-3.5 h-3.5 text-slate-400" />
             <span className="text-[11px]">Horizon:</span>
             <select
               value={planningHorizon}
               onChange={(e) => setPlanningHorizon(Number(e.target.value))}
               aria-label="Select Planning Horizon"
-              className="bg-transparent text-emerald-400 font-bold focus:outline-none cursor-pointer text-xs"
+              className="bg-transparent text-emerald-500 font-bold focus:outline-none cursor-pointer text-xs"
             >
-              <option value={3} className="bg-slate-900 text-white">3 Yrs</option>
-              <option value={5} className="bg-slate-900 text-white">5 Yrs</option>
-              <option value={7} className="bg-slate-900 text-white">7 Yrs</option>
+              <option value={3} className="bg-[var(--bg-card)] text-[var(--text-main)]">3 Yrs</option>
+              <option value={5} className="bg-[var(--bg-card)] text-[var(--text-main)]">5 Yrs</option>
+              <option value={7} className="bg-[var(--bg-card)] text-[var(--text-main)]">7 Yrs</option>
             </select>
           </div>
 
@@ -108,10 +108,10 @@ export default function MapPage({ onBackToDashboard, onOpenChatbot }) {
           <button
             type="button"
             onClick={() => setIsReportModalOpen(true)}
-            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors shadow-sm cursor-pointer active:scale-95"
+            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold bg-[var(--bg-primary)] hover:bg-[var(--bg-card-hover)] text-[var(--text-main)] border border-[var(--border-subtle)] transition-colors shadow-sm cursor-pointer active:scale-95"
             title="Lodge new geotagged grievance"
           >
-            <PlusCircle className="w-3.5 h-3.5 text-emerald-400" />
+            <PlusCircle className="w-3.5 h-3.5 text-emerald-500" />
             <span className="hidden sm:inline">Report</span>
           </button>
 
@@ -140,18 +140,18 @@ export default function MapPage({ onBackToDashboard, onOpenChatbot }) {
       </div>
 
       {/* Floating Bottom-Left Summary Drawer */}
-      <div className="absolute bottom-6 left-4 z-[1000] max-w-sm w-[90%] sm:w-auto bg-slate-900/95 backdrop-blur-2xl p-3.5 rounded-3xl border border-slate-700/80 shadow-2xl space-y-2.5 transition-all">
-        <div className="flex items-center justify-between gap-2 border-b border-slate-800 pb-2">
+      <div className="absolute bottom-6 left-4 z-[1000] max-w-sm w-[90%] sm:w-auto bg-[var(--bg-card-glass)] backdrop-blur-2xl p-3.5 rounded-3xl border border-[var(--border-strong)] shadow-2xl space-y-2.5 transition-all">
+        <div className="flex items-center justify-between gap-2 border-b border-[var(--border-subtle)] pb-2">
           <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-emerald-400" />
-            <span className="text-xs font-black text-white tracking-tight">
+            <Sparkles className="w-4 h-4 text-emerald-500" />
+            <span className="text-xs font-black text-[var(--text-main)] tracking-tight">
               {selectedLocation.gp_name} Live Intelligence
             </span>
           </div>
           <button
             type="button"
             onClick={() => setIsDrawerOpen(!isDrawerOpen)}
-            className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 cursor-pointer"
+            className="text-[var(--text-muted)] hover:text-[var(--text-main)] p-1 rounded-lg hover:bg-[var(--bg-card-hover)] cursor-pointer"
           >
             {isDrawerOpen ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronUp className="w-3.5 h-3.5" />}
           </button>
@@ -160,30 +160,30 @@ export default function MapPage({ onBackToDashboard, onOpenChatbot }) {
         {isDrawerOpen && (
           <div className="space-y-2.5 animate-fadeIn">
             {/* Quick 4-Grid Census Indicators */}
-            <div className="grid grid-cols-2 gap-1.5 text-[11px] bg-slate-950/80 p-2 rounded-2xl border border-slate-800">
-              <div className="flex items-center gap-1.5 text-slate-300">
-                <Users className="w-3.5 h-3.5 text-blue-400" />
+            <div className="grid grid-cols-2 gap-1.5 text-[11px] bg-[var(--bg-primary)] p-2 rounded-2xl border border-[var(--border-subtle)]">
+              <div className="flex items-center gap-1.5 text-[var(--text-main)]">
+                <Users className="w-3.5 h-3.5 text-blue-500" />
                 <span>Pop: <strong>{Number(selectedLocation.population || 5000).toLocaleString()}</strong></span>
               </div>
-              <div className="flex items-center gap-1.5 text-slate-300">
-                <Droplets className="w-3.5 h-3.5 text-cyan-400" />
+              <div className="flex items-center gap-1.5 text-[var(--text-main)]">
+                <Droplets className="w-3.5 h-3.5 text-cyan-500" />
                 <span>Water: <strong>{Math.round((selectedLocation.daily_water_supply_liters || 300000) / 1000)}k LPD</strong></span>
               </div>
-              <div className="flex items-center gap-1.5 text-slate-300">
-                <GraduationCap className="w-3.5 h-3.5 text-purple-400" />
+              <div className="flex items-center gap-1.5 text-[var(--text-main)]">
+                <GraduationCap className="w-3.5 h-3.5 text-purple-500" />
                 <span>Classrooms: <strong>{selectedLocation.school_classrooms_count || 20}</strong></span>
               </div>
-              <div className="flex items-center gap-1.5 text-slate-300">
-                <Route className="w-3.5 h-3.5 text-orange-400" />
+              <div className="flex items-center gap-1.5 text-[var(--text-main)]">
+                <Route className="w-3.5 h-3.5 text-orange-500" />
                 <span>Roads: <strong>{selectedLocation.road_coverage_km || 25} km</strong></span>
               </div>
             </div>
 
             {/* Grievance Category Filter Pills */}
             <div className="space-y-1">
-              <div className="flex items-center justify-between text-[10px] font-bold text-slate-400">
+              <div className="flex items-center justify-between text-[10px] font-bold text-[var(--text-muted)]">
                 <span>Filter Grievance Map:</span>
-                <span className="text-emerald-400 font-mono">({issues.length} records)</span>
+                <span className="text-emerald-500 font-mono">({issues.length} records)</span>
               </div>
               <div className="flex flex-wrap gap-1">
                 {['ALL', 'Water Supply', 'Roads & Infrastructure', 'Education', 'Sanitation'].map((cat) => (
@@ -194,7 +194,7 @@ export default function MapPage({ onBackToDashboard, onOpenChatbot }) {
                     className={`px-2 py-0.5 rounded-lg text-[10px] font-semibold transition-all cursor-pointer ${
                       categoryFilter === cat
                         ? 'bg-emerald-600 text-white shadow-sm'
-                        : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
+                        : 'bg-[var(--bg-primary)] text-[var(--text-muted)] hover:text-[var(--text-main)] border border-[var(--border-subtle)]'
                     }`}
                   >
                     {cat === 'ALL' ? 'All' : cat.split(' ')[0]}
@@ -207,7 +207,7 @@ export default function MapPage({ onBackToDashboard, onOpenChatbot }) {
             <button
               type="button"
               onClick={onOpenChatbot}
-              className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold shadow-lg shadow-emerald-950/60 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+              className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold shadow-lg shadow-emerald-950/40 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
             >
               <Bot className="w-4 h-4" />
               <span>Launch Village Assessment Assistant</span>

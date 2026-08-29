@@ -81,30 +81,30 @@ function HeroSearchCircle({ onNavigateToMap }) {
         {/* Search Circle Core Frame */}
         <div
           ref={dropdownRef}
-          className="relative w-72 h-72 sm:w-80 sm:h-80 md:w-96 md:h-96 rounded-full border-4 border-emerald-500/40 bg-gradient-to-b from-slate-900/95 via-slate-900/90 to-slate-950/98 shadow-2xl shadow-emerald-950/80 backdrop-blur-2xl flex flex-col items-center justify-center p-6 text-center z-20"
+          className="relative w-72 h-72 sm:w-80 sm:h-80 md:w-96 md:h-96 rounded-full border-4 border-emerald-500/40 bg-[var(--bg-card-glass)] shadow-2xl shadow-emerald-950/40 backdrop-blur-2xl flex flex-col items-center justify-center p-6 text-center z-20"
         >
           {/* Top Emblem & Badge */}
           <div className="flex flex-col items-center space-y-1 mb-2">
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-400 border border-emerald-400/40 flex items-center justify-center text-white shadow-lg shadow-emerald-950/60 ring-2 ring-emerald-500/30">
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-400 border border-emerald-400/40 flex items-center justify-center text-white shadow-lg shadow-emerald-950/40 ring-2 ring-emerald-500/30">
               <Compass className="w-6 h-6 animate-spin-slow" />
             </div>
-            <span className="text-[10px] font-bold tracking-widest text-emerald-400 uppercase">
+            <span className="text-[10px] font-bold tracking-widest text-emerald-500 uppercase">
               GIS Spatial Hub
             </span>
           </div>
 
           {/* Heading */}
-          <h3 className="text-base sm:text-lg font-black text-white tracking-tight leading-snug">
+          <h3 className="text-base sm:text-lg font-black text-[var(--text-main)] tracking-tight leading-snug">
             Explore Any Village in India
           </h3>
-          <p className="text-[11px] text-slate-400 max-w-[210px] leading-tight mb-3">
-            Real census demographics, satellite imagery & AI GPDP deficit planning
+          <p className="text-[11px] text-[var(--text-muted)] max-w-[210px] leading-tight mb-3">
+            Real census demographics, satellite imagery &amp; AI GPDP deficit planning
           </p>
 
           {/* Search Input Box */}
           <div className="w-full max-w-[250px] sm:max-w-[280px] relative mb-3">
             <div className="relative flex items-center">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-emerald-400">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-emerald-500">
                 <Search className="w-4 h-4" />
               </div>
               <input
@@ -113,7 +113,7 @@ function HeroSearchCircle({ onNavigateToMap }) {
                 onChange={handleInputChange}
                 onFocus={() => setIsDropdownOpen(true)}
                 placeholder="Search Village or City..."
-                className="w-full pl-9 pr-8 py-2 bg-slate-950/90 border border-slate-700/90 hover:border-emerald-500/60 focus:border-emerald-500 rounded-full text-xs text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 transition-all font-sans shadow-inner text-center"
+                className="w-full pl-9 pr-8 py-2 bg-[var(--bg-primary)] border border-[var(--border-strong)] hover:border-emerald-500/60 focus:border-emerald-500 rounded-full text-xs text-[var(--text-main)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-emerald-500/40 transition-all font-sans shadow-inner text-center"
               />
               {inputVal ? (
                 <button
@@ -122,12 +122,12 @@ function HeroSearchCircle({ onNavigateToMap }) {
                     setInputVal('');
                     handleSearch('');
                   }}
-                  className="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-500 hover:text-slate-300 cursor-pointer"
+                  className="absolute inset-y-0 right-0 pr-2.5 flex items-center text-[var(--text-muted)] hover:text-[var(--text-main)] cursor-pointer"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
               ) : isSearching ? (
-                <div className="absolute inset-y-0 right-0 pr-2.5 flex items-center text-emerald-400 pointer-events-none">
+                <div className="absolute inset-y-0 right-0 pr-2.5 flex items-center text-emerald-500 pointer-events-none">
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
                 </div>
               ) : null}
@@ -135,9 +135,9 @@ function HeroSearchCircle({ onNavigateToMap }) {
 
             {/* Dropdown Results Overlay */}
             {isDropdownOpen && (
-              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-72 sm:w-80 bg-slate-900/98 border border-slate-700/90 rounded-2xl shadow-2xl z-50 p-2 space-y-1 backdrop-blur-2xl max-h-56 overflow-y-auto custom-scrollbar text-left">
-                <div className="flex items-center justify-between px-2 py-1 border-b border-slate-800 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                  <span className="flex items-center gap-1 text-emerald-400">
+              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-72 sm:w-80 bg-[var(--bg-card)] border border-[var(--border-strong)] rounded-2xl shadow-2xl z-50 p-2 space-y-1 backdrop-blur-2xl max-h-56 overflow-y-auto custom-scrollbar text-left">
+                <div className="flex items-center justify-between px-2 py-1 border-b border-[var(--border-subtle)] text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">
+                  <span className="flex items-center gap-1 text-emerald-500">
                     <Globe className="w-3 h-3" />
                     {inputVal ? 'Live Matches' : 'Verified Panchayats'}
                   </span>
@@ -145,7 +145,7 @@ function HeroSearchCircle({ onNavigateToMap }) {
                 </div>
 
                 {displayResults.length === 0 ? (
-                  <div className="py-4 text-center text-xs text-slate-400">
+                  <div className="py-4 text-center text-xs text-[var(--text-muted)]">
                     Searching for &ldquo;{inputVal}&rdquo;...
                   </div>
                 ) : (
@@ -154,20 +154,20 @@ function HeroSearchCircle({ onNavigateToMap }) {
                       key={`hero-${village.gp_id}-${village.gp_name}`}
                       type="button"
                       onClick={() => handleSelectVillage(village)}
-                      className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-slate-800 text-slate-300 hover:text-white transition-all cursor-pointer text-left"
+                      className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-[var(--bg-card-hover)] text-[var(--text-muted)] hover:text-[var(--text-main)] transition-all cursor-pointer text-left"
                     >
                       <div className="flex items-center gap-2 truncate">
-                        <MapPin className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+                        <MapPin className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
                         <div className="truncate">
-                          <p className="text-xs font-bold text-slate-100 leading-tight truncate">
+                          <p className="text-xs font-bold text-[var(--text-main)] leading-tight truncate">
                             {village.gp_name}
                           </p>
-                          <p className="text-[10px] text-slate-400 truncate">
+                          <p className="text-[10px] text-[var(--text-muted)] truncate">
                             {village.district}, {village.state}
                           </p>
                         </div>
                       </div>
-                      <span className="text-[9px] font-mono text-emerald-400 font-semibold px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 flex-shrink-0">
+                      <span className="text-[9px] font-mono text-emerald-600 dark:text-emerald-400 font-semibold px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 flex-shrink-0">
                         {village.gp_code || 'GP-LIVE'}
                       </span>
                     </button>
@@ -181,41 +181,38 @@ function HeroSearchCircle({ onNavigateToMap }) {
           <button
             type="button"
             onClick={onNavigateToMap}
-            className="group/btn relative inline-flex items-center justify-center gap-2 px-5 py-2 rounded-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold shadow-lg shadow-emerald-950/80 hover:shadow-emerald-700/50 transition-all duration-200 active:scale-95 cursor-pointer ring-2 ring-emerald-400/30"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold shadow-lg shadow-emerald-950/40 hover:shadow-emerald-900/60 transition-all active:scale-95 cursor-pointer"
           >
-            <span>Explore Interactive GIS Map</span>
-            <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-0.5 transition-transform" />
+            <span>Launch Satellite Map</span>
+            <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
 
-      {/* Quick-Select Suggestion Badges below circle */}
-      <div className="mt-4 flex flex-wrap items-center justify-center gap-1.5 max-w-xl px-4">
-        <span className="text-[11px] font-bold text-slate-400 flex items-center gap-1">
-          <Sparkles className="w-3 h-3 text-emerald-400" />
-          Popular Panchayats:
+      {/* Quick-Pick Popular Panchayats Bar */}
+      <div className="mt-5 flex flex-wrap items-center justify-center gap-2 max-w-xl px-4">
+        <span className="text-[11px] font-bold text-[var(--text-muted)] flex items-center gap-1 mr-1">
+          <Sparkles className="w-3 h-3 text-emerald-500" /> Quick Habitations:
         </span>
-        {quickPanchayats.map((qp) => {
-          const loc = locations.find((l) => l.gp_id === qp.id);
-          const isSelected = selectedGpId === qp.id;
+        {quickPanchayats.map((p) => {
+          const isSelected = Number(selectedGpId) === Number(p.id);
           return (
             <button
-              key={qp.id}
+              key={`quick-${p.id}`}
               type="button"
               onClick={() => {
-                if (loc) {
-                  selectLocation(loc);
-                } else {
-                  selectLocation(qp.id);
+                const target = locations.find((l) => Number(l.gp_id) === Number(p.id));
+                if (target) {
+                  selectLocation(target);
                 }
               }}
-              className={`px-2.5 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+              className={`px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${
                 isSelected
-                  ? 'bg-emerald-600 text-white shadow-md shadow-emerald-950'
-                  : 'bg-slate-900/90 text-slate-300 hover:text-white hover:bg-slate-800 border border-slate-800'
+                  ? 'bg-emerald-600 text-white shadow-md shadow-emerald-950/40 ring-1 ring-emerald-400/40 scale-105'
+                  : 'bg-[var(--bg-card)] hover:bg-[var(--bg-card-hover)] text-[var(--text-muted)] hover:text-[var(--text-main)] border border-[var(--border-subtle)]'
               }`}
             >
-              {qp.name}
+              {p.name}
             </button>
           );
         })}
@@ -223,5 +220,9 @@ function HeroSearchCircle({ onNavigateToMap }) {
     </div>
   );
 }
+
+HeroSearchCircle.propTypes = {
+  onNavigateToMap: PropTypes.func.isRequired,
+};
 
 export default React.memo(HeroSearchCircle);

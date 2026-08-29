@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import {
   Users,
@@ -29,9 +29,9 @@ const getPriorityBadge = (tier = 'P3', isSufficient = false) => {
     return {
       label: 'Sufficient',
       tier: 'ADEQUATE',
-      badgeClass: 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30',
+      badgeClass: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30',
       barColor: 'bg-emerald-500',
-      icon: <CheckCircle2 className="w-3.5 h-3.5 mr-1 text-emerald-400" />,
+      icon: <CheckCircle2 className="w-3.5 h-3.5 mr-1 text-emerald-600 dark:text-emerald-400" />,
     };
   }
 
@@ -43,27 +43,27 @@ const getPriorityBadge = (tier = 'P3', isSufficient = false) => {
       return {
         label: 'P1 Critical',
         tier: 'P1',
-        badgeClass: 'bg-rose-500/15 text-rose-400 border border-rose-500/40 ring-1 ring-rose-500/20',
+        badgeClass: 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/40 ring-1 ring-rose-500/20',
         barColor: 'bg-rose-500',
-        icon: <AlertTriangle className="w-3.5 h-3.5 mr-1 text-rose-400 animate-pulse" />,
+        icon: <AlertTriangle className="w-3.5 h-3.5 mr-1 text-rose-600 dark:text-rose-400 animate-pulse" />,
       };
     case 'P2':
     case 'MEDIUM':
       return {
         label: 'P2 High Gap',
         tier: 'P2',
-        badgeClass: 'bg-amber-500/15 text-amber-400 border border-amber-500/40 ring-1 ring-amber-500/20',
+        badgeClass: 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/40 ring-1 ring-amber-500/20',
         barColor: 'bg-amber-500',
-        icon: <AlertTriangle className="w-3.5 h-3.5 mr-1 text-amber-400" />,
+        icon: <AlertTriangle className="w-3.5 h-3.5 mr-1 text-amber-600 dark:text-amber-400" />,
       };
     case 'P3':
     default:
       return {
         label: 'P3 Moderate',
         tier: 'P3',
-        badgeClass: 'bg-yellow-500/15 text-yellow-400 border border-yellow-500/30',
+        badgeClass: 'bg-yellow-500/15 text-yellow-600 dark:text-yellow-400 border border-yellow-500/30',
         barColor: 'bg-yellow-500',
-        icon: <CheckCircle2 className="w-3.5 h-3.5 mr-1 text-yellow-400" />,
+        icon: <CheckCircle2 className="w-3.5 h-3.5 mr-1 text-yellow-600 dark:text-yellow-400" />,
       };
   }
 };
@@ -82,17 +82,17 @@ const AnalyticsPanel = ({
           {[1, 2, 3, 4, 5].map((i) => (
             <div
               key={i}
-              className="h-44 bg-slate-900/80 rounded-2xl border border-slate-800 p-5 flex flex-col justify-between"
+              className="h-44 bg-[var(--bg-card)] rounded-2xl border border-[var(--border-subtle)] p-5 flex flex-col justify-between"
             >
               <div className="flex items-center justify-between">
-                <div className="w-10 h-10 rounded-xl bg-slate-800" />
-                <div className="w-20 h-5 rounded-full bg-slate-800" />
+                <div className="w-10 h-10 rounded-xl bg-[var(--bg-primary)]" />
+                <div className="w-20 h-5 rounded-full bg-[var(--bg-primary)]" />
               </div>
               <div className="space-y-2">
-                <div className="w-16 h-3 bg-slate-800 rounded" />
-                <div className="w-28 h-6 bg-slate-800 rounded" />
+                <div className="w-16 h-3 bg-[var(--bg-primary)] rounded" />
+                <div className="w-28 h-6 bg-[var(--bg-primary)] rounded" />
               </div>
-              <div className="w-full h-2 bg-slate-800 rounded-full" />
+              <div className="w-full h-2 bg-[var(--bg-primary)] rounded-full" />
             </div>
           ))}
         </div>
@@ -162,28 +162,28 @@ const AnalyticsPanel = ({
       {/* =================================================================== */}
       {/* 1. EXECUTIVE DEFICIT PRIORITY OVERVIEW BANNER                       */}
       {/* =================================================================== */}
-      <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-900/90 to-slate-950 border border-slate-800 backdrop-blur-xl shadow-xl">
+      <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-subtle)] backdrop-blur-xl shadow-xl">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400 flex-shrink-0">
+          <div className="w-9 h-9 rounded-xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-500 flex-shrink-0">
             <ShieldAlert className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-white uppercase tracking-wider">
+              <span className="text-xs font-bold text-[var(--text-main)] uppercase tracking-wider">
                 Deficit Priority Assessment:
               </span>
-              <span className="text-xs font-black text-rose-400 bg-rose-500/10 px-2.5 py-0.5 rounded-full border border-rose-500/25">
+              <span className="text-xs font-black text-rose-600 dark:text-rose-400 bg-rose-500/10 px-2.5 py-0.5 rounded-full border border-rose-500/25">
                 Top Priority: {topSector} ({topPriorityTier})
               </span>
             </div>
-            <p className="text-[11px] text-slate-400 mt-0.5">
+            <p className="text-[11px] text-[var(--text-muted)] mt-0.5">
               Ranked strictly by National Norm Deficit Severity (P1 Critical &gt; P2 High &gt; P3 Moderate) for targeted scheme intervention
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-2 font-mono text-xs">
-          <span className="px-2.5 py-1 rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/20 font-bold">
+          <span className="px-2.5 py-1 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 font-bold">
             P1: {waterTier === 'P1' ? 'Water ' : ''}{classTier === 'P1' ? 'Education ' : ''}{roadTier === 'P1' ? 'Roads ' : ''}{healthTier === 'P1' ? 'Health' : ''}
           </span>
         </div>
@@ -195,40 +195,40 @@ const AnalyticsPanel = ({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         
         {/* Card 1: Projected Population (ML) */}
-        <div className="relative overflow-hidden bg-slate-900/85 backdrop-blur-md rounded-2xl border border-slate-800 p-4.5 shadow-xl hover:border-slate-700 transition-all group flex flex-col justify-between">
+        <div className="relative overflow-hidden bg-[var(--bg-card)] backdrop-blur-md rounded-2xl border border-[var(--border-subtle)] p-4.5 shadow-xl hover:border-blue-500/40 transition-all group flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-2.5">
-              <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 group-hover:scale-110 transition-transform">
+              <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500 group-hover:scale-110 transition-transform">
                 <Users className="w-5 h-5" />
               </div>
-              <span className="inline-flex items-center text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-blue-500/15 text-blue-300 border border-blue-500/30">
-                <TrendingUp className="w-3 h-3 mr-1 text-blue-400" />
+              <span className="inline-flex items-center text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-blue-500/15 text-blue-600 dark:text-blue-300 border border-blue-500/30">
+                <TrendingUp className="w-3 h-3 mr-1 text-blue-500" />
                 Target {targetYear}
               </span>
             </div>
-            <p className="text-[11px] uppercase tracking-wider font-semibold text-slate-400">
+            <p className="text-[11px] uppercase tracking-wider font-semibold text-[var(--text-muted)]">
               Projected Population
             </p>
             <div className="flex items-baseline gap-2 mt-1">
-              <span className="text-2xl font-extrabold text-white font-mono">
+              <span className="text-2xl font-extrabold text-[var(--text-main)] font-mono">
                 {popProjected.toLocaleString()}
               </span>
-              <span className="text-[11px] font-semibold text-emerald-400">
+              <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
                 +{popGrowth.toLocaleString()} ({p?.growth_rate_pct || 1.8}%)
               </span>
             </div>
           </div>
-          <p className="text-[11px] text-slate-400 flex items-center gap-1.5 mt-3 pt-2 border-t border-slate-800/80">
+          <p className="text-[11px] text-[var(--text-muted)] flex items-center gap-1.5 mt-3 pt-2 border-t border-[var(--border-subtle)]">
             <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
             Base: {popCurrent.toLocaleString()} citizens
           </p>
         </div>
 
         {/* Card 2: Potable Water Supply Deficit (JJM) */}
-        <div className="relative overflow-hidden bg-slate-900/85 backdrop-blur-md rounded-2xl border border-slate-800 p-4.5 shadow-xl hover:border-slate-700 transition-all group flex flex-col justify-between">
+        <div className="relative overflow-hidden bg-[var(--bg-card)] backdrop-blur-md rounded-2xl border border-[var(--border-subtle)] p-4.5 shadow-xl hover:border-sky-500/40 transition-all group flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-2.5">
-              <div className="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 group-hover:scale-110 transition-transform">
+              <div className="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-500 group-hover:scale-110 transition-transform">
                 <Droplets className="w-5 h-5" />
               </div>
               <span className={`inline-flex items-center text-[10.5px] font-bold px-2 py-0.5 rounded-full ${waterBadge.badgeClass}`}>
@@ -236,22 +236,22 @@ const AnalyticsPanel = ({
                 {waterBadge.label}
               </span>
             </div>
-            <p className="text-[11px] uppercase tracking-wider font-semibold text-slate-400">
+            <p className="text-[11px] uppercase tracking-wider font-semibold text-[var(--text-muted)]">
               Daily Water Deficit (JJM)
             </p>
             <div className="flex items-baseline gap-1.5 mt-1">
-              <span className="text-2xl font-extrabold text-rose-400 font-mono">
+              <span className="text-2xl font-extrabold text-rose-600 dark:text-rose-400 font-mono">
                 {waterDeficit > 0 ? `-${Math.round(waterDeficit).toLocaleString()}` : '0'}
               </span>
-              <span className="text-[11px] text-slate-400">LPD (55 L/capita)</span>
+              <span className="text-[11px] text-[var(--text-muted)]">LPD (55 L/capita)</span>
             </div>
           </div>
-          <div className="mt-3 pt-2 border-t border-slate-800/80">
-            <div className="flex justify-between text-[10px] text-slate-400 mb-1">
+          <div className="mt-3 pt-2 border-t border-[var(--border-subtle)]">
+            <div className="flex justify-between text-[10px] text-[var(--text-muted)] mb-1">
               <span>Supply: {Math.round(waterSupply / 1000)}k L</span>
-              <span className="font-mono font-bold text-slate-300">{waterCoveragePct}% Coverage</span>
+              <span className="font-mono font-bold text-[var(--text-main)]">{waterCoveragePct}% Coverage</span>
             </div>
-            <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+            <div className="w-full bg-[var(--bg-primary)] h-1.5 rounded-full overflow-hidden">
               <div
                 className={`${waterBadge.barColor} h-full rounded-full transition-all duration-500`}
                 style={{ width: `${waterCoveragePct}%` }}
@@ -261,10 +261,10 @@ const AnalyticsPanel = ({
         </div>
 
         {/* Card 3: School Classroom Gap (RTE) */}
-        <div className="relative overflow-hidden bg-slate-900/85 backdrop-blur-md rounded-2xl border border-slate-800 p-4.5 shadow-xl hover:border-slate-700 transition-all group flex flex-col justify-between">
+        <div className="relative overflow-hidden bg-[var(--bg-card)] backdrop-blur-md rounded-2xl border border-[var(--border-subtle)] p-4.5 shadow-xl hover:border-purple-500/40 transition-all group flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-2.5">
-              <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 group-hover:scale-110 transition-transform">
+              <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-500 group-hover:scale-110 transition-transform">
                 <GraduationCap className="w-5 h-5" />
               </div>
               <span className={`inline-flex items-center text-[10.5px] font-bold px-2 py-0.5 rounded-full ${classBadge.badgeClass}`}>
@@ -272,22 +272,22 @@ const AnalyticsPanel = ({
                 {classBadge.label}
               </span>
             </div>
-            <p className="text-[11px] uppercase tracking-wider font-semibold text-slate-400">
+            <p className="text-[11px] uppercase tracking-wider font-semibold text-[var(--text-muted)]">
               Classroom Gap (RTE)
             </p>
             <div className="flex items-baseline gap-1.5 mt-1">
-              <span className="text-2xl font-extrabold text-amber-400 font-mono">
+              <span className="text-2xl font-extrabold text-amber-600 dark:text-amber-400 font-mono">
                 {classGap > 0 ? `-${classGap}` : '0'}
               </span>
-              <span className="text-[11px] text-slate-400">Rooms (1:30 ratio)</span>
+              <span className="text-[11px] text-[var(--text-muted)]">Rooms (1:30 ratio)</span>
             </div>
           </div>
-          <div className="mt-3 pt-2 border-t border-slate-800/80">
-            <div className="flex justify-between text-[10px] text-slate-400 mb-1">
+          <div className="mt-3 pt-2 border-t border-[var(--border-subtle)]">
+            <div className="flex justify-between text-[10px] text-[var(--text-muted)] mb-1">
               <span>Active: {classCurrent} / {classRequired}</span>
-              <span className="font-mono font-bold text-slate-300">{classCoveragePct}% Capacity</span>
+              <span className="font-mono font-bold text-[var(--text-main)]">{classCoveragePct}% Capacity</span>
             </div>
-            <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+            <div className="w-full bg-[var(--bg-primary)] h-1.5 rounded-full overflow-hidden">
               <div
                 className={`${classBadge.barColor} h-full rounded-full transition-all duration-500`}
                 style={{ width: `${classCoveragePct}%` }}
@@ -297,10 +297,10 @@ const AnalyticsPanel = ({
         </div>
 
         {/* Card 4: Healthcare Deficit (IPHS National Norms) */}
-        <div className="relative overflow-hidden bg-slate-900/85 backdrop-blur-md rounded-2xl border border-slate-800 p-4.5 shadow-xl hover:border-slate-700 transition-all group flex flex-col justify-between">
+        <div className="relative overflow-hidden bg-[var(--bg-card)] backdrop-blur-md rounded-2xl border border-[var(--border-subtle)] p-4.5 shadow-xl hover:border-emerald-500/40 transition-all group flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-2.5">
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500 group-hover:scale-110 transition-transform">
                 <Stethoscope className="w-5 h-5" />
               </div>
               <span className={`inline-flex items-center text-[10.5px] font-bold px-2 py-0.5 rounded-full ${healthBadge.badgeClass}`}>
@@ -308,22 +308,22 @@ const AnalyticsPanel = ({
                 {healthBadge.label}
               </span>
             </div>
-            <p className="text-[11px] uppercase tracking-wider font-semibold text-slate-400">
+            <p className="text-[11px] uppercase tracking-wider font-semibold text-[var(--text-muted)]">
               Healthcare Deficit (IPHS)
             </p>
             <div className="flex items-baseline gap-1.5 mt-1">
-              <span className={`text-2xl font-extrabold font-mono ${isHealthcareAdequate ? 'text-emerald-400' : 'text-rose-400'}`}>
+              <span className={`text-2xl font-extrabold font-mono ${isHealthcareAdequate ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
                 {isHealthcareAdequate ? '0' : `-${phcGap || 1}`}
               </span>
-              <span className="text-[11px] text-slate-400">PHC Gap (1/30k)</span>
+              <span className="text-[11px] text-[var(--text-muted)]">PHC Gap (1/30k)</span>
             </div>
           </div>
-          <div className="mt-3 pt-2 border-t border-slate-800/80">
-            <div className="flex justify-between text-[10px] text-slate-400 mb-1">
+          <div className="mt-3 pt-2 border-t border-[var(--border-subtle)]">
+            <div className="flex justify-between text-[10px] text-[var(--text-muted)] mb-1">
               <span>Active: {healthNodesCount} PHC / {subCentresCount} Sub</span>
-              <span className="font-mono text-emerald-400 font-bold">IPHS 2022</span>
+              <span className="font-mono text-emerald-600 dark:text-emerald-400 font-bold">IPHS 2022</span>
             </div>
-            <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+            <div className="w-full bg-[var(--bg-primary)] h-1.5 rounded-full overflow-hidden">
               <div
                 className={`${healthBadge.barColor} h-full rounded-full transition-all duration-500`}
                 style={{ width: `${Math.min(100, Math.round((healthNodesCount / requiredPHCs) * 100))}%` }}
@@ -333,10 +333,10 @@ const AnalyticsPanel = ({
         </div>
 
         {/* Card 5: Paved Road Deficit (PMGSY) */}
-        <div className="relative overflow-hidden bg-slate-900/85 backdrop-blur-md rounded-2xl border border-slate-800 p-4.5 shadow-xl hover:border-slate-700 transition-all group flex flex-col justify-between">
+        <div className="relative overflow-hidden bg-[var(--bg-card)] backdrop-blur-md rounded-2xl border border-[var(--border-subtle)] p-4.5 shadow-xl hover:border-orange-500/40 transition-all group flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-2.5">
-              <div className="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-400 group-hover:scale-110 transition-transform">
+              <div className="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-500 group-hover:scale-110 transition-transform">
                 <Route className="w-5 h-5" />
               </div>
               <span className={`inline-flex items-center text-[10.5px] font-bold px-2 py-0.5 rounded-full ${roadBadge.badgeClass}`}>
@@ -344,22 +344,22 @@ const AnalyticsPanel = ({
                 {roadBadge.label}
               </span>
             </div>
-            <p className="text-[11px] uppercase tracking-wider font-semibold text-slate-400">
+            <p className="text-[11px] uppercase tracking-wider font-semibold text-[var(--text-muted)]">
               Paved Road Gap (PMGSY)
             </p>
             <div className="flex items-baseline gap-1.5 mt-1">
-              <span className="text-2xl font-extrabold text-orange-400 font-mono">
+              <span className="text-2xl font-extrabold text-orange-600 dark:text-orange-400 font-mono">
                 {roadDeficit > 0 ? `-${Number(roadDeficit).toFixed(1)}` : '0.0'}
               </span>
-              <span className="text-[11px] text-slate-400">KM (1.25 km/1k)</span>
+              <span className="text-[11px] text-[var(--text-muted)]">KM (1.25 km/1k)</span>
             </div>
           </div>
-          <div className="mt-3 pt-2 border-t border-slate-800/80">
-            <div className="flex justify-between text-[10px] text-slate-400 mb-1">
+          <div className="mt-3 pt-2 border-t border-[var(--border-subtle)]">
+            <div className="flex justify-between text-[10px] text-[var(--text-muted)] mb-1">
               <span>Paved: {Number(roadCurrent).toFixed(1)} / {Number(roadRequired).toFixed(1)} km</span>
-              <span className="font-mono font-bold text-slate-300">{roadCoveragePct}%</span>
+              <span className="font-mono font-bold text-[var(--text-main)]">{roadCoveragePct}%</span>
             </div>
-            <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+            <div className="w-full bg-[var(--bg-primary)] h-1.5 rounded-full overflow-hidden">
               <div
                 className={`${roadBadge.barColor} h-full rounded-full transition-all duration-500`}
                 style={{ width: `${roadCoveragePct}%` }}
@@ -373,84 +373,84 @@ const AnalyticsPanel = ({
       {/* =================================================================== */}
       {/* 3. LIVE INFRASTRUCTURE TELEMETRY DATASET BAR (4 REAL-TIME CARDS)   */}
       {/* =================================================================== */}
-      <div className="bg-slate-900/85 backdrop-blur-md rounded-2xl border border-slate-800 p-5 shadow-2xl space-y-3.5">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+      <div className="bg-[var(--bg-card)] backdrop-blur-md rounded-2xl border border-[var(--border-subtle)] p-5 shadow-2xl space-y-3.5">
+        <div className="flex items-center justify-between border-b border-[var(--border-subtle)] pb-3">
           <div className="flex items-center gap-2">
-            <Layers className="w-4 h-4 text-emerald-400" />
-            <h3 className="text-sm font-bold text-white">
+            <Layers className="w-4 h-4 text-emerald-500" />
+            <h3 className="text-sm font-bold text-[var(--text-main)]">
               Live Infrastructure Telemetry Dataset (Overpass / OpenStreetMap GIS)
             </h3>
           </div>
-          <span className="text-[11px] font-mono text-emerald-400 font-bold bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">
+          <span className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">
             Live Spatial Nodes
           </span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
           {/* 1. Water Points */}
-          <div className="p-3.5 bg-slate-950/70 rounded-xl border border-slate-800/90 flex items-center justify-between hover:border-blue-500/40 transition-all">
+          <div className="p-3.5 bg-[var(--bg-primary)] rounded-xl border border-[var(--border-subtle)] flex items-center justify-between hover:border-blue-500/40 transition-all">
             <div className="space-y-1">
               <div className="flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-blue-500 inline-block animate-pulse" />
-                <span className="text-[11px] text-slate-400 uppercase font-bold">Water Points</span>
+                <span className="text-[11px] text-[var(--text-muted)] uppercase font-bold">Water Points</span>
               </div>
-              <p className="text-base font-extrabold text-white font-mono">
-                {waterNodesCount} <span className="text-xs font-normal text-slate-400">Mapped Nodes</span>
+              <p className="text-base font-extrabold text-[var(--text-main)] font-mono">
+                {waterNodesCount} <span className="text-xs font-normal text-[var(--text-muted)]">Mapped Nodes</span>
               </p>
-              <p className="text-[10px] text-slate-500">Taps, Wells &amp; Storage Tanks</p>
+              <p className="text-[10px] text-[var(--text-subtle)]">Taps, Wells &amp; Storage Tanks</p>
             </div>
-            <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
+            <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500">
               <Droplets className="w-5 h-5" />
             </div>
           </div>
 
           {/* 2. School Facilities */}
-          <div className="p-3.5 bg-slate-950/70 rounded-xl border border-slate-800/90 flex items-center justify-between hover:border-purple-500/40 transition-all">
+          <div className="p-3.5 bg-[var(--bg-primary)] rounded-xl border border-[var(--border-subtle)] flex items-center justify-between hover:border-purple-500/40 transition-all">
             <div className="space-y-1">
               <div className="flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-purple-500 inline-block animate-pulse" />
-                <span className="text-[11px] text-slate-400 uppercase font-bold">School Facilities</span>
+                <span className="text-[11px] text-[var(--text-muted)] uppercase font-bold">School Facilities</span>
               </div>
-              <p className="text-base font-extrabold text-white font-mono">
-                {schoolNodesCount} <span className="text-xs font-normal text-slate-400">Units</span> / {classCurrent} <span className="text-xs font-normal text-slate-400">Rooms</span>
+              <p className="text-base font-extrabold text-[var(--text-main)] font-mono">
+                {schoolNodesCount} <span className="text-xs font-normal text-[var(--text-muted)]">Units</span> / {classCurrent} <span className="text-xs font-normal text-[var(--text-muted)]">Rooms</span>
               </p>
-              <p className="text-[10px] text-slate-500">Elementary &amp; Secondary Schools</p>
+              <p className="text-[10px] text-[var(--text-subtle)]">Elementary &amp; Secondary Schools</p>
             </div>
-            <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
+            <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-500">
               <GraduationCap className="w-5 h-5" />
             </div>
           </div>
 
           {/* 3. Healthcare Facilities */}
-          <div className="p-3.5 bg-slate-950/70 rounded-xl border border-slate-800/90 flex items-center justify-between hover:border-emerald-500/40 transition-all">
+          <div className="p-3.5 bg-[var(--bg-primary)] rounded-xl border border-[var(--border-subtle)] flex items-center justify-between hover:border-emerald-500/40 transition-all">
             <div className="space-y-1">
               <div className="flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse" />
-                <span className="text-[11px] text-slate-400 uppercase font-bold">Healthcare (PHCs/CHCs)</span>
+                <span className="text-[11px] text-[var(--text-muted)] uppercase font-bold">Healthcare (PHCs/CHCs)</span>
               </div>
-              <p className="text-base font-extrabold text-white font-mono">
-                {healthNodesCount} <span className="text-xs font-normal text-slate-400">PHC</span> / {subCentresCount} <span className="text-xs font-normal text-slate-400">Sub-Centres</span>
+              <p className="text-base font-extrabold text-[var(--text-main)] font-mono">
+                {healthNodesCount} <span className="text-xs font-normal text-[var(--text-muted)]">PHC</span> / {subCentresCount} <span className="text-xs font-normal text-[var(--text-muted)]">Sub-Centres</span>
               </p>
-              <p className="text-[10px] text-slate-500">IPHS Rural Health Infrastructure</p>
+              <p className="text-[10px] text-[var(--text-subtle)]">IPHS Rural Health Infrastructure</p>
             </div>
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500">
               <HeartPulse className="w-5 h-5" />
             </div>
           </div>
 
           {/* 4. Road Network */}
-          <div className="p-3.5 bg-slate-950/70 rounded-xl border border-slate-800/90 flex items-center justify-between hover:border-orange-500/40 transition-all">
+          <div className="p-3.5 bg-[var(--bg-primary)] rounded-xl border border-[var(--border-subtle)] flex items-center justify-between hover:border-orange-500/40 transition-all">
             <div className="space-y-1">
               <div className="flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-orange-500 inline-block animate-pulse" />
-                <span className="text-[11px] text-slate-400 uppercase font-bold">Road Network</span>
+                <span className="text-[11px] text-[var(--text-muted)] uppercase font-bold">Road Network</span>
               </div>
-              <p className="text-base font-extrabold text-white font-mono">
-                {roadNetworkKm} <span className="text-xs font-normal text-slate-400">km</span> / {Number(roadRequired).toFixed(1)} <span className="text-xs font-normal text-slate-400">Target</span>
+              <p className="text-base font-extrabold text-[var(--text-main)] font-mono">
+                {roadNetworkKm} <span className="text-xs font-normal text-[var(--text-muted)]">km</span> / {Number(roadRequired).toFixed(1)} <span className="text-xs font-normal text-[var(--text-muted)]">Target</span>
               </p>
-              <p className="text-[10px] text-slate-500">All-Weather Bitumen Road Grid</p>
+              <p className="text-[10px] text-[var(--text-subtle)]">All-Weather Bitumen Road Grid</p>
             </div>
-            <div className="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-400">
+            <div className="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-500">
               <Route className="w-5 h-5" />
             </div>
           </div>
@@ -461,10 +461,10 @@ const AnalyticsPanel = ({
       {/* 4. AI CONTEXTUAL GOVERNANCE ASSESSMENT NARRATIVE                   */}
       {/* =================================================================== */}
       {p?.summary_narrative && (
-        <div className="bg-slate-900/85 backdrop-blur-md rounded-xl p-4 border border-slate-800 flex items-start gap-3 shadow-md">
-          <Activity className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-          <p className="text-xs text-slate-300 leading-relaxed">
-            <strong className="text-emerald-400 font-semibold">MoPR AI Governance Assessment: </strong>
+        <div className="bg-[var(--bg-card)] backdrop-blur-md rounded-xl p-4 border border-[var(--border-subtle)] flex items-start gap-3 shadow-md">
+          <Activity className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+          <p className="text-xs text-[var(--text-main)] leading-relaxed">
+            <strong className="text-emerald-600 dark:text-emerald-400 font-semibold">MoPR AI Governance Assessment: </strong>
             {p.summary_narrative}
           </p>
         </div>
