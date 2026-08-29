@@ -3,7 +3,7 @@
 GramPulse AI - Pydantic Data Models & Schemas
 =============================================================================
 Defines request/response schemas for citizen grievances, geospatial mapping,
-demographic forecasting, and RAG welfare scheme matching.
+demographic forecasting, RAG welfare scheme matching, and AI Chatbot.
 =============================================================================
 """
 
@@ -34,14 +34,14 @@ class CitizenIssueCreate(BaseModel):
         ge=-90.0,
         le=90.0,
         description="Latitude coordinate in decimal degrees",
-        examples=[23.4988],
+        examples=[11.2982],
     )
     lng: float = Field(
         ...,
         ge=-180.0,
         le=180.0,
         description="Longitude coordinate in decimal degrees",
-        examples=[73.1812],
+        examples=[76.9366],
     )
 
 
@@ -61,7 +61,7 @@ class CitizenIssueResponse(BaseModel):
 
 
 # ---------------------------------------------------------------------------
-# Gram Panchayat Master Schemas
+# Gram Panchayat & Spatial Search Schemas
 # ---------------------------------------------------------------------------
 class PanchayatResponse(BaseModel):
     """Response schema for administrative Gram Panchayat directory."""
@@ -70,7 +70,30 @@ class PanchayatResponse(BaseModel):
     gp_name: str
     district: str
     state: str
+    lat: Optional[float] = None
+    lng: Optional[float] = None
+    population: Optional[int] = None
+    households: Optional[int] = None
+    daily_water_supply_liters: Optional[float] = None
+    school_classrooms_count: Optional[int] = None
+    road_coverage_km: Optional[float] = None
     created_at: Optional[datetime] = None
+
+
+class SpatialSearchResponse(BaseModel):
+    """Response schema for live OpenStreetMap Nominatim geocoding."""
+    gp_id: int
+    gp_code: str
+    gp_name: str
+    district: str
+    state: str
+    lat: float
+    lng: float
+    type: Optional[str] = "village"
+    display_name: Optional[str] = ""
+    geojson: Optional[Dict[str, Any]] = None
+    boundingbox: Optional[List[str]] = None
+    is_live_osm: bool = True
 
 
 # ---------------------------------------------------------------------------
@@ -96,6 +119,7 @@ class AnalyticsResponse(BaseModel):
     state: str
     planning_horizon_years: int
     target_year: int
+    baseline_metrics: Optional[Dict[str, Any]] = None
     predictions: Dict[str, Any] = Field(
         ...,
         description="Forecasted demographics, baseline metrics, and calculated deficits",
@@ -105,3 +129,21 @@ class AnalyticsResponse(BaseModel):
         description="Prioritized Centrally Sponsored Schemes matched to deficits",
     )
     generated_at: datetime = Field(default_factory=datetime.now)
+
+
+# ---------------------------------------------------------------------------
+# AI Chatbot Schemas
+# ---------------------------------------------------------------------------
+class ChatRequest(BaseModel):
+    """Payload schema for sending a message to the AI Village Assistant."""
+    message: str = Field(..., min_length=1, description="Citizen / Sarpanch query")
+    location: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Active village metadata")
+    chat_history: Optional[List[Dict[str, str]]] = Field(default_factory=list, description="Recent message history")
+
+
+class ChatResponse(BaseModel):
+    """Response schema from the AI Village Assistant."""
+    reply: str
+    provider: str = "grampulse-governance-engine"
+    model: str = "rule-rag-v1"
+    timestamp: datetime = Field(default_factory=datetime.now)

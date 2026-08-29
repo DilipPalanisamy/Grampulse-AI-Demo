@@ -52,6 +52,7 @@ function DashboardLayout() {
     loadingAnalytics,
     issues,
     loadingIssues,
+    infrastructure,
     categoryFilter,
     setCategoryFilter,
     isReportModalOpen,
@@ -238,6 +239,8 @@ function DashboardLayout() {
                 zoom={13}
                 issues={issues}
                 locations={locations}
+                infrastructure={infrastructure}
+                selectedLocation={selectedLocation}
                 selectedGpId={selectedGpId}
                 onSelectLocation={(loc) => selectLocation(loc)}
                 className="border-slate-800/80 shadow-2xl h-[480px]"

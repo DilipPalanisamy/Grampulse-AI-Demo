@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { useLocation } from '../context/LocationContext';
 import { useAuth } from '../context/AuthContext';
+import { sendChatMessage } from '../services/api';
 
 const GUIDED_QUESTIONS = [
   {
@@ -107,7 +108,7 @@ export default function VillageChatbot({ isOpen, onClose, onToggle }) {
     const welcomeMsg = {
       id: 'msg-welcome',
       sender: 'bot',
-      text: `Vanakkam ${user?.name ? user.name.split(' ')[0] : 'Resident'}! I am your **GramPulse Village Assessment Assistant**.\n\nLet's perform a live infrastructure need assessment for **${selectedLocation.gp_name} Gram Panchayat (${selectedLocation.district} District, ${selectedLocation.state})**.\n\nPlease answer 4 quick questions based on ground reality:`,
+      text: `Vanakkam ${user?.name ? user.name.split(' ')[0] : 'Resident'}! I am your **GramPulse AI Governance Assistant**.\n\nLet's perform a live infrastructure need assessment for **${selectedLocation.gp_name} Gram Panchayat (${selectedLocation.district} District, ${selectedLocation.state})**.\n\nPlease answer 4 quick questions based on ground reality:`,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     };
 
@@ -161,10 +162,9 @@ export default function VillageChatbot({ isOpen, onClose, onToggle }) {
         };
         setMessages((prev) => [...prev, nextQMsg]);
       } else {
-        // All 4 questions answered -> Generate Assessment Report
         generateAssessmentReport(newAnswers);
       }
-    }, 500);
+    }, 450);
   };
 
   const generateAssessmentReport = (answers) => {
@@ -215,18 +215,18 @@ export default function VillageChatbot({ isOpen, onClose, onToggle }) {
         classroomDeficit: classroomDeficit,
         recommendation:
           eduScore <= 2
-            ? `Samagra Shiksha Abhiyan - Construction of ${classroomDeficit} Smart Classrooms & STEM Labs`
+            ? `PM SHRI & Samagra Shiksha - Construction of ${classroomDeficit} Smart Classrooms & STEM Labs`
             : 'Samagra Shiksha Digital Learning Aid & Solar Inverter',
-        estimatedBudgetLakhs: classroomDeficit * 4.5 || 8.0,
+        estimatedBudgetLakhs: classroomDeficit * 5.5 || 9.0,
       },
       roads: {
         score: roadScore,
         roadDeficitKm: roadDeficitKm,
         recommendation:
           roadScore <= 2
-            ? `Pradhan Mantri Gram Sadak Yojana (PMGSY) - ${roadDeficitKm} km All-Weather Bitumen Link Road`
+            ? `Pradhan Mantri Gram Sadak Yojana (PMGSY - III) - ${roadDeficitKm} km All-Weather Bitumen Link Road`
             : 'PMGSY Periodic Maintenance & Culvert Drain Reinforcement',
-        estimatedBudgetLakhs: roadDeficitKm * 6.2 || 15.0,
+        estimatedBudgetLakhs: roadDeficitKm * 32.5 || 22.0,
       },
       sanitation: {
         score: sanitScore,
@@ -262,7 +262,7 @@ export default function VillageChatbot({ isOpen, onClose, onToggle }) {
     setMessages((prev) => [...prev, confirmationMsg]);
   };
 
-  const handleSendMessage = (e) => {
+  const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!textInput.trim()) return;
 
@@ -279,36 +279,33 @@ export default function VillageChatbot({ isOpen, onClose, onToggle }) {
     setMessages((prev) => [...prev, userMsg]);
     setIsTyping(true);
 
-    setTimeout(() => {
+    try {
+      // Direct call to Backend Live LLM API (/api/v1/chat)
+      const chatRes = await sendChatMessage(
+        userText,
+        selectedLocation,
+        messages.slice(-6).map((m) => ({ sender: m.sender, text: m.text || '' }))
+      );
+
       setIsTyping(false);
-      let replyText = '';
-      const lower = userText.toLowerCase();
-
-      if (lower.includes('water') || lower.includes('jjm') || lower.includes('jal')) {
-        replyText = `Under **Jal Jeevan Mission (JJM)**, ${selectedLocation.gp_name} is eligible for central funding covering Functional Household Tap Connections (FHTC) providing 55 LPD potable water supply per capita. Priority funding is allocated for overhead storage reservoirs and solar pumping.`;
-      } else if (lower.includes('school') || lower.includes('education') || lower.includes('classroom')) {
-        replyText = `Under **Samagra Shiksha Abhiyan**, Gram Panchayats with pupil-to-classroom ratio exceeding 30:1 receive capital grants of ₹4.5 Lakhs per new smart classroom with mandatory disabled-friendly ramps and solar backup.`;
-      } else if (lower.includes('road') || lower.includes('pmgsy')) {
-        replyText = `Under **PMGSY-III**, all habitations with population > 500 in plains and > 250 in hill regions (e.g. Nilgiris) are guaranteed all-weather paved road connectivity connecting local agricultural mandis, schools, and hospitals.`;
-      } else if (lower.includes('budget') || lower.includes('scheme') || lower.includes('fund')) {
-        replyText = `For ${selectedLocation.gp_name}, the total estimated GPDP capital expenditure across CSS schemes (JJM, PMGSY, Samagra Shiksha, SBM-G) is approximately ₹${(
-          (assessmentResult?.water.estimatedBudgetLakhs || 35) +
-          (assessmentResult?.education.estimatedBudgetLakhs || 20) +
-          (assessmentResult?.roads.estimatedBudgetLakhs || 45) +
-          (assessmentResult?.sanitation.estimatedBudgetLakhs || 18)
-        ).toFixed(1)} Lakhs for planning horizon ${new Date().getFullYear() + planningHorizon}.`;
-      } else {
-        replyText = `Thank you for the query regarding **${selectedLocation.gp_name}**. The GramPulse AI Engine continuously analyzes census data, satellite imagery, and ground citizen feedback to formulate optimal 5-year GPDP allocations under Ministry of Panchayati Raj norms.`;
-      }
-
       const botReply = {
         id: `bot-reply-${Date.now()}`,
         sender: 'bot',
-        text: replyText,
+        text: chatRes.reply || `Processed advisory for ${selectedLocation.gp_name}.`,
+        provider: chatRes.provider,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
       setMessages((prev) => [...prev, botReply]);
-    }, 700);
+    } catch (err) {
+      setIsTyping(false);
+      const botReply = {
+        id: `bot-reply-${Date.now()}`,
+        sender: 'bot',
+        text: `Thank you for your query regarding **${selectedLocation.gp_name}**. Under Jal Jeevan Mission and PMGSY national standards, all deficit metrics and scheme allocations are available in the GPDP PDF plan.`,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      };
+      setMessages((prev) => [...prev, botReply]);
+    }
   };
 
   // Floating Trigger Widget (when closed)
@@ -447,7 +444,6 @@ export default function VillageChatbot({ isOpen, onClose, onToggle }) {
                     Ground assessment evaluated for <strong>{r.villageName}</strong> (Proj. Population: {r.populationProjected.toLocaleString()}):
                   </p>
 
-                  {/* Deficit Findings Breakdown */}
                   <div className="space-y-2 text-[11px]">
                     {/* Water Supply */}
                     <div className="p-2 rounded-xl bg-slate-900 border border-slate-800 space-y-1">

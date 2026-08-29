@@ -4,24 +4,40 @@ import {
   fetchPanchayats,
   fetchCitizenIssues,
   fetchPanchayatAnalytics,
+  resolveLivePanchayat,
+  fetchSpatialInfrastructure,
 } from '../services/api';
-import {
-  TAMIL_NADU_VILLAGES_DATABASE,
-  searchRealVillages,
-} from '../services/villageSearchService';
+import { searchRealVillages } from '../services/villageSearchService';
 
 const LocationContext = createContext(null);
 
+const DEFAULT_INITIAL_VILLAGE = {
+  gp_id: 4,
+  gp_code: 'GP-TN-CBE-004',
+  gp_name: 'Odanthurai',
+  district: 'Coimbatore',
+  state: 'Tamil Nadu',
+  lat: 11.2982,
+  lng: 76.9366,
+  population: 6820,
+  households: 1530,
+  daily_water_supply_liters: 430000.0,
+  school_classrooms_count: 34,
+  road_coverage_km: 34.8,
+  tagline: 'Self-Powered Green Energy & Windmill Grid Pioneer',
+};
+
 export const LocationProvider = ({ children }) => {
-  const [locations, setLocations] = useState(TAMIL_NADU_VILLAGES_DATABASE);
-  // Default to Odanthurai, Coimbatore, Tamil Nadu
+  const [locations, setLocations] = useState([DEFAULT_INITIAL_VILLAGE]);
   const [selectedGpId, setSelectedGpId] = useState(4);
   const [planningHorizon, setPlanningHorizon] = useState(5);
   const [analytics, setAnalytics] = useState(null);
   const [issues, setIssues] = useState([]);
+  const [infrastructure, setInfrastructure] = useState({ counts: {}, markers: [] });
   const [categoryFilter, setCategoryFilter] = useState('ALL');
   const [loadingAnalytics, setLoadingAnalytics] = useState(true);
   const [loadingIssues, setLoadingIssues] = useState(true);
+  const [loadingInfrastructure, setLoadingInfrastructure] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard' | 'map'
 
@@ -34,9 +50,8 @@ export const LocationProvider = ({ children }) => {
   const selectedLocation = useMemo(() => {
     return (
       locations.find((l) => Number(l.gp_id) === Number(selectedGpId)) ||
-      TAMIL_NADU_VILLAGES_DATABASE.find((l) => Number(l.gp_id) === Number(selectedGpId)) ||
       locations[0] ||
-      TAMIL_NADU_VILLAGES_DATABASE[0]
+      DEFAULT_INITIAL_VILLAGE
     );
   }, [locations, selectedGpId]);
 
@@ -48,13 +63,35 @@ export const LocationProvider = ({ children }) => {
     return [11.2982, 76.9366]; // Default to Odanthurai, Tamil Nadu
   }, [selectedLocation]);
 
+  // Load registered Panchayats on mount
+  useEffect(() => {
+    const initLocations = async () => {
+      try {
+        const data = await fetchPanchayats();
+        if (Array.isArray(data) && data.length > 0) {
+          setLocations((prev) => {
+            const combined = [...data];
+            prev.forEach((p) => {
+              if (!combined.some((c) => Number(c.gp_id) === Number(p.gp_id))) {
+                combined.push(p);
+              }
+            });
+            return combined;
+          });
+        }
+      } catch (err) {
+        console.error('Error initializing registered panchayats:', err);
+      }
+    };
+    initLocations();
+  }, []);
+
   // Load Analytics when selected GP or planning horizon changes
   const loadAnalytics = useCallback(async () => {
     if (!selectedGpId) return;
     setLoadingAnalytics(true);
     try {
       const data = await fetchPanchayatAnalytics(selectedGpId, planningHorizon);
-      // Ensure the returned analytics object carries the active location's real demographic data if custom
       if (selectedLocation) {
         data.gp_name = selectedLocation.gp_name;
         data.district = selectedLocation.district;
@@ -89,10 +126,28 @@ export const LocationProvider = ({ children }) => {
     loadIssues();
   }, [loadIssues]);
 
+  // Load Live Overpass Infrastructure for the active location
+  const loadInfrastructure = useCallback(async () => {
+    if (!selectedLocation?.lat || !selectedLocation?.lng) return;
+    setLoadingInfrastructure(true);
+    try {
+      const data = await fetchSpatialInfrastructure(selectedLocation.lat, selectedLocation.lng, 3500);
+      setInfrastructure(data);
+    } catch (err) {
+      console.error('Error loading live infrastructure nodes:', err);
+    } finally {
+      setLoadingInfrastructure(false);
+    }
+  }, [selectedLocation]);
+
+  useEffect(() => {
+    loadInfrastructure();
+  }, [loadInfrastructure]);
+
   const debounceTimeoutRef = useRef(null);
 
   /**
-   * Search real villages by name, district, or keywords (with 250ms debounce & memory cache)
+   * Search real villages dynamically via OpenStreetMap Nominatim and backend GIS
    */
   const handleSearch = useCallback((query) => {
     setSearchQuery(query);
@@ -121,19 +176,26 @@ export const LocationProvider = ({ children }) => {
   }, []);
 
   /**
-   * Switches active location by ID or location object
+   * Switches active location and resolves it dynamically
    */
-  const selectLocation = useCallback((locationOrId) => {
-    if (typeof locationOrId === 'object') {
+  const selectLocation = useCallback(async (locationOrId) => {
+    if (typeof locationOrId === 'object' && locationOrId !== null) {
       const locObj = locationOrId;
-      // If it's a freshly searched/geocoded location, append to list if not present
-      setLocations((prev) => {
-        if (!prev.some((p) => Number(p.gp_id) === Number(locObj.gp_id))) {
-          return [locObj, ...prev];
-        }
-        return prev;
-      });
-      setSelectedGpId(Number(locObj.gp_id));
+      try {
+        // Dynamically resolve baseline metrics & register in backend PostGIS
+        const resolved = await resolveLivePanchayat(locObj);
+        const mergedObj = { ...locObj, ...resolved };
+
+        setLocations((prev) => {
+          if (!prev.some((p) => Number(p.gp_id) === Number(mergedObj.gp_id))) {
+            return [mergedObj, ...prev];
+          }
+          return prev.map((p) => (Number(p.gp_id) === Number(mergedObj.gp_id) ? mergedObj : p));
+        });
+        setSelectedGpId(Number(mergedObj.gp_id));
+      } catch (e) {
+        setSelectedGpId(Number(locObj.gp_id));
+      }
     } else {
       const gpId = Number(locationOrId);
       if (!gpId) return;
@@ -157,12 +219,15 @@ export const LocationProvider = ({ children }) => {
     loadingAnalytics,
     issues,
     loadingIssues,
+    infrastructure,
+    loadingInfrastructure,
     categoryFilter,
     setCategoryFilter,
     isReportModalOpen,
     setIsReportModalOpen,
     loadAnalytics,
     loadIssues,
+    loadInfrastructure,
     handleIssueCreated,
     // Search
     searchQuery,

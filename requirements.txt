@@ -8,3 +8,6 @@ numpy>=1.26.0
 shapely>=2.0.2
 python-dotenv>=1.0.0
 requests>=2.31.0
+chromadb>=0.4.22
+sentence-transformers>=2.3.0
+google-genai>=0.1.0

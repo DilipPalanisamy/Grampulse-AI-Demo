@@ -34,6 +34,7 @@ export default function MapPage({ onBackToDashboard, onOpenChatbot }) {
     setPlanningHorizon,
     analytics,
     issues,
+    infrastructure,
     categoryFilter,
     setCategoryFilter,
     isReportModalOpen,
@@ -130,6 +131,8 @@ export default function MapPage({ onBackToDashboard, onOpenChatbot }) {
           zoom={14}
           issues={issues}
           locations={locations}
+          infrastructure={infrastructure}
+          selectedLocation={selectedLocation}
           selectedGpId={selectedGpId}
           onSelectLocation={(loc) => selectLocation(loc)}
           className="w-full h-full rounded-none border-none"
