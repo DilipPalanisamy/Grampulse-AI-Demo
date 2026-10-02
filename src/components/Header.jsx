@@ -202,11 +202,7 @@ export default function Header({ onOpenReportModal }) {
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
               onFocus={() => setIsSearchOpen(true)}
-              placeholder={
-                selectedLocation?.gp_name
-                  ? `Search Indian village, town, or Panchayat (Active: ${selectedLocation.gp_name})...`
-                  : 'Search village, town, district, or Gram Panchayat across India...'
-              }
+              placeholder="Search village, town, or Panchayat..."
               className="w-full pl-11 pr-10 py-3 text-sm sm:text-base font-medium shadow-lg rounded-xl bg-[var(--bg-primary)] border border-[var(--border-subtle)] focus:border-[var(--color-primary)] text-[var(--text-main)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-glow)] transition-all font-sans"
             />
 

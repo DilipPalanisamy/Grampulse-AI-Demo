@@ -52,72 +52,52 @@ export default function MapPage({ onBackToDashboard, onOpenChatbot }) {
 
   return (
     <div className="relative w-full h-[calc(100vh-64px)] bg-[var(--bg-primary)] overflow-hidden flex flex-col selection:bg-emerald-500 selection:text-white transition-colors duration-200">
-      {/* Floating Top Control Overlay Bar */}
-      <div className="absolute top-4 left-4 right-4 z-[1000] pointer-events-none flex flex-wrap items-center justify-between gap-3">
-        {/* Left Action: Back Button & Village Title Card */}
-        <div className="pointer-events-auto flex items-center gap-2.5 bg-[var(--bg-card-glass)] backdrop-blur-xl p-2 sm:p-2.5 rounded-2xl border border-[var(--border-strong)] shadow-2xl">
-          <button
-            type="button"
-            onClick={onBackToDashboard}
-            className="p-2 rounded-xl bg-[var(--bg-primary)] hover:bg-[var(--bg-card-hover)] text-[var(--text-muted)] hover:text-[var(--text-main)] transition-all flex items-center gap-1.5 text-xs font-bold shadow-sm cursor-pointer active:scale-95"
-            title="Return to Dashboard Overview"
-          >
-            <ArrowLeft className="w-4 h-4 text-emerald-500" />
-            <span className="hidden sm:inline">Dashboard</span>
-          </button>
+      {/* Floating Top-Left Control Bar: Dashboard Back, Village Info, and Report Grievance */}
+      <div className="absolute top-4 left-4 z-[1000] pointer-events-auto flex items-center gap-2.5 bg-[var(--bg-card-glass)] backdrop-blur-xl p-2 sm:p-2.5 rounded-2xl border border-[var(--border-strong)] shadow-2xl">
+        <button
+          type="button"
+          onClick={onBackToDashboard}
+          className="p-2 rounded-xl bg-[var(--bg-primary)] hover:bg-[var(--bg-card-hover)] text-[var(--text-muted)] hover:text-[var(--text-main)] transition-all flex items-center gap-1.5 text-xs font-bold shadow-sm cursor-pointer active:scale-95"
+          title="Return to Dashboard Overview"
+        >
+          <ArrowLeft className="w-4 h-4 text-emerald-500" />
+          <span className="hidden sm:inline">Dashboard</span>
+        </button>
 
-          <div className="h-6 w-px bg-[var(--border-subtle)] hidden sm:block" />
+        <div className="h-6 w-px bg-[var(--border-subtle)] hidden sm:block" />
 
-          {/* Active Village Info */}
-          <div className="flex items-center gap-2 pr-1">
-            <div className="w-8 h-8 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-500">
-              <Building2 className="w-4 h-4" />
+        {/* Active Village Info */}
+        <div className="flex items-center gap-2 pr-1">
+          <div className="w-8 h-8 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-500">
+            <Building2 className="w-4 h-4" />
+          </div>
+          <div>
+            <div className="flex items-center gap-1.5">
+              <h2 className="text-xs sm:text-sm font-black text-[var(--text-main)] leading-tight truncate max-w-[140px] sm:max-w-[200px]">
+                {selectedLocation?.gp_name || 'Active Habitation'}
+              </h2>
+              <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 font-bold px-1.5 py-0.2 rounded bg-emerald-500/10 border border-emerald-500/20">
+                {selectedLocation?.gp_code || `GP-${selectedLocation?.gp_id || 101}`}
+              </span>
             </div>
-            <div>
-              <div className="flex items-center gap-1.5">
-                <h2 className="text-xs sm:text-sm font-black text-[var(--text-main)] leading-tight truncate max-w-[140px] sm:max-w-[200px]">
-                  {selectedLocation?.gp_name || 'Active Habitation'}
-                </h2>
-                <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 font-bold px-1.5 py-0.2 rounded bg-emerald-500/10 border border-emerald-500/20">
-                  {selectedLocation?.gp_code || `GP-${selectedLocation?.gp_id || 101}`}
-                </span>
-              </div>
-              <p className="text-[10px] text-[var(--text-muted)] truncate max-w-[180px]">
-                {selectedLocation?.district || 'District'} District, {selectedLocation?.state || 'Tamil Nadu'}
-              </p>
-            </div>
+            <p className="text-[10px] text-[var(--text-muted)] truncate max-w-[180px]">
+              {selectedLocation?.district || 'District'} District, {selectedLocation?.state || 'Tamil Nadu'}
+            </p>
           </div>
         </div>
 
-        {/* Right Actions: Horizon, Report Grievance, Export GPDP PDF */}
-        <div className="pointer-events-auto flex items-center gap-2 bg-[var(--bg-card-glass)] backdrop-blur-xl p-2 rounded-2xl border border-[var(--border-strong)] shadow-2xl">
-          {/* Planning Horizon */}
-          <div className="hidden md:flex items-center gap-1 bg-[var(--bg-primary)] px-2.5 py-1.5 rounded-xl border border-[var(--border-subtle)] text-xs text-[var(--text-muted)]">
-            <Calendar className="w-3.5 h-3.5 text-slate-400" />
-            <span className="text-[11px]">Horizon:</span>
-            <select
-              value={planningHorizon}
-              onChange={(e) => setPlanningHorizon(Number(e.target.value))}
-              aria-label="Select Planning Horizon"
-              className="bg-transparent text-emerald-500 font-bold focus:outline-none cursor-pointer text-xs"
-            >
-              <option value={3} className="bg-[var(--bg-card)] text-[var(--text-main)]">3 Yrs</option>
-              <option value={5} className="bg-[var(--bg-card)] text-[var(--text-main)]">5 Yrs</option>
-              <option value={7} className="bg-[var(--bg-card)] text-[var(--text-main)]">7 Yrs</option>
-            </select>
-          </div>
+        <div className="h-6 w-px bg-[var(--border-subtle)] hidden sm:block" />
 
-          {/* Submit Citizen Grievance */}
-          <button
-            type="button"
-            onClick={() => setIsReportModalOpen(true)}
-            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold bg-[var(--bg-primary)] hover:bg-[var(--bg-card-hover)] text-[var(--text-main)] border border-[var(--border-subtle)] transition-colors shadow-sm cursor-pointer active:scale-95"
-            title="Lodge new geotagged grievance"
-          >
-            <PlusCircle className="w-3.5 h-3.5 text-emerald-500" />
-            <span className="hidden sm:inline">Report</span>
-          </button>
-        </div>
+        {/* Submit Citizen Grievance */}
+        <button
+          type="button"
+          onClick={() => setIsReportModalOpen(true)}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white transition-all shadow-md cursor-pointer active:scale-95"
+          title="Lodge new geotagged grievance for this location"
+        >
+          <PlusCircle className="w-3.5 h-3.5" />
+          <span className="hidden sm:inline">Report Grievance</span>
+        </button>
       </div>
 
       {/* Main Fullscreen GIS Map Area */}
@@ -130,6 +110,8 @@ export default function MapPage({ onBackToDashboard, onOpenChatbot }) {
           infrastructure={infrastructure}
           selectedLocation={selectedLocation}
           selectedGpId={selectedGpId}
+          isMapPage={true}
+          hideHabitationChips={true}
           onSelectLocation={(loc) => selectLocation(loc, false)}
           onAnalyzeLocation={(loc) => {
             selectLocation(loc, false);

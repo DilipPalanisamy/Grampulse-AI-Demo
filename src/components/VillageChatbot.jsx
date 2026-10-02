@@ -380,33 +380,33 @@ export default function VillageChatbot({ isOpen, onClose, onToggle, onNavigateTo
           </div>
         )}
 
-        {/* Floating Quick Action: Future Prediction */}
-        <button
-          type="button"
-          onClick={() => setShowPredictionSlides((prev) => !prev)}
-          className="group flex items-center gap-2.5 px-4 py-3 rounded-full bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold text-xs sm:text-sm shadow-2xl shadow-emerald-950/80 ring-4 ring-emerald-400/30 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer animate-bounce"
-          title="Open 5-Year Village Future Development Prediction"
-        >
-          <div className="relative">
-            <TrendingUp className="w-5 h-5" />
-            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping" />
-          </div>
-          <span className="hidden sm:inline">Future Prediction</span>
-        </button>
+        {/* Floating Quick Action Launcher Dock */}
+        <div className="flex items-center gap-2 bg-[var(--bg-card-glass)] backdrop-blur-xl p-1.5 rounded-full border border-[var(--border-strong)] shadow-2xl">
+          {/* Quick Action: Future Prediction */}
+          <button
+            type="button"
+            onClick={() => setShowPredictionSlides((prev) => !prev)}
+            className="flex items-center gap-2 px-3.5 py-2.5 rounded-full bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold text-xs shadow-lg transition-all hover:scale-105 active:scale-95 cursor-pointer"
+            title="Open 5-Year Village Future Development Prediction"
+          >
+            <TrendingUp className="w-4 h-4" />
+            <span className="hidden sm:inline">Future Prediction</span>
+          </button>
 
-        {/* Existing Chatbot Trigger */}
-        <button
-          type="button"
-          onClick={onToggle}
-          className="group flex items-center gap-2.5 px-4 py-3 rounded-full bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold text-xs sm:text-sm shadow-2xl shadow-emerald-950/80 ring-4 ring-emerald-400/30 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer animate-bounce"
-          title="Open GramPulse Village Assessment AI Assistant"
-        >
-          <div className="relative">
-            <Bot className="w-5 h-5" />
-            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping" />
-          </div>
-          <span className="hidden sm:inline">Village AI Assistant</span>
-        </button>
+          {/* Chatbot Trigger */}
+          <button
+            type="button"
+            onClick={onToggle}
+            className="flex items-center gap-2 px-3.5 py-2.5 rounded-full bg-[var(--bg-primary)] hover:bg-[var(--bg-card-hover)] text-[var(--text-main)] border border-[var(--border-subtle)] font-bold text-xs shadow-md transition-all hover:scale-105 active:scale-95 cursor-pointer"
+            title="Open GramPulse Village Assessment AI Assistant"
+          >
+            <div className="relative flex items-center justify-center">
+              <Bot className="w-4 h-4 text-emerald-500" />
+              <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+            </div>
+            <span className="hidden sm:inline">Village AI Assistant</span>
+          </button>
+        </div>
       </div>
     );
   }

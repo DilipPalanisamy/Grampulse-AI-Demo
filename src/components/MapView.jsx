@@ -375,6 +375,8 @@ const MapView = ({
   onSelectLocation,
   onAnalyzeLocation,
   className = '',
+  isMapPage = false,
+  hideHabitationChips = false,
 }) => {
   const { selectLocation, setActiveTab } = useLocation();
   const [mapStyle, setMapStyle] = useState('satellite');
@@ -531,7 +533,7 @@ const MapView = ({
       {/* =================================================================== */}
       {/* DUAL LOCATION SELECTION MODE BAR (TOP-LEFT OVERLAY)                */}
       {/* =================================================================== */}
-      <div className="absolute top-4 left-4 z-[1000] flex flex-col gap-2 max-w-sm">
+      <div className={`absolute ${isMapPage ? 'top-[76px]' : 'top-4'} left-4 z-[1000] flex flex-col gap-2 max-w-sm`}>
         {/* Mode Toggle Controls */}
         <div className="bg-[var(--bg-card-glass)] backdrop-blur-md p-1.5 rounded-2xl shadow-2xl border border-[var(--border-strong)] flex items-center gap-1">
           <button
@@ -656,36 +658,38 @@ const MapView = ({
       </div>
 
       {/* Quick Village Navigator Chips Bottom-Left Overlay */}
-      <div className="absolute bottom-4 left-4 z-[1000] max-w-[88%] sm:max-w-[80%] flex items-center gap-1.5 overflow-x-auto bg-[var(--bg-card-glass)] backdrop-blur-md p-1.5 rounded-2xl border border-[var(--border-strong)] shadow-2xl custom-scrollbar">
-        <span className="text-[10px] font-bold text-emerald-500 px-2 flex items-center gap-1 uppercase tracking-wider flex-shrink-0">
-          <Compass className="w-3.5 h-3.5" />
-          Active Habitations:
-        </span>
-        {Array.isArray(locations) &&
-          locations
-            .filter((l) => l && l.gp_name)
-            .slice(0, 8)
-            .map((loc, idx) => {
-              const isSelected = Number(loc.gp_id) === Number(selectedGpId);
-              return (
-                <button
-                  key={`chip-${loc.gp_id || idx}-${loc.gp_name || 'loc'}`}
-                  type="button"
-                  onClick={() => handleAnalyzeLocation(loc)}
-                  className={`px-2.5 py-1 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1 flex-shrink-0 cursor-pointer ${
-                    isSelected
-                      ? 'bg-emerald-600 text-white shadow-md shadow-emerald-950 scale-105'
-                      : 'bg-[var(--bg-primary)] text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-card-hover)] border border-[var(--border-subtle)]'
-                  }`}
-                >
-                  <span>{loc.gp_name}</span>
-                  <span className="text-[10px] opacity-75">
-                    ({loc.district || String(loc.state || '').slice(0, 2) || 'GP'})
-                  </span>
-                </button>
-              );
-            })}
-      </div>
+      {!hideHabitationChips && !isMapPage && (
+        <div className="absolute bottom-4 left-4 z-[1000] max-w-[88%] sm:max-w-[80%] flex items-center gap-1.5 overflow-x-auto bg-[var(--bg-card-glass)] backdrop-blur-md p-1.5 rounded-2xl border border-[var(--border-strong)] shadow-2xl custom-scrollbar">
+          <span className="text-[10px] font-bold text-emerald-500 px-2 flex items-center gap-1 uppercase tracking-wider flex-shrink-0">
+            <Compass className="w-3.5 h-3.5" />
+            Active Habitations:
+          </span>
+          {Array.isArray(locations) &&
+            locations
+              .filter((l) => l && l.gp_name)
+              .slice(0, 8)
+              .map((loc, idx) => {
+                const isSelected = Number(loc.gp_id) === Number(selectedGpId);
+                return (
+                  <button
+                    key={`chip-${loc.gp_id || idx}-${loc.gp_name || 'loc'}`}
+                    type="button"
+                    onClick={() => handleAnalyzeLocation(loc)}
+                    className={`px-2.5 py-1 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1 flex-shrink-0 cursor-pointer ${
+                      isSelected
+                        ? 'bg-emerald-600 text-white shadow-md shadow-emerald-950 scale-105'
+                        : 'bg-[var(--bg-primary)] text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-card-hover)] border border-[var(--border-subtle)]'
+                    }`}
+                  >
+                    <span>{loc.gp_name}</span>
+                    <span className="text-[10px] opacity-75">
+                      ({loc.district || String(loc.state || '').slice(0, 2) || 'GP'})
+                    </span>
+                  </button>
+                );
+              })}
+        </div>
+      )}
 
       {/* =================================================================== */}
       {/* MAIN LEAFLET MAP CONTAINER                                         */}
@@ -981,6 +985,8 @@ MapView.propTypes = {
   onSelectLocation: PropTypes.func,
   onAnalyzeLocation: PropTypes.func,
   className: PropTypes.string,
+  isMapPage: PropTypes.bool,
+  hideHabitationChips: PropTypes.bool,
 };
 
 class MapErrorBoundary extends React.Component {
