@@ -106,9 +106,148 @@ def check_db_health() -> bool:
 
 
 # In-memory dynamic runtime cache for locations and issues
-_DYNAMIC_PANCHAYATS: Dict[int, Dict[str, Any]] = {}
-_DYNAMIC_METRICS: Dict[int, Dict[str, Any]] = {}
-_DYNAMIC_ISSUES: List[Dict[str, Any]] = []
+_DYNAMIC_PANCHAYATS: Dict[int, Dict[str, Any]] = {
+    101: {
+        "gp_id": 101,
+        "gp_code": "GP-TN-TPR-101",
+        "gp_name": "Koduvai",
+        "district": "Tiruppur",
+        "state": "Tamil Nadu",
+        "lat": 10.9634,
+        "lng": 77.4727,
+        "created_at": datetime.now(),
+    },
+    1: {
+        "gp_id": 1,
+        "gp_code": "GP-TN-CBE-001",
+        "gp_name": "Chinniyampalayam",
+        "district": "Coimbatore",
+        "state": "Tamil Nadu",
+        "lat": 11.0428,
+        "lng": 77.0658,
+        "created_at": datetime.now(),
+    },
+    2: {
+        "gp_id": 2,
+        "gp_code": "GP-GJ-SK-002",
+        "gp_name": "Punsari",
+        "district": "Sabarkantha",
+        "state": "Gujarat",
+        "lat": 23.5186,
+        "lng": 73.0167,
+        "created_at": datetime.now(),
+    },
+    3: {
+        "gp_id": 3,
+        "gp_code": "GP-TN-CBE-003",
+        "gp_name": "Odanthurai",
+        "district": "Coimbatore",
+        "state": "Tamil Nadu",
+        "lat": 11.2982,
+        "lng": 76.9366,
+        "created_at": datetime.now(),
+    },
+}
+
+_DYNAMIC_METRICS: Dict[int, Dict[str, Any]] = {
+    101: {
+        "metric_id": 101,
+        "gp_id": 101,
+        "record_year": datetime.now().year,
+        "population": 7271,
+        "households": 1820,
+        "daily_water_supply_liters": 410000.0,
+        "school_classrooms_count": 34,
+        "road_coverage_km": 31.8,
+        "created_at": datetime.now(),
+    },
+    1: {
+        "metric_id": 1,
+        "gp_id": 1,
+        "record_year": datetime.now().year,
+        "population": 8340,
+        "households": 1950,
+        "daily_water_supply_liters": 450000.0,
+        "school_classrooms_count": 38,
+        "road_coverage_km": 26.4,
+        "created_at": datetime.now(),
+    },
+    2: {
+        "metric_id": 2,
+        "gp_id": 2,
+        "record_year": datetime.now().year,
+        "population": 6000,
+        "households": 1350,
+        "daily_water_supply_liters": 330000.0,
+        "school_classrooms_count": 28,
+        "road_coverage_km": 24.0,
+        "created_at": datetime.now(),
+    },
+    3: {
+        "metric_id": 3,
+        "gp_id": 3,
+        "record_year": datetime.now().year,
+        "population": 5800,
+        "households": 1420,
+        "daily_water_supply_liters": 319000.0,
+        "school_classrooms_count": 26,
+        "road_coverage_km": 28.5,
+        "created_at": datetime.now(),
+    },
+}
+
+_DYNAMIC_ISSUES: List[Dict[str, Any]] = [
+    {
+        "issue_id": 1001,
+        "gp_id": 101,
+        "category": "Water Supply",
+        "description": "Irregular tap water distribution in Ward 4, Kamaraj Nagar, Koduvai. Low pressure during morning hours.",
+        "status": "OPEN",
+        "lat": 10.9642,
+        "lng": 77.4718,
+        "created_at": datetime.now(),
+    },
+    {
+        "issue_id": 1002,
+        "gp_id": 101,
+        "category": "Roads & Infrastructure",
+        "description": "Potholes along Koduvai - Dharapuram Link Road near weekly sandhai market junction. Resurfacing required.",
+        "status": "IN_PROGRESS",
+        "lat": 10.9628,
+        "lng": 77.4735,
+        "created_at": datetime.now(),
+    },
+    {
+        "issue_id": 1003,
+        "gp_id": 101,
+        "category": "Education",
+        "description": "Need 4 additional smart classrooms and solar power backup at Government Higher Secondary School Koduvai.",
+        "status": "OPEN",
+        "lat": 10.9655,
+        "lng": 77.4740,
+        "created_at": datetime.now(),
+    },
+    {
+        "issue_id": 1004,
+        "gp_id": 101,
+        "category": "Healthcare",
+        "description": "Request for 24x7 emergency medical technician and upgraded lab reagents at Koduvai Primary Health Centre (PHC).",
+        "status": "RESOLVED",
+        "lat": 10.9615,
+        "lng": 77.4710,
+        "created_at": datetime.now(),
+    },
+    {
+        "issue_id": 1005,
+        "gp_id": 101,
+        "category": "Sanitation",
+        "description": "Solid waste segregation bin replacement needed at Koduvai Bus Stop and market area.",
+        "status": "OPEN",
+        "lat": 10.9638,
+        "lng": 77.4729,
+        "created_at": datetime.now(),
+    },
+]
 
 
 def upsert_panchayat_dynamic(

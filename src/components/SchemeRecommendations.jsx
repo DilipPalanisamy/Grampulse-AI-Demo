@@ -60,14 +60,23 @@ const SchemeRecommendations = ({ schemes = [], loading = false }) => {
   // Filter schemes by active priority tier tab
   const filteredSchemes = useMemo(() => {
     if (!Array.isArray(schemes)) return [];
-    if (selectedFilter === 'ALL') return schemes;
-    return schemes.filter((s) => (s.priority_tier || 'P3').toUpperCase() === selectedFilter);
+    if (selectedFilter === 'ALL') return schemes.filter(Boolean);
+    return schemes.filter((s) => s && (s.priority_tier || 'P3').toUpperCase() === selectedFilter);
   }, [schemes, selectedFilter]);
 
   // Priority count badges
-  const p1Count = useMemo(() => schemes.filter((s) => s.priority_tier === 'P1').length, [schemes]);
-  const p2Count = useMemo(() => schemes.filter((s) => s.priority_tier === 'P2').length, [schemes]);
-  const p3Count = useMemo(() => schemes.filter((s) => s.priority_tier === 'P3').length, [schemes]);
+  const p1Count = useMemo(
+    () => (Array.isArray(schemes) ? schemes.filter((s) => s && s.priority_tier === 'P1').length : 0),
+    [schemes]
+  );
+  const p2Count = useMemo(
+    () => (Array.isArray(schemes) ? schemes.filter((s) => s && s.priority_tier === 'P2').length : 0),
+    [schemes]
+  );
+  const p3Count = useMemo(
+    () => (Array.isArray(schemes) ? schemes.filter((s) => s && s.priority_tier === 'P3').length : 0),
+    [schemes]
+  );
 
   if (loading) {
     return (

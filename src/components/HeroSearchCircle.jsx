@@ -50,8 +50,9 @@ function HeroSearchCircle({ onNavigateToMap }) {
   };
 
   const handleSelectVillage = (village) => {
+    if (!village) return;
     selectLocation(village);
-    setInputVal(village.gp_name);
+    setInputVal(village.gp_name || '');
     setIsDropdownOpen(false);
     if (onNavigateToMap) {
       onNavigateToMap();
@@ -69,8 +70,8 @@ function HeroSearchCircle({ onNavigateToMap }) {
 
   const displayResults =
     inputVal.trim().length > 0
-      ? searchResults
-      : locations.slice(0, 6);
+      ? (Array.isArray(searchResults) ? searchResults : [])
+      : (Array.isArray(locations) ? locations.slice(0, 6) : []);
 
   return (
     <div className="relative w-full flex flex-col items-center justify-center py-6 sm:py-10">

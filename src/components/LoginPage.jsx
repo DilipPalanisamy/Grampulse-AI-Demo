@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Sparkles,
   User,
@@ -17,14 +17,20 @@ import {
   Sun,
   Moon,
   Palette,
+  Building2,
+  Globe,
+  Compass,
 } from 'lucide-react';
 import { useGoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { searchRealVillages } from '../services/villageSearchService';
+import { resolveOfficialVillageData } from '../services/officialVillageDataService';
 
 export default function LoginPage() {
   const {
     loginWithCredentials,
+    registerCitizenAccount,
     loginWithGoogleAccessToken,
     authError,
     setAuthError,
@@ -47,12 +53,67 @@ export default function LoginPage() {
   const [signUpPassword, setSignUpPassword] = useState('');
   const [showSignUpPassword, setShowSignUpPassword] = useState(false);
 
+  // Village Real-time Search & Autocomplete States
+  const [villageSuggestions, setVillageSuggestions] = useState([]);
+  const [isSearchingVillage, setIsSearchingVillage] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [selectedVillageObj, setSelectedVillageObj] = useState(null);
+  const villageSearchTimeoutRef = useRef(null);
+  const villageContainerRef = useRef(null);
+
   // Loading States
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
   const [forgotEmail, setForgotEmail] = useState('');
   const [forgotSuccess, setForgotSuccess] = useState(false);
+
+  // Close village dropdown on outside click
+  useEffect(() => {
+    const handleOutsideClick = (e) => {
+      if (villageContainerRef.current && !villageContainerRef.current.contains(e.target)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
+  }, []);
+
+  const handleVillageInputChange = (e) => {
+    const query = e.target.value;
+    setVillageOrCity(query);
+    setSelectedVillageObj(null);
+
+    if (villageSearchTimeoutRef.current) {
+      clearTimeout(villageSearchTimeoutRef.current);
+    }
+
+    if (!query || query.trim().length < 2) {
+      setVillageSuggestions([]);
+      setShowSuggestions(false);
+      setIsSearchingVillage(false);
+      return;
+    }
+
+    setIsSearchingVillage(true);
+    villageSearchTimeoutRef.current = setTimeout(async () => {
+      try {
+        const results = await searchRealVillages(query);
+        setVillageSuggestions(results || []);
+        setShowSuggestions(true);
+      } catch (err) {
+        console.error('Village search error in registration:', err);
+      } finally {
+        setIsSearchingVillage(false);
+      }
+    }, 250);
+  };
+
+  const handleSelectVillageSuggestion = (village) => {
+    setVillageOrCity(village.gp_name);
+    setSelectedVillageObj(village);
+    setShowSuggestions(false);
+  };
 
   // Google OAuth 2.0 Popup Trigger
   const triggerGoogleLogin = useGoogleLogin({
@@ -95,10 +156,30 @@ export default function LoginPage() {
 
     setIsSubmitting(true);
     try {
-      await loginWithCredentials(signUpIdentifier, signUpPassword, {
-        name: signUpName.trim(),
-        village: villageOrCity.trim(),
-      });
+      // 1. Resolve official village demographics & spatial coordinates
+      let official = selectedVillageObj;
+      if (!official) {
+        official = await resolveOfficialVillageData(villageOrCity.trim());
+      }
+
+      if (registerCitizenAccount) {
+        await registerCitizenAccount({
+          name: signUpName.trim(),
+          identifier: signUpIdentifier.trim(),
+          villageOrCity: villageOrCity.trim(),
+          password: signUpPassword.trim(),
+          officialVillage: official,
+        });
+      } else {
+        await loginWithCredentials(signUpIdentifier, signUpPassword, {
+          name: signUpName.trim(),
+          village: villageOrCity.trim(),
+          officialVillage: official,
+        });
+      }
+    } catch (err) {
+      console.error('Registration submission error:', err);
+      setAuthError(err.message || 'Registration failed. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -372,8 +453,19 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-[var(--text-muted)]">Village or City</label>
+              <div className="space-y-1 relative" ref={villageContainerRef}>
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-[var(--text-muted)]">
+                    Village or City Name
+                  </label>
+                  {selectedVillageObj && (
+                    <span className="text-[10px] text-emerald-400 font-bold flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                      <span>Official Telemetry Bound</span>
+                    </span>
+                  )}
+                </div>
+
                 <div className="relative flex items-center">
                   <div className="absolute left-3.5 text-slate-400 pointer-events-none">
                     <MapPin className="w-4 h-4" />
@@ -382,11 +474,65 @@ export default function LoginPage() {
                     type="text"
                     required
                     value={villageOrCity}
-                    onChange={(e) => setVillageOrCity(e.target.value)}
-                    placeholder="e.g. Odanthurai, Peelamedu, or Namakkal"
-                    className="w-full pl-10 pr-4 py-2.5 bg-[var(--bg-primary)] border border-[var(--border-subtle)] focus:border-[var(--color-primary)] rounded-xl text-xs text-[var(--text-main)] placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-glow)] transition-all font-sans"
+                    onChange={handleVillageInputChange}
+                    onFocus={() => {
+                      if (villageSuggestions.length > 0) setShowSuggestions(true);
+                    }}
+                    placeholder="e.g. Odanthurai, Koduvai, Madurai, or Punsari"
+                    className="w-full pl-10 pr-9 py-2.5 bg-[var(--bg-primary)] border border-[var(--border-subtle)] focus:border-[var(--color-primary)] rounded-xl text-xs text-[var(--text-main)] placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-glow)] transition-all font-sans"
                   />
+                  {isSearchingVillage && (
+                    <div className="absolute right-3 text-emerald-400 pointer-events-none">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    </div>
+                  )}
                 </div>
+
+                {/* Verified Official Village Pill */}
+                {selectedVillageObj && (
+                  <div className="mt-1 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-between text-[11px] text-emerald-300">
+                    <span className="font-semibold truncate">
+                      {selectedVillageObj.gp_name} ({selectedVillageObj.district}, {selectedVillageObj.state})
+                    </span>
+                    <span className="text-[10px] font-mono text-emerald-400 font-bold">
+                      {selectedVillageObj.lat?.toFixed(3)}°N, {selectedVillageObj.lng?.toFixed(3)}°E
+                    </span>
+                  </div>
+                )}
+
+                {/* Real-time Autocomplete Dropdown */}
+                {showSuggestions && villageSuggestions.length > 0 && (
+                  <div className="absolute left-0 right-0 top-full mt-1.5 bg-[var(--bg-card)] border border-[var(--border-strong)] rounded-2xl shadow-2xl z-[50] p-1.5 space-y-1 backdrop-blur-2xl max-h-56 overflow-y-auto custom-scrollbar animate-fadeIn">
+                    <div className="px-2.5 py-1 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider flex items-center justify-between border-b border-[var(--border-subtle)]">
+                      <span className="flex items-center gap-1 text-emerald-400">
+                        <Globe className="w-3 h-3" />
+                        <span>Official Habitations</span>
+                      </span>
+                      <span>{villageSuggestions.length} found</span>
+                    </div>
+
+                    {villageSuggestions.map((village, idx) => (
+                      <button
+                        key={`sugg-${village.gp_id || idx}-${village.gp_name}`}
+                        type="button"
+                        onClick={() => handleSelectVillageSuggestion(village)}
+                        className="w-full text-left px-3 py-2 rounded-xl hover:bg-[var(--bg-card-hover)] transition-all flex items-center justify-between gap-2 group cursor-pointer"
+                      >
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-[var(--text-main)] group-hover:text-emerald-400 transition-colors truncate">
+                            {village.gp_name}
+                          </p>
+                          <p className="text-[10px] text-[var(--text-muted)] truncate">
+                            {village.district} District, {village.state}
+                          </p>
+                        </div>
+                        <span className="text-[9px] font-mono text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20 shrink-0">
+                          {village.lat ? `${Number(village.lat).toFixed(2)}°N` : 'LGD Verified'}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="space-y-1">
@@ -425,8 +571,8 @@ export default function LoginPage() {
               >
                 {isSubmitting ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin text-slate-950" />
-                    <span>Registering Citizen Profile...</span>
+                    <Loader2 className="w-4 h-4 animate-spin text-white" />
+                    <span>Resolving Official Village & Creating Account...</span>
                   </>
                 ) : (
                   <>

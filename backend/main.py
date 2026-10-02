@@ -51,7 +51,11 @@ from backend.chat_engine import RuralGovernanceChatEngine
 from backend.services.scheme_rag_engine import scheme_rag_engine, SchemeRAGEngine
 from backend.utils.priority_analyzer import calculate_deficit_priorities
 from ai_engine.predictive_model import calculate_infrastructure_deficits
-from ai_engine.scheme_matcher import SchemeMatcherEngine
+from backend.services.future_predictor_service import (
+    execute_village_future_prediction,
+    resolve_udise_infrastructure,
+    load_cached_chinniyampalayam_schools,
+)
 from utils.pdf_generator import generate_gpdp_pdf
 
 # ---------------------------------------------------------------------------
@@ -474,6 +478,64 @@ async def village_assistant_chat(payload: ChatRequest):
         "model": res.get("model", "gemini-2.5-flash"),
         "timestamp": datetime.now(),
     }
+
+
+# ---------------------------------------------------------------------------
+# GramPulse-FuturePredictor: 5-Year Village Development & UDISE+ Endpoints
+# ---------------------------------------------------------------------------
+@app.post("/predict", tags=["Future Predictor"])
+@app.post("/api/v1/predict", tags=["Future Predictor"])
+async def predict_village_development(payload: Dict[str, Any] = Body(...)):
+    """
+    5-Year Village Development Prediction API using real UDISE+ school
+    infrastructure and demographic mathematical/ML forecasting.
+    """
+    try:
+        result = execute_village_future_prediction(payload)
+        return result
+    except Exception as exc:
+        logger.error(f"Error executing future prediction: {exc}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Future prediction generation failed: {str(exc)}",
+        )
+
+
+@app.get("/udise/search", tags=["UDISE+ Education"])
+@app.get("/api/v1/udise/search", tags=["UDISE+ Education"])
+async def search_udise_schools(keyword: str = Query(..., description="Village or School name")):
+    """Searches real UDISE+ schools by keyword."""
+    try:
+        result = resolve_udise_infrastructure(keyword)
+        schools = result.get("schools", [])
+        return {
+            "status": True,
+            "keyword": keyword,
+            "count": len(schools),
+            "schools": schools,
+            "infrastructure": result.get("infrastructure", {}),
+            "education_impact": result.get("education_impact", {}),
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.get("/udise/chinniyampalayam", tags=["UDISE+ Education"])
+@app.get("/api/v1/udise/chinniyampalayam", tags=["UDISE+ Education"])
+async def get_chinniyampalayam_udise():
+    """Returns verified UDISE+ school profile and facility records for Chinniyampalayam."""
+    try:
+        result = resolve_udise_infrastructure("Chinniyampalayam")
+        return {
+            "status": True,
+            "location": "Chinniyampalayam",
+            "school_count": len(result.get("schools", [])),
+            "infrastructure": result.get("infrastructure", {}),
+            "education_impact": result.get("education_impact", {}),
+            "schools": result.get("schools", []),
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
 
 
 # ---------------------------------------------------------------------------

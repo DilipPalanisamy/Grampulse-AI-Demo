@@ -17,12 +17,15 @@ import {
   ChevronUp,
   Layers,
   Bot,
+  TrendingUp,
 } from 'lucide-react';
 import { useLocation } from '../context/LocationContext';
+import { useTheme } from '../context/ThemeContext';
 import MapView from './MapView';
 import IssueReportForm from './IssueReportForm';
 
 export default function MapPage({ onBackToDashboard, onOpenChatbot }) {
+  const { activePalette } = useTheme();
   const {
     locations,
     selectedLocation,
@@ -39,6 +42,7 @@ export default function MapPage({ onBackToDashboard, onOpenChatbot }) {
     isReportModalOpen,
     setIsReportModalOpen,
     handleIssueCreated,
+    setActiveTab,
   } = useLocation();
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(true);
@@ -72,14 +76,14 @@ export default function MapPage({ onBackToDashboard, onOpenChatbot }) {
             <div>
               <div className="flex items-center gap-1.5">
                 <h2 className="text-xs sm:text-sm font-black text-[var(--text-main)] leading-tight truncate max-w-[140px] sm:max-w-[200px]">
-                  {selectedLocation.gp_name}
+                  {selectedLocation?.gp_name || 'Active Habitation'}
                 </h2>
                 <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 font-bold px-1.5 py-0.2 rounded bg-emerald-500/10 border border-emerald-500/20">
-                  {selectedLocation.gp_code || `GP-${selectedLocation.gp_id}`}
+                  {selectedLocation?.gp_code || `GP-${selectedLocation?.gp_id || 101}`}
                 </span>
               </div>
               <p className="text-[10px] text-[var(--text-muted)] truncate max-w-[180px]">
-                {selectedLocation.district} District, {selectedLocation.state}
+                {selectedLocation?.district || 'District'} District, {selectedLocation?.state || 'Tamil Nadu'}
               </p>
             </div>
           </div>
@@ -141,7 +145,7 @@ export default function MapPage({ onBackToDashboard, onOpenChatbot }) {
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-emerald-500" />
             <span className="text-xs font-black text-[var(--text-main)] tracking-tight">
-              {selectedLocation.gp_name} Live Intelligence
+              {selectedLocation?.gp_name || 'Active Habitation'} Live Intelligence
             </span>
           </div>
           <button
@@ -159,19 +163,19 @@ export default function MapPage({ onBackToDashboard, onOpenChatbot }) {
             <div className="grid grid-cols-2 gap-1.5 text-[11px] bg-[var(--bg-primary)] p-2 rounded-2xl border border-[var(--border-subtle)]">
               <div className="flex items-center gap-1.5 text-[var(--text-main)]">
                 <Users className="w-3.5 h-3.5 text-blue-500" />
-                <span>Pop: <strong>{Number(selectedLocation.population || 5000).toLocaleString()}</strong></span>
+                <span>Pop: <strong>{Number(selectedLocation?.population || 5000).toLocaleString()}</strong></span>
               </div>
               <div className="flex items-center gap-1.5 text-[var(--text-main)]">
                 <Droplets className="w-3.5 h-3.5 text-cyan-500" />
-                <span>Water: <strong>{Math.round((selectedLocation.daily_water_supply_liters || 300000) / 1000)}k LPD</strong></span>
+                <span>Water: <strong>{Math.round((selectedLocation?.daily_water_supply_liters || 300000) / 1000)}k LPD</strong></span>
               </div>
               <div className="flex items-center gap-1.5 text-[var(--text-main)]">
                 <GraduationCap className="w-3.5 h-3.5 text-purple-500" />
-                <span>Classrooms: <strong>{selectedLocation.school_classrooms_count || 20}</strong></span>
+                <span>Classrooms: <strong>{selectedLocation?.school_classrooms_count || 20}</strong></span>
               </div>
               <div className="flex items-center gap-1.5 text-[var(--text-main)]">
                 <Route className="w-3.5 h-3.5 text-orange-500" />
-                <span>Roads: <strong>{selectedLocation.road_coverage_km || 25} km</strong></span>
+                <span>Roads: <strong>{selectedLocation?.road_coverage_km || 25} km</strong></span>
               </div>
             </div>
 
@@ -198,6 +202,23 @@ export default function MapPage({ onBackToDashboard, onOpenChatbot }) {
                 ))}
               </div>
             </div>
+
+            {/* Future Prediction Quick Trigger Button */}
+            <button
+              type="button"
+              onClick={() => {
+                if (setActiveTab) setActiveTab('prediction');
+                if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="w-full py-2 px-3 rounded-xl text-white text-xs font-bold shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+              style={{
+                background: `linear-gradient(135deg, ${activePalette.secondary}, ${activePalette.primary})`,
+              }}
+              title="Navigate to 5-Year Village Development Forecast"
+            >
+              <TrendingUp className="w-4 h-4" />
+              <span>Future Prediction</span>
+            </button>
 
             {/* AI Assistant Quick Trigger Button */}
             <button

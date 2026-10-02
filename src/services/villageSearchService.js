@@ -59,6 +59,7 @@ export const searchRealVillages = async (query = '', stateFilter = '') => {
       },
       headers: {
         'Accept-Language': 'en',
+        'User-Agent': 'GramPulse-AI-Platform/2.0 (mopr-portal@grampulse.gov.in)',
       },
       timeout: 7000,
     });

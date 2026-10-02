@@ -172,8 +172,10 @@ export const getStatusBadge = (status = 'OPEN') => {
 /**
  * Custom DivIcon for Village Center Hubs
  */
-export const buildVillageHubIcon = (villageName, state = 'Tamil Nadu', isSelected = false) => {
-  const isTN = (state || '').toLowerCase().includes('tamil');
+export const buildVillageHubIcon = (villageName = 'Habitation', state = 'Tamil Nadu', isSelected = false) => {
+  const safeName = String(villageName || 'Habitation');
+  const safeState = String(state || 'Tamil Nadu');
+  const isTN = safeState.toLowerCase().includes('tamil');
   const pulseClass = isSelected ? 'ring-4 ring-emerald-400/80 scale-110 shadow-emerald-500/50' : '';
   const bgColor = isSelected ? 'bg-emerald-600' : 'bg-slate-900';
   const borderColor = isSelected ? 'border-emerald-300' : isTN ? 'border-emerald-500/70' : 'border-slate-600';
@@ -182,7 +184,7 @@ export const buildVillageHubIcon = (villageName, state = 'Tamil Nadu', isSelecte
     <div class="relative flex flex-col items-center group cursor-pointer transition-transform duration-200 hover:scale-115">
       <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full ${bgColor} ${borderColor} border-2 text-white text-[11px] font-black shadow-2xl backdrop-blur-md ${pulseClass}">
         <span class="w-2 h-2 rounded-full ${isSelected ? 'bg-emerald-300 animate-ping' : isTN ? 'bg-amber-400' : 'bg-emerald-400'}"></span>
-        <span class="tracking-tight whitespace-nowrap">${villageName}</span>
+        <span class="tracking-tight whitespace-nowrap">${safeName}</span>
       </div>
       <div class="w-2.5 h-2.5 ${isSelected ? 'bg-emerald-500' : isTN ? 'bg-amber-500' : 'bg-slate-700'} rotate-45 -mt-1 shadow-md"></div>
     </div>
@@ -200,12 +202,13 @@ export const buildVillageHubIcon = (villageName, state = 'Tamil Nadu', isSelecte
 /**
  * Custom DivIcon for Manually Dropped Map Pin
  */
-export const buildDroppedPinIcon = (locationName, isSelected = true) => {
+export const buildDroppedPinIcon = (locationName = 'Pinned Location', isSelected = true) => {
+  const safeName = String(locationName || 'Pinned Location');
   const html = `
     <div class="relative flex flex-col items-center group cursor-pointer animate-bounce">
       <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-rose-600 border-2 border-white text-white text-xs font-black shadow-2xl backdrop-blur-md ring-4 ring-rose-500/50">
         <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
-        <span class="tracking-tight whitespace-nowrap">${locationName || 'Pinned Location'}</span>
+        <span class="tracking-tight whitespace-nowrap">${safeName}</span>
       </div>
       <div class="w-3 h-3 bg-rose-600 rotate-45 -mt-1.5 border-r-2 border-b-2 border-white shadow-md"></div>
       <div class="w-6 h-2 bg-black/40 rounded-full blur-xs mt-0.5"></div>
@@ -398,8 +401,42 @@ const MapView = ({
     );
   }, [issues]);
 
+  const safeCenter = useMemo(() => {
+    if (Array.isArray(center) && center.length >= 2) {
+      const lat = Number(center[0]);
+      const lng = Number(center[1]);
+      if (!isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+        return [lat, lng];
+      }
+    }
+    return [10.9634, 77.4727];
+  }, [center]);
+
   const activeProvider = MAP_PROVIDERS[mapStyle] || MAP_PROVIDERS.satellite;
   const activeGeoJson = selectedLocation?.geojson || null;
+
+  const validPolygonGeoJson = useMemo(() => {
+    if (!activeGeoJson || typeof activeGeoJson !== 'object') return null;
+    try {
+      const type = activeGeoJson.type;
+      if (type === 'Polygon' || type === 'MultiPolygon') return activeGeoJson;
+      if (
+        type === 'Feature' &&
+        (activeGeoJson.geometry?.type === 'Polygon' || activeGeoJson.geometry?.type === 'MultiPolygon')
+      ) {
+        return activeGeoJson;
+      }
+      if (type === 'FeatureCollection' && Array.isArray(activeGeoJson.features) && activeGeoJson.features.length > 0) {
+        const hasPolygons = activeGeoJson.features.some(
+          (f) => f?.geometry?.type === 'Polygon' || f?.geometry?.type === 'MultiPolygon'
+        );
+        if (hasPolygons) return activeGeoJson;
+      }
+    } catch (e) {
+      console.warn('GeoJSON parse skipped:', e);
+    }
+    return null;
+  }, [activeGeoJson]);
 
   /**
    * Universal handler to analyze selected location and switch to Dashboard view
@@ -413,8 +450,8 @@ const MapView = ({
         gp_name: loc.gp_name || loc.name || 'Habitation',
         district: loc.district || 'District',
         state: loc.state || 'Tamil Nadu',
-        lat: Number(loc.lat),
-        lng: Number(loc.lng),
+        lat: Number(loc.lat || 10.9634),
+        lng: Number(loc.lng || 77.4727),
         population: loc.population || 5000,
         daily_water_supply_liters: loc.daily_water_supply_liters || 275000,
         school_classrooms_count: loc.school_classrooms_count || 24,
@@ -448,8 +485,9 @@ const MapView = ({
    */
   const handleMapClick = useCallback(
     async (latlng) => {
-      const lat = latlng.lat;
-      const lng = latlng.lng;
+      if (!latlng || isNaN(Number(latlng.lat)) || isNaN(Number(latlng.lng))) return;
+      const lat = Number(latlng.lat);
+      const lng = Number(latlng.lng);
 
       // Set immediate placeholder marker
       const tempLoc = {
@@ -623,37 +661,44 @@ const MapView = ({
           <Compass className="w-3.5 h-3.5" />
           Active Habitations:
         </span>
-        {locations.slice(0, 8).map((loc) => {
-          const isSelected = Number(loc.gp_id) === Number(selectedGpId);
-          return (
-            <button
-              key={`chip-${loc.gp_id}-${loc.gp_name}`}
-              type="button"
-              onClick={() => handleAnalyzeLocation(loc)}
-              className={`px-2.5 py-1 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1 flex-shrink-0 cursor-pointer ${
-                isSelected
-                  ? 'bg-emerald-600 text-white shadow-md shadow-emerald-950 scale-105'
-                  : 'bg-[var(--bg-primary)] text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-card-hover)] border border-[var(--border-subtle)]'
-              }`}
-            >
-              <span>{loc.gp_name}</span>
-              <span className="text-[10px] opacity-75">({loc.district || loc.state?.slice(0, 2)})</span>
-            </button>
-          );
-        })}
+        {Array.isArray(locations) &&
+          locations
+            .filter((l) => l && l.gp_name)
+            .slice(0, 8)
+            .map((loc, idx) => {
+              const isSelected = Number(loc.gp_id) === Number(selectedGpId);
+              return (
+                <button
+                  key={`chip-${loc.gp_id || idx}-${loc.gp_name || 'loc'}`}
+                  type="button"
+                  onClick={() => handleAnalyzeLocation(loc)}
+                  className={`px-2.5 py-1 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1 flex-shrink-0 cursor-pointer ${
+                    isSelected
+                      ? 'bg-emerald-600 text-white shadow-md shadow-emerald-950 scale-105'
+                      : 'bg-[var(--bg-primary)] text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-card-hover)] border border-[var(--border-subtle)]'
+                  }`}
+                >
+                  <span>{loc.gp_name}</span>
+                  <span className="text-[10px] opacity-75">
+                    ({loc.district || String(loc.state || '').slice(0, 2) || 'GP'})
+                  </span>
+                </button>
+              );
+            })}
       </div>
 
       {/* =================================================================== */}
       {/* MAIN LEAFLET MAP CONTAINER                                         */}
       {/* =================================================================== */}
       <MapContainer
+        key={`leaflet-map-${safeCenter[0].toFixed(2)}-${safeCenter[1].toFixed(2)}`}
         preferCanvas={true}
-        center={center}
+        center={safeCenter}
         zoom={zoom}
         scrollWheelZoom={true}
         className="w-full h-full z-0"
       >
-        <MapViewController center={center} zoom={zoom} />
+        <MapViewController center={safeCenter} zoom={zoom} />
         <MapEventsHandler
           isPinningMode={selectionMode === 'pin'}
           onMapClick={handleMapClick}
@@ -678,10 +723,10 @@ const MapView = ({
         )}
 
         {/* Real OpenStreetMap Boundary Polygon GeoJSON Layer */}
-        {activeGeoJson && (
+        {validPolygonGeoJson && (
           <GeoJSON
-            key={`geojson-${selectedGpId}-${JSON.stringify(activeGeoJson).length}`}
-            data={activeGeoJson}
+            key={`geojson-${selectedGpId || 101}-${JSON.stringify(validPolygonGeoJson).length}`}
+            data={validPolygonGeoJson}
             style={{
               color: '#10b981',
               weight: 3,
@@ -694,198 +739,229 @@ const MapView = ({
         )}
 
         {/* 1. Manually Dropped Map Pin Marker */}
-        {manualPinnedLocation && (
-          <Marker
-            position={[Number(manualPinnedLocation.lat), Number(manualPinnedLocation.lng)]}
-            icon={buildDroppedPinIcon(manualPinnedLocation.gp_name, true)}
-          >
-            <Popup className="grampulse-popup" autoPan={true}>
-              <div className="p-2 min-w-[260px] max-w-[300px] font-sans text-slate-800 space-y-2">
-                <div className="flex items-start justify-between gap-2 pb-1.5 border-b border-slate-200">
-                  <div>
-                    <span className="text-[9px] font-bold uppercase tracking-wider text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200">
-                      Manual Pin Drop
-                    </span>
-                    <h4 className="text-sm font-black text-slate-900 mt-1 leading-tight">
-                      {manualPinnedLocation.gp_name}
-                    </h4>
-                    <p className="text-[11px] text-slate-500">
-                      {manualPinnedLocation.district} District, {manualPinnedLocation.state}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="bg-slate-50 p-2 rounded-xl border border-slate-200 text-[11px] space-y-1">
-                  <div className="flex items-center justify-between text-slate-700">
-                    <span className="text-slate-500">GPS Coordinates:</span>
-                    <span className="font-mono font-bold">
-                      {Number(manualPinnedLocation.lat).toFixed(4)}°N, {Number(manualPinnedLocation.lng).toFixed(4)}°E
-                    </span>
-                  </div>
-                  {isGeocodingPin && (
-                    <div className="flex items-center gap-1 text-emerald-600 font-semibold pt-1">
-                      <Loader2 className="w-3 h-3 animate-spin" />
-                      <span>Resolving OpenStreetMap Telemetry...</span>
-                    </div>
-                  )}
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => handleAnalyzeLocation(manualPinnedLocation)}
-                  className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold shadow-md transition-all flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer"
-                >
-                  <Activity className="w-4 h-4" />
-                  <span>Analyze The Village</span>
-                </button>
-              </div>
-            </Popup>
-          </Marker>
-        )}
-
-        {/* 2. Registered Village Hub Markers */}
-        {locations.map((loc) => {
-          if (!loc.lat || !loc.lng) return null;
-          const isSelected = Number(loc.gp_id) === Number(selectedGpId);
-          const icon = buildVillageHubIcon(loc.gp_name, loc.state, isSelected);
-
-          return (
+        {manualPinnedLocation &&
+          !isNaN(Number(manualPinnedLocation.lat)) &&
+          !isNaN(Number(manualPinnedLocation.lng)) && (
             <Marker
-              key={`village-hub-${loc.gp_id}`}
-              position={[Number(loc.lat), Number(loc.lng)]}
-              icon={icon}
-              eventHandlers={{
-                click: () => {
-                  if (onSelectLocation) onSelectLocation(loc);
-                },
-              }}
+              position={[Number(manualPinnedLocation.lat), Number(manualPinnedLocation.lng)]}
+              icon={buildDroppedPinIcon(manualPinnedLocation.gp_name || 'Pinned Location', true)}
             >
-              <Popup className="grampulse-popup">
-                <div className="p-1.5 min-w-[270px] max-w-[310px] font-sans text-slate-800">
-                  <div className="flex items-start justify-between gap-2 pb-2 mb-2 border-b border-slate-200">
+              <Popup className="grampulse-popup" autoPan={true}>
+                <div className="p-2 min-w-[260px] max-w-[300px] font-sans text-slate-800 space-y-2">
+                  <div className="flex items-start justify-between gap-2 pb-1.5 border-b border-slate-200">
                     <div>
-                      <h4 className="text-sm font-black text-slate-900 leading-tight">
-                        {loc.gp_name} Gram Panchayat
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200">
+                        Manual Pin Drop
+                      </span>
+                      <h4 className="text-sm font-black text-slate-900 mt-1 leading-tight">
+                        {manualPinnedLocation.gp_name}
                       </h4>
-                      <p className="text-[11px] text-slate-500 font-medium">
-                        {loc.district} District, {loc.state}
+                      <p className="text-[11px] text-slate-500">
+                        {manualPinnedLocation.district} District, {manualPinnedLocation.state}
                       </p>
                     </div>
-                    <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
-                      {loc.gp_code || 'GP-LIVE'}
-                    </span>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-1.5 text-[11px] bg-slate-50 p-2 rounded-xl border border-slate-200 mb-3">
-                    <div className="flex items-center gap-1.5 text-slate-700">
-                      <Users className="w-3.5 h-3.5 text-blue-600" />
-                      <span>Pop: <strong>{loc.population ? Number(loc.population).toLocaleString() : '5,000+'}</strong></span>
+                  <div className="bg-slate-50 p-2 rounded-xl border border-slate-200 text-[11px] space-y-1">
+                    <div className="flex items-center justify-between text-slate-700">
+                      <span className="text-slate-500">GPS Coordinates:</span>
+                      <span className="font-mono font-bold">
+                        {Number(manualPinnedLocation.lat).toFixed(4)}°N, {Number(manualPinnedLocation.lng).toFixed(4)}°E
+                      </span>
                     </div>
-                    <div className="flex items-center gap-1.5 text-slate-700">
-                      <Droplets className="w-3.5 h-3.5 text-cyan-600" />
-                      <span>Water: <strong>{loc.daily_water_supply_liters ? `${Math.round(loc.daily_water_supply_liters / 1000)}k L` : 'JJM 55 LPD'}</strong></span>
-                    </div>
-                    <div className="flex items-center gap-1.5 text-slate-700">
-                      <GraduationCap className="w-3.5 h-3.5 text-purple-600" />
-                      <span>Schools: <strong>{loc.school_classrooms_count || 18} rms</strong></span>
-                    </div>
-                    <div className="flex items-center gap-1.5 text-slate-700">
-                      <Route className="w-3.5 h-3.5 text-orange-600" />
-                      <span>Roads: <strong>{loc.road_coverage_km || 22} km</strong></span>
-                    </div>
+                    {isGeocodingPin && (
+                      <div className="flex items-center gap-1 text-emerald-600 font-semibold pt-1">
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                        <span>Resolving OpenStreetMap Telemetry...</span>
+                      </div>
+                    )}
                   </div>
 
                   <button
                     type="button"
-                    onClick={() => handleAnalyzeLocation(loc)}
+                    onClick={() => handleAnalyzeLocation(manualPinnedLocation)}
                     className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold shadow-md transition-all flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer"
                   >
                     <Activity className="w-4 h-4" />
                     <span>Analyze The Village</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </Popup>
             </Marker>
-          );
-        })}
+          )}
 
-        {/* 3. Live Overpass Infrastructure Node Markers */}
-        {showInfra &&
-          infrastructure?.markers?.map((infra) => (
-            <Marker
-              key={`infra-${infra.type}-${infra.id}-${infra.lat}-${infra.lng}`}
-              position={[Number(infra.lat), Number(infra.lng)]}
-              icon={buildInfrastructureIcon(infra.type)}
-            >
-              <Popup className="grampulse-popup">
-                <div className="p-1 font-sans text-slate-800">
-                  <div className="flex items-center gap-1.5 pb-1 border-b border-slate-100">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600">
-                      Live Overpass OSM Node
-                    </span>
-                  </div>
-                  <p className="text-xs font-bold text-slate-900 mt-1">{infra.name}</p>
-                  <p className="text-[11px] text-slate-500 capitalize">{infra.subtype || infra.type} facility</p>
-                </div>
-              </Popup>
-            </Marker>
-          ))}
-
-        {/* 4. Marker Clustering Layer for Geotagged Grievances */}
-        <MarkerClusterGroup
-          chunkedLoading
-          maxClusterRadius={50}
-          spiderfyOnMaxZoom={true}
-          showCoverageOnHover={false}
-          iconCreateFunction={createCustomClusterIcon}
-        >
-          {validIssues.map((issue) => {
-            const theme = getCategoryTheme(issue.category);
-            const statusBadge = getStatusBadge(issue.status);
-            const lat = Number(issue.lat);
-            const lng = Number(issue.lng);
+        {/* 2. Registered Village Hub Markers */}
+        {Array.isArray(locations) &&
+          locations.map((loc, idx) => {
+            if (!loc) return null;
+            const lat = Number(loc.lat);
+            const lng = Number(loc.lng);
+            if (isNaN(lat) || isNaN(lng) || lat === 0 || lng === 0) return null;
+            const isSelected = Number(loc.gp_id) === Number(selectedGpId);
+            const icon = buildVillageHubIcon(loc.gp_name || 'Habitation', loc.state || 'Tamil Nadu', isSelected);
 
             return (
               <Marker
-                key={issue.issue_id || `issue-${lat}-${lng}`}
+                key={`village-hub-${loc.gp_id || idx}-${lat.toFixed(4)}-${lng.toFixed(4)}`}
                 position={[lat, lng]}
-                icon={buildCategoryIcon(issue.category)}
+                icon={icon}
+                eventHandlers={{
+                  click: () => {
+                    if (onSelectLocation) onSelectLocation(loc);
+                  },
+                }}
               >
                 <Popup className="grampulse-popup">
-                  <div className="p-1 min-w-[240px] max-w-[280px] font-sans text-slate-800">
-                    <div className="flex items-center justify-between gap-2 pb-2 mb-2 border-b border-slate-100">
-                      <span
-                        className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold border ${theme.badgeBg}`}
-                      >
-                        {issue.category || 'General'}
-                      </span>
-                      <span
-                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium border ${statusBadge.classes}`}
-                      >
-                        <span className={`w-1.5 h-1.5 rounded-full ${statusBadge.dot}`} />
-                        {statusBadge.label}
+                  <div className="p-1.5 min-w-[270px] max-w-[310px] font-sans text-slate-800">
+                    <div className="flex items-start justify-between gap-2 pb-2 mb-2 border-b border-slate-200">
+                      <div>
+                        <h4 className="text-sm font-black text-slate-900 leading-tight">
+                          {loc.gp_name || 'Habitation'} Gram Panchayat
+                        </h4>
+                        <p className="text-[11px] text-slate-500 font-medium">
+                          {loc.district || 'District'} District, {loc.state || 'Tamil Nadu'}
+                        </p>
+                      </div>
+                      <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        {loc.gp_code || 'GP-LIVE'}
                       </span>
                     </div>
 
-                    <p className="text-xs leading-relaxed text-slate-700 font-normal mb-3">
-                      {issue.description || 'No description provided.'}
-                    </p>
+                    {loc.isOfficialData && (
+                      <div className="text-[10px] text-emerald-800 bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-200 mb-2 flex items-center gap-1 font-semibold">
+                        <Sparkles className="w-3 h-3 text-emerald-600 shrink-0" />
+                        <span>Official Census &amp; MoPR LGD Baseline</span>
+                      </div>
+                    )}
 
-                    <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
-                      <span>
-                        Grievance ID: <strong className="text-slate-600">#{issue.issue_id || 'N/A'}</strong>
-                      </span>
-                      <span className="font-mono">
-                        {lat.toFixed(4)}°, {lng.toFixed(4)}°
-                      </span>
+                    <div className="grid grid-cols-2 gap-1.5 text-[11px] bg-slate-50 p-2 rounded-xl border border-slate-200 mb-3">
+                      <div className="flex items-center gap-1.5 text-slate-700">
+                        <Users className="w-3.5 h-3.5 text-blue-600" />
+                        <span>
+                          Pop: <strong>{loc.population ? Number(loc.population).toLocaleString() : '5,000+'}</strong>
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-slate-700">
+                        <Droplets className="w-3.5 h-3.5 text-cyan-600" />
+                        <span>
+                          Water:{' '}
+                          <strong>
+                            {loc.daily_water_supply_liters
+                              ? `${Math.round(loc.daily_water_supply_liters / 1000)}k L`
+                              : 'JJM 55 LPD'}
+                          </strong>
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-slate-700">
+                        <GraduationCap className="w-3.5 h-3.5 text-purple-600" />
+                        <span>
+                          Schools: <strong>{loc.school_classrooms_count || 18} rms</strong>
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-slate-700">
+                        <Route className="w-3.5 h-3.5 text-orange-600" />
+                        <span>
+                          Roads: <strong>{loc.road_coverage_km || 22} km</strong>
+                        </span>
+                      </div>
                     </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleAnalyzeLocation(loc)}
+                      className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold shadow-md transition-all flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer"
+                    >
+                      <Activity className="w-4 h-4" />
+                      <span>Analyze The Village</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
                   </div>
                 </Popup>
               </Marker>
             );
           })}
-        </MarkerClusterGroup>
+
+        {/* 3. Live Overpass Infrastructure Node Markers */}
+        {showInfra &&
+          Array.isArray(infrastructure?.markers) &&
+          infrastructure.markers
+            .filter((m) => m && !isNaN(Number(m.lat)) && !isNaN(Number(m.lng)))
+            .map((infra) => (
+              <Marker
+                key={`infra-${infra.type}-${infra.id}-${infra.lat}-${infra.lng}`}
+                position={[Number(infra.lat), Number(infra.lng)]}
+                icon={buildInfrastructureIcon(infra.type)}
+              >
+                <Popup className="grampulse-popup">
+                  <div className="p-1 font-sans text-slate-800">
+                    <div className="flex items-center gap-1.5 pb-1 border-b border-slate-100">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600">
+                        Live Overpass OSM Node
+                      </span>
+                    </div>
+                    <p className="text-xs font-bold text-slate-900 mt-1">{infra.name}</p>
+                    <p className="text-[11px] text-slate-500 capitalize">{infra.subtype || infra.type} facility</p>
+                  </div>
+                </Popup>
+              </Marker>
+            ))}
+
+        {/* 4. Marker Clustering Layer for Geotagged Grievances */}
+        {validIssues.length > 0 && (
+          <MarkerClusterGroup
+            chunkedLoading
+            maxClusterRadius={50}
+            spiderfyOnMaxZoom={true}
+            showCoverageOnHover={false}
+            iconCreateFunction={createCustomClusterIcon}
+          >
+            {validIssues.map((issue) => {
+              const theme = getCategoryTheme(issue.category);
+              const statusBadge = getStatusBadge(issue.status);
+              const lat = Number(issue.lat);
+              const lng = Number(issue.lng);
+
+              return (
+                <Marker
+                  key={issue.issue_id ? `issue-${issue.issue_id}` : `issue-${lat}-${lng}`}
+                  position={[lat, lng]}
+                  icon={buildCategoryIcon(issue.category)}
+                >
+                  <Popup className="grampulse-popup">
+                    <div className="p-1 min-w-[240px] max-w-[280px] font-sans text-slate-800">
+                      <div className="flex items-center justify-between gap-2 pb-2 mb-2 border-b border-slate-100">
+                        <span
+                          className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold border ${theme.badgeBg}`}
+                        >
+                          {issue.category || 'General'}
+                        </span>
+                        <span
+                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium border ${statusBadge.classes}`}
+                        >
+                          <span className={`w-1.5 h-1.5 rounded-full ${statusBadge.dot}`} />
+                          {statusBadge.label}
+                        </span>
+                      </div>
+
+                      <p className="text-xs leading-relaxed text-slate-700 font-normal mb-3">
+                        {issue.description || 'No description provided.'}
+                      </p>
+
+                      <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
+                        <span>
+                          Grievance ID: <strong className="text-slate-600">#{issue.issue_id || 'N/A'}</strong>
+                        </span>
+                        <span className="font-mono">
+                          {lat.toFixed(4)}°, {lng.toFixed(4)}°
+                        </span>
+                      </div>
+                    </div>
+                  </Popup>
+                </Marker>
+              );
+            })}
+          </MarkerClusterGroup>
+        )}
       </MapContainer>
     </div>
   );
@@ -907,4 +983,46 @@ MapView.propTypes = {
   className: PropTypes.string,
 };
 
-export default React.memo(MapView);
+class MapErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  componentDidCatch(err) {
+    console.warn('Leaflet Map internal render error caught:', err);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="w-full h-full min-h-[440px] flex flex-col items-center justify-center bg-slate-950 p-6 text-center text-slate-200 space-y-3 rounded-2xl border border-slate-800">
+          <div className="w-12 h-12 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400">
+            <Compass className="w-6 h-6 animate-spin" />
+          </div>
+          <h4 className="text-sm font-bold text-white">Geospatial Satellite Map Initializing</h4>
+          <p className="text-xs text-slate-400 max-w-sm">
+            Recalibrating high-resolution satellite tiles and telemetry layers.
+          </p>
+          <button
+            type="button"
+            onClick={() => this.setState({ hasError: false })}
+            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl transition-all shadow-md cursor-pointer"
+          >
+            Reload Satellite Canvas
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+const SafeMapView = (props) => (
+  <MapErrorBoundary>
+    <MapView {...props} />
+  </MapErrorBoundary>
+);
+
+export default React.memo(SafeMapView);

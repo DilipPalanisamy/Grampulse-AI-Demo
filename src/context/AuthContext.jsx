@@ -2,11 +2,51 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import PropTypes from 'prop-types';
 import { jwtDecode } from 'jwt-decode';
 import axios from 'axios';
+import { resolveOfficialVillageData } from '../services/officialVillageDataService';
 
 const AuthContext = createContext(null);
 
 const STORAGE_USER_KEY = 'user_session';
 const STORAGE_TOKEN_KEY = 'grampulse_auth_token';
+const STORAGE_REGISTERED_USERS_KEY = 'grampulse_registered_users';
+
+/**
+ * Persistent Registered Users Storage Helper
+ */
+const getStoredRegisteredUsers = () => {
+  try {
+    const raw = localStorage.getItem(STORAGE_REGISTERED_USERS_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch (e) {
+    console.error('Failed to parse registered users:', e);
+    return {};
+  }
+};
+
+const saveRegisteredUserRecord = (identifier, userData) => {
+  try {
+    const users = getStoredRegisteredUsers();
+    const key = identifier.trim().toLowerCase();
+    users[key] = {
+      ...users[key],
+      ...userData,
+      updatedAt: new Date().toISOString(),
+    };
+    localStorage.setItem(STORAGE_REGISTERED_USERS_KEY, JSON.stringify(users));
+  } catch (e) {
+    console.warn('Could not save user to registered accounts database:', e);
+  }
+};
+
+const findRegisteredUserRecord = (identifier) => {
+  try {
+    const users = getStoredRegisteredUsers();
+    const key = identifier.trim().toLowerCase();
+    return users[key] || null;
+  } catch (e) {
+    return null;
+  }
+};
 
 // Demo quick-fill citizen account
 export const DEMO_CITIZEN = {
@@ -19,9 +59,11 @@ export const DEMO_CITIZEN = {
   roleLabel: 'Verified Citizen Resident',
   designation: 'Ward 3 Resident & Gram Sabha Member',
   gpId: 101,
-  gpName: 'Koduvai GP, Tamil Nadu',
+  gpName: 'Koduvai',
   district: 'Tiruppur',
   state: 'Tamil Nadu',
+  lat: 10.9634,
+  lng: 77.4727,
   avatar: null,
 };
 
@@ -77,13 +119,35 @@ export const AuthProvider = ({ children }) => {
   /**
    * Authenticate via Google ID Token (JWT from GoogleLogin component)
    */
-  const loginWithGoogleCredential = useCallback((credentialResponse) => {
+  const loginWithGoogleCredential = useCallback(async (credentialResponse) => {
     setAuthError(null);
     try {
       if (!credentialResponse?.credential) {
         throw new Error('No Google credentials received.');
       }
       const decoded = jwtDecode(credentialResponse.credential);
+      let officialVillage = null;
+      try {
+        officialVillage = await resolveOfficialVillageData('Koduvai', 'Tamil Nadu');
+      } catch (err) {
+        console.warn('Official village resolution fallback for Google credential:', err);
+      }
+
+      if (!officialVillage) {
+        officialVillage = {
+          gp_id: 101,
+          gp_code: 'GP-TN-TPR-101',
+          gp_name: 'Koduvai',
+          village_name: 'Koduvai',
+          district: 'Tiruppur',
+          state: 'Tamil Nadu',
+          lat: 10.9634,
+          lng: 77.4727,
+          population: 5800,
+          isOfficialData: true,
+        };
+      }
+
       const googleUser = {
         token: credentialResponse.credential,
         id: decoded.sub,
@@ -92,11 +156,15 @@ export const AuthProvider = ({ children }) => {
         avatar: decoded.picture || null,
         role: 'CITIZEN',
         roleLabel: 'Verified Citizen Resident',
-        designation: 'Citizen / Gram Sabha Member',
-        gpId: 2,
-        gpName: 'Punsari GP, Gujarat',
-        district: 'Sabarkantha',
-        state: 'Gujarat',
+        designation: `${officialVillage.gp_name} Citizen Member`,
+        villageOrCity: officialVillage.gp_name,
+        officialVillage,
+        gpId: officialVillage.gp_id,
+        gpName: officialVillage.gp_name,
+        district: officialVillage.district,
+        state: officialVillage.state,
+        lat: officialVillage.lat,
+        lng: officialVillage.lng,
         provider: 'google',
         loginTimestamp: new Date().toISOString(),
       };
@@ -124,6 +192,28 @@ export const AuthProvider = ({ children }) => {
         headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
       });
       const profile = res.data;
+      let officialVillage = null;
+      try {
+        officialVillage = await resolveOfficialVillageData('Koduvai', 'Tamil Nadu');
+      } catch (err) {
+        console.warn('Official village resolution fallback for Google token:', err);
+      }
+
+      if (!officialVillage) {
+        officialVillage = {
+          gp_id: 101,
+          gp_code: 'GP-TN-TPR-101',
+          gp_name: 'Koduvai',
+          village_name: 'Koduvai',
+          district: 'Tiruppur',
+          state: 'Tamil Nadu',
+          lat: 10.9634,
+          lng: 77.4727,
+          population: 5800,
+          isOfficialData: true,
+        };
+      }
+
       const googleUser = {
         token: tokenResponse.access_token,
         id: profile.sub,
@@ -132,11 +222,15 @@ export const AuthProvider = ({ children }) => {
         avatar: profile.picture || null,
         role: 'CITIZEN',
         roleLabel: 'Verified Citizen Resident',
-        designation: 'Citizen / Gram Sabha Member',
-        gpId: 2,
-        gpName: 'Punsari GP, Gujarat',
-        district: 'Sabarkantha',
-        state: 'Gujarat',
+        designation: `${officialVillage.gp_name} Citizen Member`,
+        villageOrCity: officialVillage.gp_name,
+        officialVillage,
+        gpId: officialVillage.gp_id,
+        gpName: officialVillage.gp_name,
+        district: officialVillage.district,
+        state: officialVillage.state,
+        lat: officialVillage.lat,
+        lng: officialVillage.lng,
         provider: 'google',
         loginTimestamp: new Date().toISOString(),
       };
@@ -152,13 +246,15 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   /**
-   * Citizen Sign-In with Username or Gmail ID & Password
+   * Citizen Sign-In or Registration with Username/Email & Password.
+   * Seamlessly resolves official village data, binds it to the account profile,
+   * and preserves it permanently across all subsequent sessions.
    */
   const loginWithCredentials = useCallback(async (identifier, password, profileMeta = {}) => {
     setAuthError(null);
     setLoading(true);
 
-    await new Promise((resolve) => setTimeout(resolve, 400));
+    await new Promise((resolve) => setTimeout(resolve, 350));
 
     const cleanIdentifier = identifier.trim();
     const cleanPass = password.trim();
@@ -169,10 +265,13 @@ export const AuthProvider = ({ children }) => {
       return false;
     }
 
-    let name = profileMeta?.name || 'Citizen Resident';
+    // 1. Check if user already exists in registered database
+    const existingRecord = findRegisteredUserRecord(cleanIdentifier);
+
+    let name = profileMeta?.name || existingRecord?.name || 'Citizen Resident';
     let email = cleanIdentifier;
 
-    if (!profileMeta?.name) {
+    if (!profileMeta?.name && !existingRecord?.name) {
       if (cleanIdentifier.includes('@')) {
         const prefix = cleanIdentifier.split('@')[0];
         name = prefix
@@ -185,31 +284,115 @@ export const AuthProvider = ({ children }) => {
       }
     }
 
-    const villageName = profileMeta?.village || 'Gram Panchayat';
+    // 2. Resolve Official Village Data:
+    // Priority:
+    // a. profileMeta.officialVillage (explicitly provided on signup)
+    // b. profileMeta.village (typed on signup)
+    // c. existingRecord.officialVillage (persisted from previous signup)
+    // d. existingRecord.villageOrCity (persisted name from previous signup)
+    // e. DEMO_CITIZEN match
+    // f. Fallback to Koduvai
+    let officialVillage = profileMeta?.officialVillage || null;
 
+    if (!officialVillage && profileMeta?.village) {
+      officialVillage = await resolveOfficialVillageData(profileMeta.village);
+    } else if (!officialVillage && existingRecord?.officialVillage) {
+      officialVillage = existingRecord.officialVillage;
+    } else if (!officialVillage && existingRecord?.villageOrCity) {
+      officialVillage = await resolveOfficialVillageData(existingRecord.villageOrCity);
+    } else if (!officialVillage && cleanIdentifier.toLowerCase() === DEMO_CITIZEN.identifier.toLowerCase()) {
+      officialVillage = await resolveOfficialVillageData(DEMO_CITIZEN.villageOrCity, DEMO_CITIZEN.state);
+    } else if (!officialVillage) {
+      try {
+        officialVillage = await resolveOfficialVillageData('Koduvai', 'Tamil Nadu');
+      } catch (err) {
+        console.warn('Fallback resolveOfficialVillageData error:', err);
+      }
+    }
+
+    if (!officialVillage) {
+      officialVillage = {
+        gp_id: 101,
+        gp_code: 'GP-TN-TPR-101',
+        gp_name: profileMeta?.village || existingRecord?.villageOrCity || 'Koduvai',
+        village_name: profileMeta?.village || existingRecord?.villageOrCity || 'Koduvai',
+        district: existingRecord?.district || 'District',
+        state: existingRecord?.state || 'Tamil Nadu',
+        lat: 10.9634,
+        lng: 77.4727,
+        population: 5800,
+        isOfficialData: true,
+      };
+    }
+
+    const villageName = officialVillage?.gp_name || profileMeta?.village || existingRecord?.villageOrCity || 'Gram Panchayat';
     const token = `ey_citizen_session_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 
     const citizenUser = {
       token,
-      id: `citizen_${Date.now()}`,
+      id: existingRecord?.id || `citizen_${Date.now()}`,
       email,
       name,
       avatar: null,
       role: 'CITIZEN',
       roleLabel: 'Verified Citizen Resident',
       designation: `${villageName} Resident & Citizen Member`,
-      gpId: 4,
-      gpName: `${villageName}`,
-      district: 'District',
-      state: 'India',
+      villageOrCity: villageName,
+      officialVillage,
+      gpId: officialVillage?.gp_id || 101,
+      gpName: villageName,
+      district: officialVillage?.district || 'District',
+      state: officialVillage?.state || 'India',
+      lat: officialVillage?.lat ?? 10.9634,
+      lng: officialVillage?.lng ?? 77.4727,
       provider: 'credentials',
       loginTimestamp: new Date().toISOString(),
     };
+
+    // Save to registered accounts database for permanent recall
+    saveRegisteredUserRecord(cleanIdentifier, {
+      id: citizenUser.id,
+      identifier: cleanIdentifier,
+      name,
+      email,
+      password: cleanPass,
+      villageOrCity: villageName,
+      officialVillage,
+    });
 
     persistSession(citizenUser);
     setLoading(false);
     return true;
   }, []);
+
+  /**
+   * Dedicated Citizen Registration Handler:
+   * Takes full name, email/username, village name, and password,
+   * computes official census & administrative data, and registers account.
+   */
+  const registerCitizenAccount = useCallback(async ({ name, identifier, villageOrCity, password, officialVillage = null }) => {
+    setAuthError(null);
+    setLoading(true);
+
+    try {
+      let resolvedVillage = officialVillage;
+      if (!resolvedVillage && villageOrCity) {
+        resolvedVillage = await resolveOfficialVillageData(villageOrCity);
+      }
+
+      return await loginWithCredentials(identifier, password, {
+        name: name.trim(),
+        village: villageOrCity.trim(),
+        officialVillage: resolvedVillage,
+      });
+    } catch (err) {
+      console.error('Account registration error:', err);
+      setAuthError(err.message || 'Failed to register citizen account.');
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }, [loginWithCredentials]);
 
   /**
    * Quick 1-Click Demo Citizen Login
@@ -244,6 +427,7 @@ export const AuthProvider = ({ children }) => {
     loginWithGoogleCredential,
     loginWithGoogleAccessToken,
     loginWithCredentials,
+    registerCitizenAccount,
     quickDemoLogin,
     logout,
   };

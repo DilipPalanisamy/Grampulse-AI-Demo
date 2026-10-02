@@ -75,21 +75,7 @@ const AnalyticsPanel = ({
   loading = false,
 }) => {
   const { activePalette } = useTheme();
-  const { selectedLocation, loadAnalytics, loadInfrastructure } = useLocation();
-
-  // Automatic Data Refresh on Navigation when selectedLocation changes
-  useEffect(() => {
-    if (selectedLocation?.gp_id || (selectedLocation?.lat && selectedLocation?.lng)) {
-      loadAnalytics();
-      loadInfrastructure();
-    }
-  }, [
-    selectedLocation?.gp_id,
-    selectedLocation?.lat,
-    selectedLocation?.lng,
-    loadAnalytics,
-    loadInfrastructure,
-  ]);
+  const { selectedLocation } = useLocation();
 
   if (loading) {
     return (

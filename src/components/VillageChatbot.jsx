@@ -19,6 +19,9 @@ import {
   Route,
   Trash2,
   Loader2,
+  TrendingUp,
+  MapPin,
+  Sliders,
 } from 'lucide-react';
 import { useLocation } from '../context/LocationContext';
 import { useAuth } from '../context/AuthContext';
@@ -76,10 +79,25 @@ const GUIDED_QUESTIONS = [
   },
 ];
 
-export default function VillageChatbot({ isOpen, onClose, onToggle }) {
+export default function VillageChatbot({ isOpen, onClose, onToggle, onNavigateToPrediction }) {
   const { user } = useAuth();
-  const { selectedLocation, planningHorizon } = useLocation();
+  const { selectedLocation, planningHorizon, setActiveTab } = useLocation();
   const { activePalette } = useTheme();
+
+  const [showPredictionSlides, setShowPredictionSlides] = useState(false);
+
+  const handleGoToPrediction = (mode = 'selected') => {
+    setShowPredictionSlides(false);
+    if (onClose) onClose();
+    if (onNavigateToPrediction) {
+      onNavigateToPrediction(mode);
+    } else if (setActiveTab) {
+      setActiveTab('prediction');
+    }
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
 
   const [messages, setMessages] = useState([]);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
@@ -116,7 +134,7 @@ export default function VillageChatbot({ isOpen, onClose, onToggle }) {
       {
         id: 'init-1',
         sender: 'bot',
-        text: `Namaste ${user?.name || 'Citizen'}! 🙏 I am your **GramPulse AI Governance Assistant** for **${selectedLocation.gp_name} Gram Panchayat**.`,
+        text: `Namaste ${user?.name || 'Citizen'}! 🙏 I am your **GramPulse AI Governance Assistant** for **${selectedLocation?.gp_name || 'your Gram Panchayat'} Gram Panchayat**.`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       },
       {
@@ -178,7 +196,7 @@ export default function VillageChatbot({ isOpen, onClose, onToggle }) {
   };
 
   const generateAssessmentReport = (answers) => {
-    const pop = Number(selectedLocation.population || 5800);
+    const pop = Number(selectedLocation?.population || 5800);
     const popProj = Math.round(pop * (1 + (planningHorizon * 0.018)));
 
     const waterScore = answers.water?.score || 2;
@@ -187,11 +205,11 @@ export default function VillageChatbot({ isOpen, onClose, onToggle }) {
     const sanitScore = answers.sanitation?.score || 2;
 
     const waterDeficitLpd = waterScore <= 2 ? Math.round(popProj * 25) : 0;
-    const classroomDeficit = eduScore <= 2 ? Math.max(2, Math.ceil((popProj * 0.18) / 30) - (selectedLocation.school_classrooms_count || 28)) : 0;
-    const roadDeficitKm = roadScore <= 2 ? Number((((popProj / 1000) * 1.25) - (selectedLocation.road_coverage_km || 6.2)).toFixed(1)) : 0;
+    const classroomDeficit = eduScore <= 2 ? Math.max(2, Math.ceil((popProj * 0.18) / 30) - (selectedLocation?.school_classrooms_count || 28)) : 0;
+    const roadDeficitKm = roadScore <= 2 ? Number((((popProj / 1000) * 1.25) - (selectedLocation?.road_coverage_km || 6.2)).toFixed(1)) : 0;
 
     const report = {
-      villageName: selectedLocation.gp_name,
+      villageName: selectedLocation?.gp_name || 'Active Habitation',
       targetYear: new Date().getFullYear() + planningHorizon,
       populationProjected: popProj,
       water: {
@@ -268,7 +286,7 @@ export default function VillageChatbot({ isOpen, onClose, onToggle }) {
       const botReply = {
         id: `bot-reply-${Date.now()}`,
         sender: 'bot',
-        text: `Thank you for your query regarding **${selectedLocation.gp_name}**. Under Jal Jeevan Mission and PMGSY national standards, all deficit metrics and scheme allocations are available in the GPDP PDF plan.`,
+        text: `Thank you for your query regarding **${selectedLocation?.gp_name || 'this Gram Panchayat'}**. Under Jal Jeevan Mission and PMGSY national standards, all deficit metrics and scheme allocations are available in the GPDP PDF plan.`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
       setMessages((prev) => [...prev, botReply]);
@@ -278,18 +296,118 @@ export default function VillageChatbot({ isOpen, onClose, onToggle }) {
   // Floating Trigger Widget (when closed)
   if (!isOpen) {
     return (
-      <button
-        type="button"
-        onClick={onToggle}
-        className="fixed bottom-6 right-6 z-[1100] group flex items-center gap-2.5 px-4 py-3 rounded-full bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold text-xs sm:text-sm shadow-2xl shadow-emerald-950/80 ring-4 ring-emerald-400/30 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer animate-bounce"
-        title="Open GramPulse Village Assessment AI Assistant"
-      >
-        <div className="relative">
-          <Bot className="w-5 h-5" />
-          <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping" />
-        </div>
-        <span className="hidden sm:inline">Village AI Assistant</span>
-      </button>
+      <div className="fixed bottom-6 right-6 z-[1100] flex flex-col items-end gap-3.5">
+        {/* Floating Dual-Slide Selection Popover for Future Prediction */}
+        {showPredictionSlides && (
+          <div className="mb-2 w-[340px] sm:w-[380px] bg-[var(--bg-card)]/95 backdrop-blur-2xl border border-emerald-500/30 rounded-3xl p-5 shadow-2xl shadow-emerald-950/80 ring-2 ring-emerald-500/20 animate-slideUp">
+            <div className="flex items-center justify-between mb-3 border-b border-[var(--border-subtle)] pb-2.5">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400">
+                  <TrendingUp className="w-3.5 h-3.5" />
+                </div>
+                <div>
+                  <h3 className="text-xs font-black uppercase tracking-wider text-[var(--text-main)]">
+                    Future Prediction Modes
+                  </h3>
+                  <p className="text-[10px] text-[var(--text-muted)]">Choose how you want to forecast</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowPredictionSlides(false)}
+                className="w-6 h-6 rounded-full bg-[var(--bg-primary)] hover:bg-red-500/20 text-[var(--text-muted)] hover:text-red-400 flex items-center justify-center transition-colors text-xs"
+                title="Close"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            <div className="space-y-2.5">
+              {/* Slide 1: Predict for Selected Village */}
+              <button
+                type="button"
+                onClick={() => handleGoToPrediction('selected')}
+                className="w-full text-left p-3.5 rounded-2xl bg-gradient-to-r from-emerald-500/15 via-emerald-500/5 to-transparent hover:from-emerald-500/25 hover:to-teal-500/15 border border-emerald-500/30 hover:border-emerald-400/50 transition-all duration-200 group flex items-start gap-3 cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
+              >
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shrink-0 group-hover:scale-110 group-hover:bg-emerald-500/30 transition-all">
+                  <MapPin className="w-5 h-5" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-1">
+                    <h4 className="text-xs font-bold text-white group-hover:text-emerald-300 transition-colors">
+                      Predict for Selected Village
+                    </h4>
+                    <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">
+                      Live Map GIS
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-emerald-300/80 font-medium mt-0.5 truncate">
+                    {selectedLocation?.gp_name || 'Active Map Village'} GP ({selectedLocation?.district || 'Coimbatore'})
+                  </p>
+                  <p className="text-[9.5px] text-[var(--text-muted)] mt-1">
+                    Auto-predict using live telemetry and UDISE+ school records
+                  </p>
+                </div>
+              </button>
+
+              {/* Slide 2: Predict for Village Manually */}
+              <button
+                type="button"
+                onClick={() => handleGoToPrediction('manual')}
+                className="w-full text-left p-3.5 rounded-2xl bg-gradient-to-r from-teal-500/15 via-cyan-500/5 to-transparent hover:from-teal-500/25 hover:to-cyan-500/15 border border-teal-500/30 hover:border-teal-400/50 transition-all duration-200 group flex items-start gap-3 cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
+              >
+                <div className="w-10 h-10 rounded-xl bg-teal-500/20 border border-teal-500/40 flex items-center justify-center text-teal-400 shrink-0 group-hover:scale-110 group-hover:bg-teal-500/30 transition-all">
+                  <Sliders className="w-5 h-5" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-1">
+                    <h4 className="text-xs font-bold text-white group-hover:text-teal-300 transition-colors">
+                      Predict for Village Manually
+                    </h4>
+                    <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-teal-500/20 text-teal-300 font-bold border border-teal-500/30">
+                      Custom Fields
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-teal-300/80 font-medium mt-0.5">
+                    Custom Demographic & Infrastructure Fields
+                  </p>
+                  <p className="text-[9.5px] text-[var(--text-muted)] mt-1">
+                    Enter custom metrics, click predict, and view 5-year simulation
+                  </p>
+                </div>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Floating Quick Action: Future Prediction */}
+        <button
+          type="button"
+          onClick={() => setShowPredictionSlides((prev) => !prev)}
+          className="group flex items-center gap-2.5 px-4 py-3 rounded-full bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold text-xs sm:text-sm shadow-2xl shadow-emerald-950/80 ring-4 ring-emerald-400/30 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer animate-bounce"
+          title="Open 5-Year Village Future Development Prediction"
+        >
+          <div className="relative">
+            <TrendingUp className="w-5 h-5" />
+            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping" />
+          </div>
+          <span className="hidden sm:inline">Future Prediction</span>
+        </button>
+
+        {/* Existing Chatbot Trigger */}
+        <button
+          type="button"
+          onClick={onToggle}
+          className="group flex items-center gap-2.5 px-4 py-3 rounded-full bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold text-xs sm:text-sm shadow-2xl shadow-emerald-950/80 ring-4 ring-emerald-400/30 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer animate-bounce"
+          title="Open GramPulse Village Assessment AI Assistant"
+        >
+          <div className="relative">
+            <Bot className="w-5 h-5" />
+            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping" />
+          </div>
+          <span className="hidden sm:inline">Village AI Assistant</span>
+        </button>
+      </div>
     );
   }
 
@@ -312,12 +430,24 @@ export default function VillageChatbot({ isOpen, onClose, onToggle }) {
               </span>
             </div>
             <p className="text-[10px] text-[var(--text-muted)] truncate max-w-[200px]">
-              Assessing {selectedLocation.gp_name} GP ({selectedLocation.state})
+              Assessing {selectedLocation?.gp_name || 'Active Gram Panchayat'} GP ({selectedLocation?.state || 'India'})
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={handleGoToPrediction}
+            className="px-2.5 py-1 rounded-xl text-white text-[11px] font-bold shadow-sm transition-all flex items-center gap-1 cursor-pointer active:scale-95"
+            style={{
+              background: `linear-gradient(135deg, ${activePalette.secondary}, ${activePalette.primary})`,
+            }}
+            title="Open 5-Year Future Prediction"
+          >
+            <TrendingUp className="w-3 h-3" />
+            <span className="hidden sm:inline">Future Prediction</span>
+          </button>
           <button
             type="button"
             onClick={initConversation}
@@ -479,29 +609,46 @@ export default function VillageChatbot({ isOpen, onClose, onToggle }) {
                     </div>
                   </div>
 
-                  {/* Apply to GPDP Plan Action Button */}
-                  <button
-                    type="button"
-                    onClick={handleApplyToGPDP}
-                    disabled={isApplied}
-                    className={`w-full py-2.5 px-3 rounded-xl text-xs font-bold shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer ${
-                      isApplied
-                        ? 'bg-emerald-700 text-white cursor-default'
-                        : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-emerald-950/80 active:scale-95'
-                    }`}
-                  >
-                    {isApplied ? (
-                      <>
-                        <CheckCircle2 className="w-4 h-4 text-emerald-200" />
-                        <span>Applied to GPDP Plan!</span>
-                      </>
-                    ) : (
-                      <>
-                        <FileText className="w-4 h-4" />
-                        <span>Apply Findings to GPDP Report</span>
-                      </>
-                    )}
-                  </button>
+                  {/* Action Buttons: Future Prediction & Apply to GPDP */}
+                  <div className="flex flex-col gap-2 pt-1">
+                    {/* Future Prediction Action Button */}
+                    <button
+                      type="button"
+                      onClick={handleGoToPrediction}
+                      className="w-full py-2.5 px-3 rounded-xl text-white text-xs font-bold shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                      style={{
+                        background: `linear-gradient(135deg, ${activePalette.secondary}, ${activePalette.primary})`,
+                      }}
+                      title="Navigate to 5-Year Village Development Forecast"
+                    >
+                      <TrendingUp className="w-4 h-4" />
+                      <span>Future Prediction</span>
+                    </button>
+
+                    {/* Apply to GPDP Plan Action Button */}
+                    <button
+                      type="button"
+                      onClick={handleApplyToGPDP}
+                      disabled={isApplied}
+                      className={`w-full py-2 px-3 rounded-xl text-xs font-bold shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                        isApplied
+                          ? 'bg-emerald-700 text-white cursor-default'
+                          : 'bg-[var(--bg-primary)] hover:bg-[var(--bg-card-hover)] border border-[var(--border-subtle)] text-[var(--text-main)] active:scale-95'
+                      }`}
+                    >
+                      {isApplied ? (
+                        <>
+                          <CheckCircle2 className="w-4 h-4 text-emerald-200" />
+                          <span>Applied to GPDP Plan!</span>
+                        </>
+                      ) : (
+                        <>
+                          <FileText className="w-4 h-4 text-emerald-500" />
+                          <span>Apply Findings to GPDP Report</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
               </div>
             );
@@ -528,13 +675,32 @@ export default function VillageChatbot({ isOpen, onClose, onToggle }) {
         <div ref={messagesEndRef} />
       </div>
 
+      {/* Quick Action: Future Prediction */}
+      <div className="px-3.5 py-2 bg-[var(--bg-card)] border-t border-[var(--border-subtle)] flex items-center justify-between gap-2">
+        <span className="text-[11px] text-[var(--text-muted)] font-medium truncate flex items-center gap-1.5">
+          <TrendingUp className="w-3.5 h-3.5" style={{ color: activePalette.primary }} />
+          <span>5-Year Development Forecast:</span>
+        </span>
+        <button
+          type="button"
+          onClick={handleGoToPrediction}
+          className="px-3 py-1.5 rounded-xl text-white text-xs font-bold shadow-sm transition-all flex items-center gap-1.5 cursor-pointer active:scale-95 flex-shrink-0"
+          style={{
+            background: `linear-gradient(135deg, ${activePalette.secondary}, ${activePalette.primary})`,
+          }}
+        >
+          <TrendingUp className="w-3.5 h-3.5" />
+          <span>Future Prediction</span>
+        </button>
+      </div>
+
       {/* Text Query Input Form */}
       <form onSubmit={handleSendMessage} className="p-3 bg-[var(--bg-card)] border-t border-[var(--border-subtle)] flex items-center gap-2">
         <input
           type="text"
           value={textInput}
           onChange={(e) => setTextInput(e.target.value)}
-          placeholder={`Ask anything about ${selectedLocation.gp_name} governance...`}
+          placeholder={`Ask anything about ${selectedLocation?.gp_name || 'Gram Panchayat'} governance...`}
           className="flex-1 px-3.5 py-2 bg-[var(--bg-primary)] border border-[var(--border-subtle)] focus:border-emerald-500 rounded-xl text-xs text-[var(--text-main)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-all font-sans"
         />
         <button
@@ -553,4 +719,5 @@ VillageChatbot.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
   onToggle: PropTypes.func.isRequired,
+  onNavigateToPrediction: PropTypes.func,
 };

@@ -19,6 +19,7 @@ import {
   CheckCircle2,
   AlertCircle,
   Compass,
+  TrendingUp,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLocation } from '../context/LocationContext';
@@ -92,12 +93,12 @@ export default function Header({ onOpenReportModal }) {
   }, []);
 
   const getInitials = (name) => {
-    if (!name) return 'GP';
-    const parts = name.trim().split(' ');
-    if (parts.length >= 2) {
+    if (!name || typeof name !== 'string') return 'GP';
+    const parts = name.trim().split(/\s+/).filter(Boolean);
+    if (parts.length >= 2 && parts[0]?.[0] && parts[1]?.[0]) {
       return (parts[0][0] + parts[1][0]).toUpperCase();
     }
-    return name.slice(0, 2).toUpperCase();
+    return (name.trim().slice(0, 2) || 'GP').toUpperCase();
   };
 
   const handleInputChange = (e) => {
@@ -114,6 +115,7 @@ export default function Header({ onOpenReportModal }) {
   };
 
   const handleSelectVillage = (village) => {
+    if (!village) return;
     selectLocation(village, false);
     setIsSearchOpen(false);
     setLocalInput(village.gp_name || '');
@@ -122,7 +124,7 @@ export default function Header({ onOpenReportModal }) {
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
       const results = localInput.trim().length > 0 ? searchResults : locations;
-      if (results && results.length > 0) {
+      if (Array.isArray(results) && results.length > 0) {
         handleSelectVillage(results[0]);
       }
     } else if (e.key === 'Escape') {
@@ -131,7 +133,9 @@ export default function Header({ onOpenReportModal }) {
   };
 
   const displayResults =
-    localInput.trim().length > 0 ? searchResults : locations.slice(0, 8);
+    localInput.trim().length > 0
+      ? (Array.isArray(searchResults) ? searchResults : [])
+      : (Array.isArray(locations) ? locations.slice(0, 8) : []);
 
   return (
     <header className="sticky top-0 z-[1200] overflow-visible bg-[var(--bg-card-glass)] border-b border-[var(--border-subtle)] text-[var(--text-main)] shadow-xl backdrop-blur-2xl transition-colors duration-200">
@@ -343,6 +347,21 @@ export default function Header({ onOpenReportModal }) {
             >
               <Map className="w-3.5 h-3.5" />
               <span>Map</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('prediction')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                activeTab === 'prediction'
+                  ? 'text-white shadow-md'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-card-hover)]'
+              }`}
+              style={{
+                backgroundColor: activeTab === 'prediction' ? activePalette.primary : undefined,
+              }}
+            >
+              <TrendingUp className="w-3.5 h-3.5" />
+              <span>Future Prediction</span>
             </button>
           </div>
 
