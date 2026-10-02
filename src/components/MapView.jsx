@@ -25,6 +25,8 @@ import {
   CheckCircle2,
   Loader2,
   Activity,
+  Plus,
+  Minus,
 } from 'lucide-react';
 import { useLocation } from '../context/LocationContext';
 import { reverseGeocodeCoordinates } from '../services/villageSearchService';
@@ -48,7 +50,8 @@ export const MAP_PROVIDERS = {
     icon: Globe,
     url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
     attribution: 'Tiles &copy; Esri, Maxar, Earthstar Geographics, USDA, USGS, AeroGRID, IGN',
-    maxZoom: 19,
+    maxNativeZoom: 17,
+    maxZoom: 20,
     hasOverlayLabels: true,
     overlayUrl: 'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
   },
@@ -57,7 +60,8 @@ export const MAP_PROVIDERS = {
     icon: Sun,
     url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
     attribution: '&copy; OpenStreetMap contributors',
-    maxZoom: 19,
+    maxNativeZoom: 19,
+    maxZoom: 20,
     hasOverlayLabels: false,
   },
   dark: {
@@ -65,7 +69,8 @@ export const MAP_PROVIDERS = {
     icon: Moon,
     url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
     attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
-    maxZoom: 19,
+    maxNativeZoom: 19,
+    maxZoom: 20,
     hasOverlayLabels: false,
   },
   terrain: {
@@ -73,7 +78,8 @@ export const MAP_PROVIDERS = {
     icon: Mountain,
     url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
     attribution: 'Map data: &copy; OpenStreetMap contributors, SRTM | Map style: &copy; OpenTopoMap (CC-BY-SA)',
-    maxZoom: 17,
+    maxNativeZoom: 16,
+    maxZoom: 20,
     hasOverlayLabels: false,
   },
 };
@@ -359,6 +365,57 @@ const MapEventsHandler = ({ isPinningMode, onMapClick }) => {
   });
 
   return null;
+};
+
+// =============================================================================
+// MapZoomNavigationControl - Sleek Floating Zoom (+ / -) & Recenter Dock
+// =============================================================================
+const MapZoomNavigationControl = ({ safeCenter, defaultZoom = 14, isMapPage = false, gpName = 'Village' }) => {
+  const map = useMap();
+
+  return (
+    <div
+      className={`absolute ${
+        isMapPage ? 'bottom-20' : 'bottom-4'
+      } right-4 sm:right-6 z-[1000] pointer-events-auto flex flex-col items-center gap-1.5 bg-[var(--bg-card-glass)] backdrop-blur-xl p-1.5 rounded-2xl border border-[var(--border-strong)] shadow-2xl transition-all`}
+    >
+      <button
+        type="button"
+        onClick={() => map.zoomIn()}
+        className="w-8 h-8 rounded-xl bg-[var(--bg-primary)] hover:bg-[var(--bg-card-hover)] text-[var(--text-main)] hover:text-emerald-500 border border-[var(--border-subtle)] flex items-center justify-center transition-all cursor-pointer active:scale-95 shadow-sm"
+        title="Zoom In (+)"
+        aria-label="Zoom In"
+      >
+        <Plus className="w-4 h-4" />
+      </button>
+
+      <button
+        type="button"
+        onClick={() => map.zoomOut()}
+        className="w-8 h-8 rounded-xl bg-[var(--bg-primary)] hover:bg-[var(--bg-card-hover)] text-[var(--text-main)] hover:text-emerald-500 border border-[var(--border-subtle)] flex items-center justify-center transition-all cursor-pointer active:scale-95 shadow-sm"
+        title="Zoom Out (-)"
+        aria-label="Zoom Out"
+      >
+        <Minus className="w-4 h-4" />
+      </button>
+
+      <div className="w-4 h-px bg-[var(--border-subtle)] my-0.5" />
+
+      <button
+        type="button"
+        onClick={() => {
+          if (safeCenter && safeCenter.length === 2) {
+            map.flyTo(safeCenter, defaultZoom, { animate: true, duration: 1 });
+          }
+        }}
+        className="w-8 h-8 rounded-xl bg-[var(--bg-primary)] hover:bg-[var(--bg-card-hover)] text-[var(--text-muted)] hover:text-emerald-500 border border-[var(--border-subtle)] flex items-center justify-center transition-all cursor-pointer active:scale-95 shadow-sm"
+        title={`Recenter map on ${gpName}`}
+        aria-label={`Recenter map on ${gpName}`}
+      >
+        <Compass className="w-4 h-4" />
+      </button>
+    </div>
+  );
 };
 
 // =============================================================================
@@ -699,6 +756,9 @@ const MapView = ({
         preferCanvas={true}
         center={safeCenter}
         zoom={zoom}
+        maxZoom={20}
+        minZoom={4}
+        zoomControl={false}
         scrollWheelZoom={true}
         className="w-full h-full z-0"
       >
@@ -707,13 +767,20 @@ const MapView = ({
           isPinningMode={selectionMode === 'pin'}
           onMapClick={handleMapClick}
         />
+        <MapZoomNavigationControl
+          safeCenter={safeCenter}
+          defaultZoom={zoom}
+          isMapPage={isMapPage}
+          gpName={selectedLocation?.gp_name || 'Village'}
+        />
 
-        {/* Dynamic TileLayer */}
+        {/* Dynamic TileLayer with maxNativeZoom preventing "Map data not available" */}
         <TileLayer
           key={`tile-layer-${mapStyle}`}
           attribution={activeProvider.attribution}
           url={activeProvider.url}
-          maxZoom={activeProvider.maxZoom}
+          maxNativeZoom={activeProvider.maxNativeZoom || 17}
+          maxZoom={activeProvider.maxZoom || 20}
         />
 
         {/* Overlay Labels for Satellite */}
@@ -721,7 +788,8 @@ const MapView = ({
           <TileLayer
             key="esri-satellite-labels"
             url={activeProvider.overlayUrl}
-            maxZoom={19}
+            maxNativeZoom={activeProvider.maxNativeZoom || 17}
+            maxZoom={activeProvider.maxZoom || 20}
             zIndex={10}
           />
         )}
