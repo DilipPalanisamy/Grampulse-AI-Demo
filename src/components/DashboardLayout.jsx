@@ -17,6 +17,7 @@ import {
   Bot,
   Loader2,
   TrendingUp,
+  Sparkles,
 } from 'lucide-react';
 
 import { useAuth } from '../context/AuthContext';
