@@ -52,6 +52,9 @@ export default function LoginPage() {
   const [villageOrCity, setVillageOrCity] = useState('');
   const [signUpPassword, setSignUpPassword] = useState('');
   const [showSignUpPassword, setShowSignUpPassword] = useState(false);
+  const [signUpConfirmPassword, setSignUpConfirmPassword] = useState('');
+  const [showSignUpConfirmPassword, setShowSignUpConfirmPassword] = useState(false);
+  const [regSuccessMessage, setRegSuccessMessage] = useState(null);
 
   // Village Real-time Search & Autocomplete States
   const [villageSuggestions, setVillageSuggestions] = useState([]);
@@ -139,6 +142,7 @@ export default function LoginPage() {
       return;
     }
 
+    setRegSuccessMessage(null);
     setIsSubmitting(true);
     try {
       await loginWithCredentials(identifier, password);
@@ -149,8 +153,27 @@ export default function LoginPage() {
 
   const handleSignUpSubmit = async (e) => {
     e.preventDefault();
-    if (!signUpName.trim() || !signUpIdentifier.trim() || !villageOrCity.trim() || !signUpPassword.trim()) {
-      setAuthError('Please fill out all registration fields.');
+    setAuthError(null);
+    setRegSuccessMessage(null);
+
+    const trimmedName = signUpName.trim();
+    const trimmedId = signUpIdentifier.trim();
+    const trimmedVillage = villageOrCity.trim();
+    const pass = signUpPassword;
+    const confirmPass = signUpConfirmPassword;
+
+    if (!trimmedName || !trimmedId || !trimmedVillage || !pass || !confirmPass) {
+      setAuthError('Please fill out all registration fields including password confirmation.');
+      return;
+    }
+
+    if (pass.length < 4) {
+      setAuthError('Password must be at least 4 characters long.');
+      return;
+    }
+
+    if (pass !== confirmPass) {
+      setAuthError('Passwords do not match. Please recheck your password.');
       return;
     }
 
@@ -159,21 +182,41 @@ export default function LoginPage() {
       // 1. Resolve official village demographics & spatial coordinates
       let official = selectedVillageObj;
       if (!official) {
-        official = await resolveOfficialVillageData(villageOrCity.trim());
+        official = await resolveOfficialVillageData(trimmedVillage);
       }
 
       if (registerCitizenAccount) {
-        await registerCitizenAccount({
-          name: signUpName.trim(),
-          identifier: signUpIdentifier.trim(),
-          villageOrCity: villageOrCity.trim(),
-          password: signUpPassword.trim(),
+        const success = await registerCitizenAccount({
+          name: trimmedName,
+          identifier: trimmedId,
+          villageOrCity: trimmedVillage,
+          password: pass,
           officialVillage: official,
         });
+
+        if (success) {
+          const villageDisplayName = official?.gp_name || trimmedVillage;
+
+          // Clear sign-up form fields
+          setSignUpName('');
+          setSignUpIdentifier('');
+          setVillageOrCity('');
+          setSelectedVillageObj(null);
+          setSignUpPassword('');
+          setSignUpConfirmPassword('');
+
+          // Switch to Sign In tab, pre-fill identifier, and prompt user to log in
+          setIdentifier(trimmedId);
+          setPassword('');
+          setActiveTab('signin');
+          setRegSuccessMessage(
+            `Account created successfully for ${villageDisplayName}! Please enter your password to sign in.`
+          );
+        }
       } else {
-        await loginWithCredentials(signUpIdentifier, signUpPassword, {
-          name: signUpName.trim(),
-          village: villageOrCity.trim(),
+        await loginWithCredentials(trimmedId, pass, {
+          name: trimmedName,
+          village: trimmedVillage,
           officialVillage: official,
         });
       }
@@ -287,6 +330,7 @@ export default function LoginPage() {
               onClick={() => {
                 setActiveTab('signup');
                 setAuthError(null);
+                setRegSuccessMessage(null);
               }}
               className={`py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                 activeTab === 'signup'
@@ -302,6 +346,25 @@ export default function LoginPage() {
               Sign Up
             </button>
           </div>
+
+          {/* Registration Success Confirmation Alert */}
+          {regSuccessMessage && activeTab === 'signin' && (
+            <div className="p-3.5 bg-emerald-500/15 border border-emerald-500/40 rounded-xl text-xs text-emerald-300 flex items-start gap-2.5 animate-fadeIn">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="font-bold text-emerald-300">Account Created Successfully!</p>
+                <p className="text-[11px] text-emerald-400/90 leading-snug mt-0.5">{regSuccessMessage}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setRegSuccessMessage(null)}
+                className="text-emerald-400/70 hover:text-emerald-300 p-0.5 rounded cursor-pointer transition-colors"
+                title="Dismiss"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
 
           {/* Inline Error Alert */}
           {authError && (
@@ -547,7 +610,7 @@ export default function LoginPage() {
                     value={signUpPassword}
                     onChange={(e) => setSignUpPassword(e.target.value)}
                     placeholder="Create a strong password"
-                    className="w-full pl-10 pr-10 py-2.5 bg-[var(--bg-primary)] border border-[var(--border-subtle)] focus:border-[var(--color-primary)] rounded-xl text-xs text-[var(--text-main)] placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-glow)] transition-all"
+                    className="w-full pl-10 pr-10 py-2.5 bg-[var(--bg-primary)] border border-[var(--border-subtle)] focus:border-[var(--color-primary)] rounded-xl text-xs text-[var(--text-main)] placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-glow)] transition-all font-sans"
                   />
                   <button
                     type="button"
@@ -556,6 +619,53 @@ export default function LoginPage() {
                     title={showSignUpPassword ? 'Hide password' : 'Show password'}
                   >
                     {showSignUpPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Recheck Password Input */}
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-[var(--text-muted)]">Recheck Password</label>
+                  {signUpConfirmPassword && (
+                    <span
+                      className={`text-[10px] font-bold flex items-center gap-1 ${
+                        signUpPassword === signUpConfirmPassword ? 'text-emerald-400' : 'text-rose-400'
+                      }`}
+                    >
+                      {signUpPassword === signUpConfirmPassword ? (
+                        <>
+                          <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                          <span>Passwords match</span>
+                        </>
+                      ) : (
+                        <>
+                          <AlertCircle className="w-3 h-3 text-rose-400" />
+                          <span>Passwords do not match</span>
+                        </>
+                      )}
+                    </span>
+                  )}
+                </div>
+                <div className="relative flex items-center">
+                  <div className="absolute left-3.5 text-slate-400 pointer-events-none">
+                    <KeyRound className="w-4 h-4" />
+                  </div>
+                  <input
+                    type={showSignUpConfirmPassword ? 'text' : 'password'}
+                    required
+                    value={signUpConfirmPassword}
+                    onChange={(e) => setSignUpConfirmPassword(e.target.value)}
+                    placeholder="Re-enter your password"
+                    className="w-full pl-10 pr-10 py-2.5 bg-[var(--bg-primary)] border border-[var(--border-subtle)] focus:border-[var(--color-primary)] rounded-xl text-xs text-[var(--text-main)] placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-glow)] transition-all font-sans"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowSignUpConfirmPassword(!showSignUpConfirmPassword)}
+                    className="absolute right-3 text-slate-400 hover:text-[var(--text-main)] p-1 rounded-md transition-colors cursor-pointer"
+                    title={showSignUpConfirmPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showSignUpConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
               </div>

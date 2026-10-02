@@ -268,8 +268,27 @@ export const AuthProvider = ({ children }) => {
     // 1. Check if user already exists in registered database
     const existingRecord = findRegisteredUserRecord(cleanIdentifier);
 
+    if (!existingRecord && cleanIdentifier.toLowerCase() !== DEMO_CITIZEN.identifier.toLowerCase()) {
+      setAuthError('No account found with this username or email. Please sign up to create your account.');
+      setLoading(false);
+      return false;
+    }
+
+    // Verify password if user was previously registered
+    if (existingRecord?.password && existingRecord.password !== cleanPass) {
+      setAuthError('Incorrect password. Please recheck your password and try again.');
+      setLoading(false);
+      return false;
+    }
+
+    if (cleanIdentifier.toLowerCase() === DEMO_CITIZEN.identifier.toLowerCase() && cleanPass !== DEMO_CITIZEN.password) {
+      setAuthError('Incorrect password for demo citizen account.');
+      setLoading(false);
+      return false;
+    }
+
     let name = profileMeta?.name || existingRecord?.name || 'Citizen Resident';
-    let email = cleanIdentifier;
+    let email = existingRecord?.email || cleanIdentifier;
 
     if (!profileMeta?.name && !existingRecord?.name) {
       if (cleanIdentifier.includes('@')) {
@@ -368,23 +387,69 @@ export const AuthProvider = ({ children }) => {
   /**
    * Dedicated Citizen Registration Handler:
    * Takes full name, email/username, village name, and password,
-   * computes official census & administrative data, and registers account.
+   * computes official census & administrative data, and registers account
+   * WITHOUT automatically signing in, requiring the user to explicitly log in.
    */
   const registerCitizenAccount = useCallback(async ({ name, identifier, villageOrCity, password, officialVillage = null }) => {
     setAuthError(null);
     setLoading(true);
 
     try {
-      let resolvedVillage = officialVillage;
-      if (!resolvedVillage && villageOrCity) {
-        resolvedVillage = await resolveOfficialVillageData(villageOrCity);
+      const cleanIdentifier = String(identifier || '').trim();
+      const cleanPass = String(password || '').trim();
+      const cleanName = String(name || '').trim();
+      const cleanVillage = String(villageOrCity || '').trim();
+
+      if (!cleanIdentifier || !cleanPass) {
+        setAuthError('Please enter all required fields.');
+        return false;
       }
 
-      return await loginWithCredentials(identifier, password, {
-        name: name.trim(),
-        village: villageOrCity.trim(),
+      // Check if user already exists
+      const existing = findRegisteredUserRecord(cleanIdentifier);
+      if (existing) {
+        setAuthError('An account with this username or email already exists. Please sign in.');
+        return false;
+      }
+
+      let resolvedVillage = officialVillage;
+      if (!resolvedVillage && cleanVillage) {
+        resolvedVillage = await resolveOfficialVillageData(cleanVillage);
+      }
+
+      if (!resolvedVillage) {
+        resolvedVillage = {
+          gp_id: 101,
+          gp_code: 'GP-TN-TPR-101',
+          gp_name: cleanVillage || 'Koduvai',
+          village_name: cleanVillage || 'Koduvai',
+          district: 'District',
+          state: 'Tamil Nadu',
+          lat: 10.9634,
+          lng: 77.4727,
+          population: 5800,
+          isOfficialData: true,
+        };
+      }
+
+      const villageName = resolvedVillage?.gp_name || cleanVillage || 'Gram Panchayat';
+      const cleanEmail = cleanIdentifier.includes('@')
+        ? cleanIdentifier
+        : `${cleanIdentifier.toLowerCase()}@grampulse.gov.in`;
+
+      // Save user to permanent accounts storage
+      saveRegisteredUserRecord(cleanIdentifier, {
+        id: `citizen_${Date.now()}`,
+        identifier: cleanIdentifier,
+        name: cleanName || cleanIdentifier,
+        email: cleanEmail,
+        password: cleanPass,
+        villageOrCity: villageName,
         officialVillage: resolvedVillage,
+        createdAt: new Date().toISOString(),
       });
+
+      return true;
     } catch (err) {
       console.error('Account registration error:', err);
       setAuthError(err.message || 'Failed to register citizen account.');
@@ -392,7 +457,7 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, [loginWithCredentials]);
+  }, []);
 
   /**
    * Quick 1-Click Demo Citizen Login
