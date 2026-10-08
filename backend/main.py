@@ -49,6 +49,7 @@ from backend.spatial_service import (
 from backend.census_service import derive_deterministic_village_metrics
 from backend.chat_engine import RuralGovernanceChatEngine
 from backend.services.scheme_rag_engine import scheme_rag_engine, SchemeRAGEngine
+from backend.services.scheme_assistant_engine import scheme_assistant_engine
 from backend.utils.priority_analyzer import calculate_deficit_priorities
 from ai_engine.predictive_model import calculate_infrastructure_deficits
 from backend.services.future_predictor_service import (
@@ -478,6 +479,19 @@ async def village_assistant_chat(payload: ChatRequest):
         "model": res.get("model", "gemini-2.5-flash"),
         "timestamp": datetime.now(),
     }
+
+
+@app.post(
+    "/api/v1/scheme-assistant/chat",
+    tags=["AI Assistant & LLM"],
+)
+async def suitable_government_schemes_chat(payload: ChatRequest):
+    """Return scheme-grounded advice and matching official scheme cards."""
+    return await scheme_assistant_engine.generate_scheme_advisory(
+        user_message=payload.message,
+        location=payload.location,
+        chat_history=payload.chat_history,
+    )
 
 
 # ---------------------------------------------------------------------------

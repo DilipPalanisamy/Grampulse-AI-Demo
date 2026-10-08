@@ -39,7 +39,9 @@ const MapView = lazy(() => import('./MapView'));
 
 const MapPage = lazy(() => import('./MapPage'));
 
-const VillageChatbot = lazy(() => import('./VillageChatbot'));
+const SuitableGovernmentSchemesAssistant = lazy(
+  () => import('./SuitableGovernmentSchemesAssistant/SuitableGovernmentSchemesAssistant')
+);
 
 const IssueReportForm = lazy(() => import('./IssueReportForm'));
 
@@ -246,11 +248,10 @@ function DashboardLayout() {
             onOpenChatbot={handleOpenChatbot}
           />
 
-          <VillageChatbot
+          <SuitableGovernmentSchemesAssistant
             isOpen={isChatbotOpen}
             onClose={handleCloseChatbot}
             onToggle={handleToggleChatbot}
-            onNavigateToPrediction={handleNavigateToPrediction}
           />
         </Suspense>
       </div>
@@ -516,7 +517,7 @@ function DashboardLayout() {
               />
 
               <span>
-                AI Assistant
+                Government Schemes
               </span>
             </button>
 
@@ -731,7 +732,7 @@ function DashboardLayout() {
           }
         />
 
-        <VillageChatbot
+        <SuitableGovernmentSchemesAssistant
           isOpen={
             isChatbotOpen
           }
@@ -740,9 +741,6 @@ function DashboardLayout() {
           }
           onToggle={
             handleToggleChatbot
-          }
-          onNavigateToPrediction={
-            handleNavigateToPrediction
           }
         />
 

@@ -1,6 +1,6 @@
 # GramPulse AI — Predictive GPDP & GIS Governance Platform
 
-GramPulse AI is an AI-powered geospatial governance and predictive Gram Panchayat Development Plan (GPDP) platform designed under Ministry of Panchayati Raj (MoPR) guidelines. It enables citizens and administrators to analyze census demographics, predict infrastructure deficits (water, classrooms, roads), explore interactive high-resolution satellite GIS maps, interact with a guided Village AI Assistant, and automatically compile official GPDP PDF plan reports.
+GramPulse AI is an AI-powered geospatial governance and predictive Gram Panchayat Development Plan (GPDP) platform designed under Ministry of Panchayati Raj (MoPR) guidelines. It enables citizens and administrators to analyze census demographics, predict infrastructure deficits (water, classrooms, roads), explore interactive high-resolution satellite GIS maps, get advice from a government schemes assistant, and automatically compile official GPDP PDF plan reports.
 
 ---
 
@@ -17,14 +17,11 @@ GramPulse AI is an AI-powered geospatial governance and predictive Gram Panchaya
    - Real-time geocoding and search engine powered by OpenStreetMap Nominatim API.
    - Instant demographic scaling, census population, daily water supply (LPD), school classroom counts, and paved road metrics.
 
-3. **🤖 Interactive Village Assessment AI Assistant (`VillageChatbot.jsx`):**
-   - Guided 4-step ground survey workflow:
-     - 💧 Drinking Water Supply (JJM 55 LPD norm)
-     - 🏫 Education & Classroom Infrastructure (RTE 30:1 pupil-classroom ratio)
-     - 🛣️ All-Weather Paved Connectivity (PMGSY norms)
-     - ♻️ Sanitation & Solid Waste Management (SBM-G Phase II)
-   - Formatted **Village Need Assessment Summary** with critical deficit identification and Centrally Sponsored Scheme (CSS) budget estimations.
-   - **"Apply Findings to GPDP Report"** one-click synchronization.
+3. **🏛️ Suitable Government Schemes Assistant (`src/components/SuitableGovernmentSchemesAssistant/`):**
+   - Answers scheme questions for the active Gram Panchayat with category prompts and structured scheme cards.
+   - Explains scheme purpose, eligibility criteria, benefits, required documents, and application steps.
+   - Returns official portal links and scheme recommendations grounded in the backend scheme knowledge base.
+   - Uses `POST /api/v1/scheme-assistant/chat`, with a curated local response when the backend is unavailable.
 
 4. **📊 Predictive ML Infrastructure Deficits & AI Scheme Matching (`AnalyticsPanel.jsx` & `SchemeRecommendations.jsx`):**
    - Multi-year planning horizon forecasting (3, 5, 7 Years).

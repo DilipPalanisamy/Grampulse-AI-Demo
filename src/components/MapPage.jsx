@@ -202,14 +202,14 @@ export default function MapPage({ onBackToDashboard, onOpenChatbot }) {
               <span>Future Prediction</span>
             </button>
 
-            {/* AI Assistant Quick Trigger Button */}
+            {/* Government Schemes Assistant Quick Trigger Button */}
             <button
               type="button"
               onClick={onOpenChatbot}
               className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold shadow-lg shadow-emerald-950/40 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
             >
               <Bot className="w-4 h-4" />
-              <span>Launch Village Assessment Assistant</span>
+              <span>Government Schemes Assistant</span>
             </button>
           </div>
         )}
