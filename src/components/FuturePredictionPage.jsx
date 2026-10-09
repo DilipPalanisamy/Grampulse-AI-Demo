@@ -1905,14 +1905,14 @@ function FuturePredictionPage({
                 {/* Presets Bar */}
                 <div className="p-4 rounded-3xl bg-[var(--bg-card)] border border-teal-500/20 space-y-3">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-xs font-black uppercase tracking-wider text-teal-400 flex items-center gap-1.5">
+                    <span className="text-xs font-black uppercase tracking-wider text-teal-600 dark:text-teal-400 flex items-center gap-1.5">
                       <Zap className="w-3.5 h-3.5" />
                       Quick Scenario Templates
                     </span>
                     <button
                       type="button"
                       onClick={prefillFromMapVillage}
-                      className="px-3 py-1 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 text-xs font-bold transition-all cursor-pointer"
+                      className="px-3 py-1 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs font-bold transition-all cursor-pointer"
                     >
                       📍 Pre-fill from Selected Map Village
                     </button>
@@ -1923,9 +1923,9 @@ function FuturePredictionPage({
                         key={preset.id}
                         type="button"
                         onClick={() => applyPreset(preset)}
-                        className="p-3 rounded-2xl bg-[var(--bg-primary)] hover:bg-[var(--bg-card-hover)] border border-[var(--border-subtle)] hover:border-teal-400/40 text-left transition-all group cursor-pointer"
+                        className="p-3 rounded-2xl bg-[var(--bg-primary)] hover:bg-[var(--bg-card-hover)] border border-[var(--border-subtle)] hover:border-teal-400/40 text-left transition-all group cursor-pointer shadow-xs"
                       >
-                        <p className="text-xs font-bold text-white group-hover:text-teal-300">
+                        <p className="text-xs font-bold text-[var(--text-main)] group-hover:text-teal-600 dark:group-hover:text-teal-300 transition-colors">
                           {preset.label}
                         </p>
                         <p className="text-[10px] text-[var(--text-muted)] mt-0.5 line-clamp-1">

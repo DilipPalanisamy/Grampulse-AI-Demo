@@ -241,7 +241,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center px-4 py-10 relative selection:bg-emerald-500 selection:text-white font-sans">
+    <div className="min-h-screen flex flex-col justify-center items-center px-4 py-10 relative selection:bg-emerald-500 selection:text-white font-sans bg-[var(--bg-primary)] text-[var(--text-main)] transition-colors duration-200">
       
       {/* Top Floating Theme & Appearance Selector on Login Page */}
       <div className="absolute top-5 right-5 z-20 flex items-center gap-2">
@@ -289,11 +289,15 @@ export default function LoginPage() {
           </div>
           
           <div className="space-y-1">
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight font-sans text-[var(--text-main)]">
-              GramPulse <span style={{ color: activePalette.primary }}>AI</span>
+            <h1
+              className="text-2xl sm:text-3xl font-black tracking-tight font-sans text-slate-900 dark:text-white"
+              style={{ color: themeConfig?.mode === 'dark' ? '#FFFFFF' : '#0F172A' }}
+            >
+              <span>GramPulse </span>
+              <span style={{ color: activePalette.primary }}>AI</span>
             </h1>
             
-            <p className="text-xs font-semibold tracking-wider uppercase text-[var(--text-muted)]">
+            <p className="text-xs font-semibold tracking-wider uppercase text-slate-500 dark:text-slate-400">
               Citizen Governance Portal
             </p>
           </div>

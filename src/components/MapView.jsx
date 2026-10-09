@@ -67,11 +67,12 @@ export const MAP_PROVIDERS = {
   dark: {
     name: 'Dark GIS',
     icon: Moon,
-    url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-    attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
-    maxNativeZoom: 19,
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+    attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ',
+    maxNativeZoom: 16,
     maxZoom: 20,
-    hasOverlayLabels: false,
+    hasOverlayLabels: true,
+    overlayUrl: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}',
   },
   terrain: {
     name: 'Terrain',
@@ -783,12 +784,12 @@ const MapView = ({
           maxZoom={activeProvider.maxZoom || 20}
         />
 
-        {/* Overlay Labels for Satellite */}
+        {/* Overlay Labels for Satellite / Dark GIS */}
         {activeProvider.hasOverlayLabels && (
           <TileLayer
-            key="esri-satellite-labels"
+            key={`overlay-layer-${mapStyle}`}
             url={activeProvider.overlayUrl}
-            maxNativeZoom={activeProvider.maxNativeZoom || 17}
+            maxNativeZoom={activeProvider.maxNativeZoom || 16}
             maxZoom={activeProvider.maxZoom || 20}
             zIndex={10}
           />
