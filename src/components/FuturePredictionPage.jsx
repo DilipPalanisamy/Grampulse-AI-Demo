@@ -36,12 +36,15 @@ import {
   ChevronRight,
   Shield,
   Filter,
+  Download,
 } from 'lucide-react';
 
 import {
   generateFuturePrediction,
   buildPredictionPayload,
 } from '../services/futurePredictorApi';
+
+import { generatePredictionPdf } from '../utils/predictionPdfGenerator';
 
 /*
 ============================================================
@@ -983,6 +986,7 @@ function PredictionReportView({
   onRefresh,
 }) {
   const [selectedYearTab, setSelectedYearTab] = useState('all');
+  const [downloadingYear, setDownloadingYear] = useState(null);
 
   const summary = predictionData?.predictions?.summary || {};
   const years = predictionData?.predictions?.years || [];
@@ -999,6 +1003,27 @@ function PredictionReportView({
   // Overall final development score
   const finalYearData = years[years.length - 1] || {};
   const finalDevScore = finalYearData?.development?.development_score ?? 85.0;
+
+  const handleDownloadPdf = useCallback(
+    async (yearToDownload = 'all') => {
+      try {
+        setDownloadingYear(yearToDownload);
+        await new Promise((resolve) => setTimeout(resolve, 150));
+        generatePredictionPdf({
+          predictionData,
+          targetYear: yearToDownload,
+          villageName: predictionData?.village,
+          district: predictionData?.district,
+          state: predictionData?.state,
+        });
+      } catch (err) {
+        console.error('Error downloading prediction PDF:', err);
+      } finally {
+        setDownloadingYear(null);
+      }
+    },
+    [predictionData]
+  );
 
   return (
     <div className="space-y-8 animate-fadeIn">
@@ -1031,6 +1056,27 @@ function PredictionReportView({
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
+            {/* COLORFUL PDF DOWNLOADER BUTTON */}
+            <button
+              type="button"
+              onClick={() => handleDownloadPdf('all')}
+              disabled={downloadingYear !== null}
+              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-rose-600 via-pink-600 to-amber-500 hover:from-rose-500 hover:to-amber-400 text-white text-xs sm:text-sm font-black flex items-center gap-2 shadow-xl shadow-rose-950/60 ring-2 ring-rose-400/40 transition-all hover:scale-105 active:scale-95 cursor-pointer disabled:opacity-60 disabled:cursor-wait"
+              title="Directly download official 5-year future prediction PDF report alone"
+            >
+              {downloadingYear === 'all' ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin text-white" />
+                  <span>Downloading 5-Year PDF...</span>
+                </>
+              ) : (
+                <>
+                  <Download className="w-4 h-4 text-white" />
+                  <span>Download 5-Year Prediction PDF</span>
+                </>
+              )}
+            </button>
+
             {isManual && onModifyManual && (
               <button
                 type="button"
@@ -1111,32 +1157,50 @@ function PredictionReportView({
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 bg-[var(--bg-primary)] p-1.5 rounded-2xl border border-[var(--border-subtle)]">
-          <button
-            type="button"
-            onClick={() => setSelectedYearTab('all')}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-              selectedYearTab === 'all'
-                ? 'bg-gradient-to-r from-emerald-600 to-teal-500 text-white shadow-md'
-                : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
-            }`}
-          >
-            📊 All 5 Years
-          </button>
-          {years.map((y) => (
+        <div className="flex flex-wrap items-center gap-2.5">
+          <div className="flex flex-wrap items-center gap-2 bg-[var(--bg-primary)] p-1.5 rounded-2xl border border-[var(--border-subtle)]">
             <button
-              key={y.year}
               type="button"
-              onClick={() => setSelectedYearTab(String(y.year))}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                String(selectedYearTab) === String(y.year)
+              onClick={() => setSelectedYearTab('all')}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                selectedYearTab === 'all'
                   ? 'bg-gradient-to-r from-emerald-600 to-teal-500 text-white shadow-md'
                   : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
               }`}
             >
-              {y.year} (Yr {y.year_number})
+              📊 All 5 Years
             </button>
-          ))}
+            {years.map((y) => (
+              <button
+                key={y.year}
+                type="button"
+                onClick={() => setSelectedYearTab(String(y.year))}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  String(selectedYearTab) === String(y.year)
+                    ? 'bg-gradient-to-r from-emerald-600 to-teal-500 text-white shadow-md'
+                    : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
+                }`}
+              >
+                {y.year} (Yr {y.year_number})
+              </button>
+            ))}
+          </div>
+
+          {/* Quick Colorful PDF Button right on Timeline Bar */}
+          <button
+            type="button"
+            onClick={() => handleDownloadPdf('all')}
+            disabled={downloadingYear !== null}
+            className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-rose-600 via-pink-600 to-rose-500 hover:from-rose-500 hover:to-pink-400 text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-rose-950/40 transition-all hover:scale-105 active:scale-95 cursor-pointer disabled:opacity-50"
+            title="Directly download official 5-year future prediction PDF report alone"
+          >
+            {downloadingYear === 'all' ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
+            ) : (
+              <Download className="w-3.5 h-3.5 text-white" />
+            )}
+            <span>Download 5-Year Prediction PDF</span>
+          </button>
         </div>
       </div>
 
@@ -1181,7 +1245,7 @@ function PredictionReportView({
                   </div>
                 </div>
 
-                <div className="flex items-center gap-6 text-right">
+                <div className="flex items-center gap-3 sm:gap-5 text-right">
                   <div>
                     <p className="text-[11px] text-[var(--text-muted)] uppercase tracking-wider font-semibold">
                       Composite GDI Score
@@ -1190,6 +1254,22 @@ function PredictionReportView({
                       {formatPercent(dev.development_score)}
                     </p>
                   </div>
+
+                  {/* Individual Year Colorful PDF Downloader */}
+                  <button
+                    type="button"
+                    onClick={() => handleDownloadPdf(yearData.year)}
+                    disabled={downloadingYear !== null}
+                    className="px-3 py-2 rounded-xl bg-gradient-to-r from-rose-600/20 via-pink-600/20 to-rose-600/30 hover:from-rose-600 hover:to-pink-600 text-rose-300 hover:text-white border border-rose-500/40 hover:border-rose-400 text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all hover:scale-105 active:scale-95 cursor-pointer disabled:opacity-50"
+                    title={`Download colorful official PDF report for Year ${yearData.year}`}
+                  >
+                    {downloadingYear === yearData.year ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <Download className="w-3.5 h-3.5" />
+                    )}
+                    <span>Download {yearData.year} PDF</span>
+                  </button>
                 </div>
               </div>
 
@@ -1339,13 +1419,25 @@ function PredictionReportView({
               Complete trajectory from base year {summary.base_year || 2026} to 2031
             </p>
           </div>
+          {/* BOTTOM COLORFUL PDF DOWNLOADER BUTTON */}
           <button
             type="button"
-            onClick={() => window.print()}
-            className="px-3.5 py-1.5 rounded-xl bg-[var(--bg-primary)] hover:bg-[var(--bg-card-hover)] border border-[var(--border-subtle)] text-xs font-bold text-[var(--text-main)] flex items-center gap-1.5 shadow-sm transition-all"
+            onClick={() => handleDownloadPdf('all')}
+            disabled={downloadingYear !== null}
+            className="px-4 py-2 rounded-xl bg-gradient-to-r from-rose-600 via-pink-600 to-amber-500 hover:from-rose-500 hover:to-amber-400 text-white text-xs font-black flex items-center gap-2 shadow-xl shadow-rose-950/60 ring-2 ring-rose-400/40 transition-all hover:scale-105 active:scale-95 cursor-pointer disabled:opacity-60 disabled:cursor-wait"
+            title="Directly download official 5-year future prediction PDF report alone"
           >
-            <FileText className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Print / Export Summary</span>
+            {downloadingYear === 'all' ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
+                <span>Downloading 5-Year PDF...</span>
+              </>
+            ) : (
+              <>
+                <Download className="w-3.5 h-3.5 text-white" />
+                <span>Download 5-Year Prediction PDF</span>
+              </>
+            )}
           </button>
         </div>
 
@@ -1388,7 +1480,7 @@ function PredictionReportView({
       </div>
 
       {/* ====================================================
-          UDISE+ & METHODOLOGY FOOTER
+          UDISE+ & METHODOLOGY FOOTER WITH BOTTOM DOWNLOADER
       ==================================================== */}
       <div className="rounded-2xl border border-emerald-500/20 bg-emerald-950/20 p-5 flex flex-wrap items-center justify-between gap-4 text-xs">
         <div className="flex items-center gap-3">
@@ -1404,9 +1496,32 @@ function PredictionReportView({
             </p>
           </div>
         </div>
-        <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 font-mono font-bold border border-emerald-500/30">
-          Status: Verified & Active
-        </span>
+
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 font-mono font-bold border border-emerald-500/30">
+            Status: Verified & Active
+          </span>
+          {/* BOTTOM DEDICATED PDF DOWNLOADER BUTTON */}
+          <button
+            type="button"
+            onClick={() => handleDownloadPdf('all')}
+            disabled={downloadingYear !== null}
+            className="px-4 py-2 rounded-xl bg-gradient-to-r from-rose-600 via-pink-600 to-amber-500 hover:from-rose-500 hover:to-amber-400 text-white text-xs font-black flex items-center gap-2 shadow-xl shadow-rose-950/60 ring-2 ring-rose-400/40 transition-all hover:scale-105 active:scale-95 cursor-pointer disabled:opacity-60 disabled:cursor-wait"
+            title="Directly download official 5-year future prediction PDF report alone"
+          >
+            {downloadingYear === 'all' ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
+                <span>Downloading 5-Year PDF...</span>
+              </>
+            ) : (
+              <>
+                <Download className="w-3.5 h-3.5 text-white" />
+                <span>Download 5-Year Prediction PDF</span>
+              </>
+            )}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -1615,27 +1730,79 @@ function FuturePredictionPage({
     return ((b - d + m) / 10).toFixed(2);
   }, [manualForm.birth_rate, manualForm.death_rate, manualForm.migration_rate]);
 
+  // Top PDF Downloader State & Handler for 5-Year Forecast Alone
+  const [topDownloading, setTopDownloading] = useState(false);
+
+  const activePredictionForDownload = useMemo(() => {
+    if (activeSlide === 'manual' && manualPrediction) {
+      return manualPrediction;
+    }
+    return selectedPrediction;
+  }, [activeSlide, manualPrediction, selectedPrediction]);
+
+  const handleDownloadTopPredictionPdf = useCallback(async () => {
+    if (!activePredictionForDownload) return;
+    try {
+      setTopDownloading(true);
+      await new Promise((resolve) => setTimeout(resolve, 150));
+      generatePredictionPdf({
+        predictionData: activePredictionForDownload,
+        targetYear: 'all',
+        villageName: activePredictionForDownload?.village || selectedLocation?.gp_name,
+        district: activePredictionForDownload?.district || selectedLocation?.district,
+        state: activePredictionForDownload?.state || selectedLocation?.state,
+      });
+    } catch (err) {
+      console.error('Error downloading 5-year prediction PDF from top bar:', err);
+    } finally {
+      setTopDownloading(false);
+    }
+  }, [activePredictionForDownload, selectedLocation]);
+
   return (
     <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-main)] p-4 sm:p-6 lg:p-8 selection:bg-emerald-500 selection:text-white">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* ==================================================
-            NAVIGATION & BREADCRUMBS
+            NAVIGATION & BREADCRUMBS & TOP PDF DOWNLOADER
         ================================================== */}
         <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={onBackToDashboard}
+              className="flex items-center gap-2 text-xs sm:text-sm font-bold text-emerald-400 hover:text-emerald-300 transition-colors bg-[var(--bg-card)] px-4 py-2 rounded-xl border border-[var(--border-subtle)] hover:border-emerald-500/40 shadow-sm cursor-pointer active:scale-95"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Back to Dashboard</span>
+            </button>
+
+            <div className="hidden sm:flex items-center gap-2 text-xs text-[var(--text-muted)]">
+              <span className="font-semibold text-emerald-400">GramPulse AI</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+              <span>5-Year Development Predictor</span>
+            </div>
+          </div>
+
+          {/* TOP PDF DOWNLOADER BUTTON */}
           <button
             type="button"
-            onClick={onBackToDashboard}
-            className="flex items-center gap-2 text-xs sm:text-sm font-bold text-emerald-400 hover:text-emerald-300 transition-colors bg-[var(--bg-card)] px-4 py-2 rounded-xl border border-[var(--border-subtle)] hover:border-emerald-500/40 shadow-sm cursor-pointer active:scale-95"
+            onClick={handleDownloadTopPredictionPdf}
+            disabled={topDownloading || !activePredictionForDownload}
+            className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-rose-600 via-pink-600 to-amber-500 hover:from-rose-500 hover:to-amber-400 text-white text-xs sm:text-sm font-black flex items-center gap-2 shadow-xl shadow-rose-950/60 ring-2 ring-rose-400/40 transition-all hover:scale-105 active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Directly download official 5-year future prediction PDF report alone"
           >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Back to Dashboard</span>
+            {topDownloading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin text-white" />
+                <span>Downloading 5-Year PDF...</span>
+              </>
+            ) : (
+              <>
+                <Download className="w-4 h-4 text-white" />
+                <span>Download 5-Year Prediction PDF</span>
+              </>
+            )}
           </button>
-
-          <div className="flex items-center gap-2 text-xs text-[var(--text-muted)]">
-            <span className="font-semibold text-emerald-400">GramPulse AI</span>
-            <ChevronRight className="w-3.5 h-3.5" />
-            <span>5-Year Development Predictor</span>
-          </div>
         </div>
 
         {/* ==================================================

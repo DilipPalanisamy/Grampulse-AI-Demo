@@ -11,7 +11,6 @@ import {
   Activity,
   HeartPulse,
   Trash2,
-  Layers,
   MapPin,
   Sparkles,
   Building2,
@@ -152,11 +151,8 @@ const AnalyticsPanel = ({
 
   // 5. Healthcare Telemetry & IPHS National Norm Metrics
   const counts = infrastructure?.counts || {};
-  const waterNodesCount = counts.water_points || 12;
-  const schoolNodesCount = counts.schools || 3;
   const healthNodesCount = counts.healthcare || 1;
   const subCentresCount = counts.sub_centres || Math.max(1, Math.ceil(popCurrent / 5000));
-  const roadNetworkKm = counts.estimated_road_network_km || roadCurrent.toFixed(1);
 
   const requiredPHCs = Math.max(1, Math.ceil(popProjected / 30000));
   const phcGap = Math.max(0, requiredPHCs - healthNodesCount);
@@ -408,100 +404,7 @@ const AnalyticsPanel = ({
         </div>
       </div>
 
-      {/* =================================================================== */}
-      {/* 3. LIVE INFRASTRUCTURE TELEMETRY DATASET (BALANCED 2X2 GRID)        */}
-      {/* =================================================================== */}
-      <div className="bg-[var(--bg-card)] backdrop-blur-md rounded-3xl border border-[var(--border-subtle)] p-6 sm:p-7 shadow-2xl space-y-5">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border-subtle)] pb-4">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500">
-              <Layers className="w-4 h-4" />
-            </div>
-            <div>
-              <h3 className="text-sm sm:text-base font-black text-[var(--text-main)]">
-                Live Infrastructure Telemetry Dataset
-              </h3>
-              <p className="text-xs text-[var(--text-muted)]">
-                Real-time OpenStreetMap / Overpass GIS spatial asset nodes
-              </p>
-            </div>
-          </div>
-          <span className="text-xs font-mono text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
-            Live Spatial Nodes
-          </span>
-        </div>
 
-        {/* Balanced 2x2 Responsive Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
-          {/* 1. Water Points */}
-          <div className="p-5 bg-[var(--bg-primary)] rounded-2xl border border-[var(--border-subtle)] flex items-center justify-between hover:border-blue-500/40 transition-all shadow-sm">
-            <div className="space-y-1.5">
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block animate-pulse" />
-                <span className="text-xs text-[var(--text-muted)] uppercase font-bold tracking-wider">Water Points</span>
-              </div>
-              <p className="text-xl font-extrabold text-[var(--text-main)] font-mono">
-                {waterNodesCount} <span className="text-xs font-medium text-[var(--text-muted)]">Mapped Ground Nodes</span>
-              </p>
-              <p className="text-xs text-[var(--text-subtle)]">Community taps, borewells &amp; storage tanks</p>
-            </div>
-            <div className="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500 flex-shrink-0">
-              <Droplets className="w-6 h-6" />
-            </div>
-          </div>
-
-          {/* 2. School Facilities */}
-          <div className="p-5 bg-[var(--bg-primary)] rounded-2xl border border-[var(--border-subtle)] flex items-center justify-between hover:border-purple-500/40 transition-all shadow-sm">
-            <div className="space-y-1.5">
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-purple-500 inline-block animate-pulse" />
-                <span className="text-xs text-[var(--text-muted)] uppercase font-bold tracking-wider">School Facilities</span>
-              </div>
-              <p className="text-xl font-extrabold text-[var(--text-main)] font-mono">
-                {schoolNodesCount} <span className="text-xs font-medium text-[var(--text-muted)]">Facilities</span> / {classCurrent} <span className="text-xs font-medium text-[var(--text-muted)]">Rooms</span>
-              </p>
-              <p className="text-xs text-[var(--text-subtle)]">Elementary &amp; Secondary Schools (RTE Norms)</p>
-            </div>
-            <div className="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-500 flex-shrink-0">
-              <GraduationCap className="w-6 h-6" />
-            </div>
-          </div>
-
-          {/* 3. Healthcare Facilities */}
-          <div className="p-5 bg-[var(--bg-primary)] rounded-2xl border border-[var(--border-subtle)] flex items-center justify-between hover:border-emerald-500/40 transition-all shadow-sm">
-            <div className="space-y-1.5">
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block animate-pulse" />
-                <span className="text-xs text-[var(--text-muted)] uppercase font-bold tracking-wider">Healthcare Facilities</span>
-              </div>
-              <p className="text-xl font-extrabold text-[var(--text-main)] font-mono">
-                {healthNodesCount} <span className="text-xs font-medium text-[var(--text-muted)]">PHC</span> / {subCentresCount} <span className="text-xs font-medium text-[var(--text-muted)]">Sub-Centres</span>
-              </p>
-              <p className="text-xs text-[var(--text-subtle)]">IPHS Rural Health Infrastructure &amp; Clinics</p>
-            </div>
-            <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500 flex-shrink-0">
-              <HeartPulse className="w-6 h-6" />
-            </div>
-          </div>
-
-          {/* 4. Road Network */}
-          <div className="p-5 bg-[var(--bg-primary)] rounded-2xl border border-[var(--border-subtle)] flex items-center justify-between hover:border-orange-500/40 transition-all shadow-sm">
-            <div className="space-y-1.5">
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-orange-500 inline-block animate-pulse" />
-                <span className="text-xs text-[var(--text-muted)] uppercase font-bold tracking-wider">Road Network</span>
-              </div>
-              <p className="text-xl font-extrabold text-[var(--text-main)] font-mono">
-                {roadNetworkKm} <span className="text-xs font-medium text-[var(--text-muted)]">km</span> / {Number(roadRequired).toFixed(1)} <span className="text-xs font-medium text-[var(--text-muted)]">Target</span>
-              </p>
-              <p className="text-xs text-[var(--text-subtle)]">All-Weather Bitumen Road Grid (PMGSY Norms)</p>
-            </div>
-            <div className="w-12 h-12 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-500 flex-shrink-0">
-              <Route className="w-6 h-6" />
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* =================================================================== */}
       {/* 4. AI CONTEXTUAL GOVERNANCE ASSESSMENT NARRATIVE                   */}
