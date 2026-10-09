@@ -148,13 +148,19 @@ MarkdownRenderer.propTypes = {
 
 // Verified fallback mapping for obsolete or deprecated government domains
 const VERIFIED_PORTAL_MAP = {
-  'pmayg.nic.in': 'https://pmayg.gov.in/',
-  'pmgsygov.dord.gov.in': 'https://www.rural.gov.in/',
-  'pmkusum.mnre.gov.in': 'https://www.mnre.gov.in/',
-  'nhm.gov.in': 'https://nha.gov.in/',
+  'pmayg.nic.in': 'https://www.myscheme.gov.in/schemes/pmay-g',
+  'pmayg.gov.in': 'https://www.myscheme.gov.in/schemes/pmay-g',
+  'pmayg.dord.gov.in': 'https://www.myscheme.gov.in/schemes/pmay-g',
+  'awaassoft.nic.in': 'https://www.myscheme.gov.in/schemes/pmay-g',
+  'nhm.gov.in': 'https://www.myscheme.gov.in/schemes/ab-pmjay',
+  'nha.gov.in': 'https://www.myscheme.gov.in/schemes/ab-pmjay',
+  'pmjay.gov.in': 'https://www.myscheme.gov.in/schemes/ab-pmjay',
+  'sbm.gov.in': 'https://www.myscheme.gov.in/schemes/sbm-g',
+  'swachhbharatmission.ddws.gov.in': 'https://www.myscheme.gov.in/schemes/sbm-g',
+  'swachhbharatmission.gov.in': 'https://www.myscheme.gov.in/schemes/sbm-g',
+  'pmgsygov.dord.gov.in': 'https://www.myscheme.gov.in/schemes/pmgsy',
+  'pmkusum.mnre.gov.in': 'https://www.myscheme.gov.in/schemes/pm-kusum',
   'ejalshakti.gov.in': 'https://jaljeevanmission.gov.in/',
-  'awaassoft.nic.in': 'https://pmayg.gov.in/',
-  'swachhbharatmission.ddws.gov.in': 'https://sbm.gov.in/',
 };
 
 export function getVerifiedPortalUrl(rawUrl, fallback = 'https://www.rural.gov.in/') {

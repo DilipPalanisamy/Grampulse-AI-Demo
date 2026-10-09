@@ -237,7 +237,7 @@ export const generateOfficialPanchayatAnalytics = (
         allocation_amount: '₹12.0 Lakhs',
         description: `Solid and liquid waste management (SLWM), community compost pits, and greywater management in ${villageName}.`,
         eligibility: 'All Gram Panchayats striving for verified ODF Plus Model status.',
-        application_portal: 'https://sbm.gov.in',
+        application_portal: 'https://www.myscheme.gov.in/schemes/sbm-g',
       },
     ],
   };
