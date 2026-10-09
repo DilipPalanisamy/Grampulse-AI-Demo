@@ -146,6 +146,32 @@ MarkdownRenderer.propTypes = {
   content: PropTypes.string,
 };
 
+// Verified fallback mapping for obsolete or deprecated government domains
+const VERIFIED_PORTAL_MAP = {
+  'pmayg.nic.in': 'https://pmayg.gov.in/',
+  'pmgsygov.dord.gov.in': 'https://www.rural.gov.in/',
+  'pmkusum.mnre.gov.in': 'https://www.mnre.gov.in/',
+  'nhm.gov.in': 'https://nha.gov.in/',
+  'ejalshakti.gov.in': 'https://jaljeevanmission.gov.in/',
+  'awaassoft.nic.in': 'https://pmayg.gov.in/',
+  'swachhbharatmission.ddws.gov.in': 'https://sbm.gov.in/',
+};
+
+export function getVerifiedPortalUrl(rawUrl, fallback = 'https://www.rural.gov.in/') {
+  if (!rawUrl || typeof rawUrl !== 'string') return fallback;
+  try {
+    const trimmed = rawUrl.trim();
+    const parsed = new URL(trimmed.startsWith('http') ? trimmed : `https://${trimmed}`);
+    const host = parsed.hostname.toLowerCase();
+    if (VERIFIED_PORTAL_MAP[host]) {
+      return VERIFIED_PORTAL_MAP[host];
+    }
+    return parsed.href;
+  } catch {
+    return fallback;
+  }
+}
+
 /**
  * Helper to render inline **bold**, *italic*, and [link](url) safely.
  */
@@ -162,7 +188,8 @@ function renderFormattedInlineText(text) {
     if (match.index > lastIndex) {
       tokens.push(text.substring(lastIndex, match.index));
     }
-    tokens.push({ type: 'link', label: match[1], url: match[2] });
+    const cleanUrl = getVerifiedPortalUrl(match[2]);
+    tokens.push({ type: 'link', label: match[1], url: cleanUrl });
     lastIndex = match.index + match[0].length;
   }
   if (lastIndex < text.length) {
@@ -213,12 +240,13 @@ function SchemeCard({ scheme, location }) {
 
   if (!scheme) return null;
 
-  const portalUrl = scheme.official_portal_url || 'https://rural.gov.in/';
-  let hostname = 'gov.in';
+  const rawUrl = scheme.official_portal_url || scheme.application_portal || 'https://www.rural.gov.in/';
+  const portalUrl = getVerifiedPortalUrl(rawUrl);
+  let hostname = 'rural.gov.in';
   try {
     hostname = new URL(portalUrl).hostname;
   } catch (e) {
-    hostname = 'gov.in';
+    hostname = 'rural.gov.in';
   }
 
   return (

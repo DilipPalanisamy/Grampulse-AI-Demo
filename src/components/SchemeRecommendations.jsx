@@ -217,13 +217,19 @@ const SchemeRecommendations = ({ schemes = [], loading = false }) => {
 
             const priorityTier = (scheme.priority_tier || (idx === 0 ? 'P1' : idx === 1 ? 'P2' : 'P3')).toUpperCase();
             const badgeConfig = getPriorityBadgeConfig(priorityTier);
-            const portalUrl = scheme.official_portal_url || 'https://rural.gov.in/';
+            const rawUrl = scheme.official_portal_url || scheme.application_portal || 'https://www.rural.gov.in/';
+            const portalUrl = rawUrl
+              .replace('pmayg.nic.in', 'pmayg.gov.in')
+              .replace('pmgsygov.dord.gov.in', 'www.rural.gov.in')
+              .replace('pmkusum.mnre.gov.in', 'www.mnre.gov.in')
+              .replace('nhm.gov.in', 'nha.gov.in')
+              .replace('ejalshakti.gov.in', 'jaljeevanmission.gov.in');
 
             let hostname = 'rural.gov.in';
             try {
               hostname = new URL(portalUrl).hostname;
             } catch (e) {
-              hostname = 'gov.in';
+              hostname = 'rural.gov.in';
             }
 
             return (
