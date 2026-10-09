@@ -3,6 +3,7 @@ import React, {
   useEffect,
   useMemo,
   useCallback,
+  useRef,
 } from 'react';
 
 import {
@@ -37,6 +38,10 @@ import {
   Shield,
   Filter,
   Download,
+  UploadCloud,
+  FileUp,
+  Trash2,
+  X,
 } from 'lucide-react';
 
 import {
@@ -45,6 +50,7 @@ import {
 } from '../services/futurePredictorApi';
 
 import { generatePredictionPdf } from '../utils/predictionPdfGenerator';
+import { parseDocumentFile } from '../utils/documentTelemetryParser';
 
 /*
 ============================================================
@@ -1545,54 +1551,91 @@ function FuturePredictionPage({
   SLIDE 2 STATE: PREDICT FOR VILLAGE MANUALLY
   ----------------------------------------------------------
   */
-  const [manualForm, setManualForm] = useState(() => ({
-    village_name: selectedLocation?.gp_name || 'Adarsh Model Gram Panchayat',
-    district: selectedLocation?.district || 'Coimbatore',
-    state: selectedLocation?.state || 'Tamil Nadu',
-    current_year: 2026,
-    population: Number(selectedLocation?.population) || 6800,
-    households: Math.round((Number(selectedLocation?.population) || 6800) / 4),
-    birth_rate: 17.5,
-    death_rate: 6.8,
-    migration_rate: 1.2,
-    schools: 2,
-    school_students: 1050,
-    classrooms: 16,
-    colleges: 0,
-    hospitals: 1,
-    road_length_km: 26.5,
-    road_built_year: 2017,
-    last_repair_year: 2022,
-    road_condition: 'Average',
-    water_coverage: 74.0,
-    electricity_coverage: 97.0,
-    internet_coverage: 56.0,
-    employment_rate: 66.0,
-  }));
+  const EMPTY_MANUAL_FORM = {
+    village_name: '',
+    district: '',
+    state: '',
+    current_year: '',
+    population: '',
+    households: '',
+    birth_rate: '',
+    death_rate: '',
+    migration_rate: '',
+    schools: '',
+    school_students: '',
+    classrooms: '',
+    colleges: '',
+    hospitals: '',
+    road_length_km: '',
+    road_built_year: '',
+    last_repair_year: '',
+    road_condition: '',
+    water_coverage: '',
+    electricity_coverage: '',
+    internet_coverage: '',
+    employment_rate: '',
+  };
 
-  // Auto-sync manual form defaults when selected village changes
-  useEffect(() => {
-    if (selectedLocation?.gp_name) {
-      const pop = Number(selectedLocation.population) || 5800;
-      setManualForm((prev) => ({
-        ...prev,
-        village_name: selectedLocation.gp_name,
-        district: selectedLocation.district || 'District',
-        state: selectedLocation.state || 'Tamil Nadu',
-        population: pop,
-        households: Number(selectedLocation.households) || Math.round(pop / 4),
-        schools: Number(selectedLocation.schools) || 2,
-        school_students: Math.round(pop * 0.16),
-        classrooms: Number(selectedLocation.school_classrooms_count) || 16,
-        road_length_km: Number(selectedLocation.road_coverage_km) || 25.0,
-      }));
-    }
-  }, [selectedLocation]);
+  // Manual Form begins 100% empty by default per user requirement
+  const [manualForm, setManualForm] = useState(EMPTY_MANUAL_FORM);
 
   const [manualView, setManualView] = useState('form'); // 'form' | 'result'
   const [manualLoading, setManualLoading] = useState(false);
   const [manualError, setManualError] = useState('');
   const [manualPrediction, setManualPrediction] = useState(null);
+
+  // Document Auto-fill upload state
+  const fileInputRef = useRef(null);
+  const [isParsingDoc, setIsParsingDoc] = useState(false);
+  const [docParseSuccess, setDocParseSuccess] = useState(null); // { fileName, count, fieldsFound, snippet }
+  const [docParseError, setDocParseError] = useState('');
+
+  // Clear all form fields back to empty
+  const clearManualForm = () => {
+    setManualForm(EMPTY_MANUAL_FORM);
+    setDocParseSuccess(null);
+    setDocParseError('');
+  };
+
+  // Upload and parse document (PDF, TXT, CSV, JSON)
+  const handleDocumentUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsParsingDoc(true);
+      setDocParseError('');
+      setDocParseSuccess(null);
+
+      const res = await parseDocumentFile(file);
+      if (res && res.success && res.extracted && Object.keys(res.extracted).length > 0) {
+        setManualForm((prev) => {
+          const next = { ...prev };
+          for (const [k, v] of Object.entries(res.extracted)) {
+            if (v !== undefined && v !== null && v !== '') {
+              next[k] = v;
+            }
+          }
+          return next;
+        });
+
+        setDocParseSuccess({
+          fileName: res.fileName,
+          count: res.count,
+          fieldsFound: res.fieldsFound,
+          snippet: res.rawSnippet,
+        });
+      } else {
+        setDocParseError('No recognized village telemetry parameters could be detected from this document. You can still enter details manually.');
+      }
+    } catch (err) {
+      console.error('Document parse failed:', err);
+      setDocParseError(err.message || 'Failed to read or parse the uploaded document.');
+    } finally {
+      setIsParsingDoc(false);
+      if (e.target) e.target.value = '';
+    }
+  };
 
   // Quick preset apply
   const applyPreset = (preset) => {
@@ -1636,8 +1679,12 @@ function FuturePredictionPage({
     setManualForm((prev) => {
       const updated = { ...prev, [field]: value };
       if (field === 'population' && Number(value) > 0) {
-        updated.households = Math.round(Number(value) / 4);
-        updated.school_students = Math.round(Number(value) * 0.16);
+        if (prev.households === '' || prev.households === null) {
+          updated.households = Math.round(Number(value) / 4);
+        }
+        if (prev.school_students === '' || prev.school_students === null) {
+          updated.school_students = Math.round(Number(value) * 0.16);
+        }
       }
       return updated;
     });
@@ -1650,26 +1697,36 @@ function FuturePredictionPage({
       setManualLoading(true);
       setManualError('');
 
+      if (!manualForm.population || Number(manualForm.population) <= 0) {
+        setManualError('Please provide a Base Population (e.g. 5,800) or upload a document to run predictions.');
+        setManualLoading(false);
+        return;
+      }
+
+      const pop = Number(manualForm.population);
+
       const payload = {
-        village_name: manualForm.village_name || 'Manual Village',
+        village_name: manualForm.village_name || 'Manual Village Simulation',
+        district: manualForm.district || 'District',
+        state: manualForm.state || 'India',
         current_year: Number(manualForm.current_year) || 2026,
-        population: Number(manualForm.population) || 5800,
-        birth_rate: Number(manualForm.birth_rate) || 18.0,
-        death_rate: Number(manualForm.death_rate) || 7.0,
-        migration_rate: Number(manualForm.migration_rate) || 1.0,
-        households: Number(manualForm.households) || Math.round(Number(manualForm.population) / 4),
-        schools: Number(manualForm.schools) || 2,
-        colleges: Number(manualForm.colleges) || 0,
-        school_students: Number(manualForm.school_students) || Math.round(Number(manualForm.population) * 0.16),
-        hospitals: Number(manualForm.hospitals) || 1,
-        road_length_km: Number(manualForm.road_length_km) || 25.0,
-        road_built_year: Number(manualForm.road_built_year) || 2016,
-        last_repair_year: Number(manualForm.last_repair_year) || 2021,
+        population: pop,
+        birth_rate: manualForm.birth_rate !== '' ? Number(manualForm.birth_rate) : 18.0,
+        death_rate: manualForm.death_rate !== '' ? Number(manualForm.death_rate) : 7.0,
+        migration_rate: manualForm.migration_rate !== '' ? Number(manualForm.migration_rate) : 1.0,
+        households: manualForm.households !== '' ? Number(manualForm.households) : Math.round(pop / 4),
+        schools: manualForm.schools !== '' ? Number(manualForm.schools) : 2,
+        colleges: manualForm.colleges !== '' ? Number(manualForm.colleges) : 0,
+        school_students: manualForm.school_students !== '' ? Number(manualForm.school_students) : Math.round(pop * 0.16),
+        hospitals: manualForm.hospitals !== '' ? Number(manualForm.hospitals) : 1,
+        road_length_km: manualForm.road_length_km !== '' ? Number(manualForm.road_length_km) : 25.0,
+        road_built_year: manualForm.road_built_year !== '' ? Number(manualForm.road_built_year) : 2016,
+        last_repair_year: manualForm.last_repair_year !== '' ? Number(manualForm.last_repair_year) : 2021,
         road_condition: manualForm.road_condition || 'Average',
-        water_coverage: Number(manualForm.water_coverage) || 70.0,
-        electricity_coverage: Number(manualForm.electricity_coverage) || 95.0,
-        internet_coverage: Number(manualForm.internet_coverage) || 50.0,
-        employment_rate: Number(manualForm.employment_rate) || 65.0,
+        water_coverage: manualForm.water_coverage !== '' ? Number(manualForm.water_coverage) : 70.0,
+        electricity_coverage: manualForm.electricity_coverage !== '' ? Number(manualForm.electricity_coverage) : 95.0,
+        internet_coverage: manualForm.internet_coverage !== '' ? Number(manualForm.internet_coverage) : 50.0,
+        employment_rate: manualForm.employment_rate !== '' ? Number(manualForm.employment_rate) : 65.0,
       };
 
       console.log('Sending manual prediction payload:', payload);
@@ -1686,6 +1743,9 @@ function FuturePredictionPage({
 
   // Calculated net growth for manual form indicator
   const netGrowthPercent = useMemo(() => {
+    if (manualForm.birth_rate === '' && manualForm.death_rate === '' && manualForm.migration_rate === '') {
+      return '0.00';
+    }
     const b = Number(manualForm.birth_rate) || 0;
     const d = Number(manualForm.death_rate) || 0;
     const m = Number(manualForm.migration_rate) || 0;
@@ -1902,20 +1962,173 @@ function FuturePredictionPage({
             {/* VIEW 1: MANUAL FIELDS ENTRY FORM */}
             {manualView === 'form' && (
               <form onSubmit={handleRunManualPrediction} className="space-y-6">
-                {/* Presets Bar */}
+                {/* 1. DOCUMENT UPLOAD & SMART AUTO-FILL CARD */}
+                <div className="p-6 rounded-3xl bg-[var(--bg-card)] border-2 border-dashed border-teal-500/30 hover:border-teal-400/60 transition-all shadow-lg space-y-4 relative overflow-hidden">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-11 h-11 rounded-2xl bg-teal-500/15 border border-teal-500/30 text-teal-400 flex items-center justify-center shrink-0">
+                        <FileUp className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h3 className="text-base font-black text-[var(--text-main)] flex items-center gap-2">
+                          <span>Auto-Fill from Document / PDF</span>
+                          <span className="text-[10px] font-bold text-teal-300 bg-teal-500/20 px-2.5 py-0.5 rounded-full border border-teal-500/30 uppercase tracking-wider">
+                            Smart Ingestion
+                          </span>
+                        </h3>
+                        <p className="text-xs text-[var(--text-muted)] mt-0.5">
+                          Upload a GPDP plan, Census report, DPR, or UDISE+ record to automatically absorb and auto-fill village parameters.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2">
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept=".pdf,.txt,.csv,.json,.md"
+                        onChange={handleDocumentUpload}
+                        className="hidden"
+                        id="village-doc-upload-input"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={isParsingDoc}
+                        className="px-4 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-white font-bold text-xs flex items-center gap-2 transition-all shadow-md shadow-teal-950/40 cursor-pointer disabled:opacity-50 active:scale-95"
+                      >
+                        {isParsingDoc ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            <span>Absorbing Document...</span>
+                          </>
+                        ) : (
+                          <>
+                            <UploadCloud className="w-4 h-4" />
+                            <span>Upload Document / PDF</span>
+                          </>
+                        )}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={clearManualForm}
+                        title="Clear all fields back to blank"
+                        className="px-3.5 py-2.5 rounded-xl bg-[var(--bg-primary)] hover:bg-red-500/10 border border-[var(--border-subtle)] hover:border-red-500/40 text-[var(--text-muted)] hover:text-red-400 font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>Clear All Fields</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Drag-drop prompt area if no doc uploaded yet */}
+                  {!docParseSuccess && !isParsingDoc && (
+                    <div
+                      onClick={() => fileInputRef.current?.click()}
+                      className="border border-[var(--border-subtle)] hover:border-teal-400/50 rounded-2xl p-3.5 bg-[var(--bg-primary)]/50 hover:bg-teal-500/5 transition-all text-center cursor-pointer group"
+                    >
+                      <p className="text-xs text-[var(--text-muted)] group-hover:text-teal-300 transition-colors">
+                        <strong className="text-[var(--text-main)]">Drop PDF, TXT, CSV, or JSON here</strong> or click to browse. Form inputs remain completely blank until you fill them or upload a file.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Parsing Loading State */}
+                  {isParsingDoc && (
+                    <div className="p-4 rounded-2xl bg-teal-500/10 border border-teal-500/30 flex items-center gap-3">
+                      <Loader2 className="w-5 h-5 text-teal-400 animate-spin shrink-0" />
+                      <div className="text-xs text-teal-300">
+                        <p className="font-bold">Absorbing document structure and extracting village telemetry...</p>
+                        <p className="text-[11px] text-[var(--text-muted)] mt-0.5">Scanning population, demographic growth rates, school facilities, and road connectivity.</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Parse Success Banner */}
+                  {docParseSuccess && (
+                    <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 space-y-2.5">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+                          <div>
+                            <p className="text-xs font-bold text-emerald-300">
+                              Document Absorbed Successfully: <span>{docParseSuccess.fileName}</span>
+                            </p>
+                            <p className="text-[11px] text-[var(--text-muted)]">
+                              Auto-filled <strong>{docParseSuccess.count}</strong> parameters into the prediction form below.
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setDocParseSuccess(null)}
+                          className="text-[var(--text-muted)] hover:text-white p-1 cursor-pointer"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      {/* Pills of extracted fields */}
+                      {docParseSuccess.fieldsFound && docParseSuccess.fieldsFound.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 pt-1">
+                          {docParseSuccess.fieldsFound.map((field, idx) => (
+                            <span
+                              key={idx}
+                              className="text-[10px] font-semibold bg-emerald-500/20 text-emerald-200 border border-emerald-500/30 px-2 py-0.5 rounded-lg"
+                            >
+                              ✓ {field}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Parse Error Banner */}
+                  {docParseError && (
+                    <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/30 flex items-start justify-between gap-3">
+                      <div className="flex items-start gap-2.5">
+                        <AlertTriangle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+                        <div className="text-xs">
+                          <p className="font-bold text-red-300">Document Parsing Notice</p>
+                          <p className="text-red-200/80 mt-0.5">{docParseError}</p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setDocParseError('')}
+                        className="text-red-300 hover:text-white p-1 cursor-pointer"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* 2. Presets & Pre-fill Bar */}
                 <div className="p-4 rounded-3xl bg-[var(--bg-card)] border border-teal-500/20 space-y-3">
-                  <div className="flex items-center justify-between gap-2">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
                     <span className="text-xs font-black uppercase tracking-wider text-teal-600 dark:text-teal-400 flex items-center gap-1.5">
                       <Zap className="w-3.5 h-3.5" />
                       Quick Scenario Templates
                     </span>
-                    <button
-                      type="button"
-                      onClick={prefillFromMapVillage}
-                      className="px-3 py-1 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs font-bold transition-all cursor-pointer"
-                    >
-                      📍 Pre-fill from Selected Map Village
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={prefillFromMapVillage}
+                        className="px-3 py-1 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs font-bold transition-all cursor-pointer"
+                      >
+                        📍 Pre-fill from Selected Map Village
+                      </button>
+                      <button
+                        type="button"
+                        onClick={clearManualForm}
+                        className="px-3 py-1 rounded-xl bg-[var(--bg-primary)] hover:bg-red-500/10 border border-[var(--border-subtle)] hover:border-red-500/30 text-[var(--text-muted)] hover:text-red-400 text-xs font-bold transition-all cursor-pointer"
+                      >
+                        Clear All
+                      </button>
+                    </div>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                     {MANUAL_PRESETS.map((preset) => (
@@ -1936,7 +2149,7 @@ function FuturePredictionPage({
                   </div>
                 </div>
 
-                {/* Grid of Input Cards */}
+                {/* 3. Grid of Input Cards (All initially empty) */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {/* Card 1: Village Identity & Base Info */}
                   <div className="p-6 rounded-3xl bg-[var(--bg-card)] border border-[var(--border-subtle)] space-y-4">
@@ -1997,7 +2210,8 @@ function FuturePredictionPage({
                             min="2020"
                             max="2035"
                             value={manualForm.current_year}
-                            onChange={(e) => handleInputChange('current_year', Number(e.target.value))}
+                            onChange={(e) => handleInputChange('current_year', e.target.value === '' ? '' : Number(e.target.value))}
+                            placeholder="e.g. 2026"
                             className="w-full px-4 py-2.5 rounded-xl bg-[var(--bg-primary)] border border-[var(--border-subtle)] focus:border-teal-400 focus:outline-none text-sm font-semibold text-[var(--text-main)]"
                           />
                         </div>
@@ -2034,9 +2248,10 @@ function FuturePredictionPage({
                           <input
                             type="number"
                             required
-                            min="100"
+                            min="10"
                             value={manualForm.population}
-                            onChange={(e) => handleInputChange('population', Number(e.target.value))}
+                            onChange={(e) => handleInputChange('population', e.target.value === '' ? '' : Number(e.target.value))}
+                            placeholder="e.g. 6800"
                             className="w-full px-4 py-2.5 rounded-xl bg-[var(--bg-primary)] border border-[var(--border-subtle)] focus:border-teal-400 focus:outline-none text-sm font-semibold text-[var(--text-main)] font-mono"
                           />
                         </div>
@@ -2046,9 +2261,10 @@ function FuturePredictionPage({
                           </label>
                           <input
                             type="number"
-                            min="10"
+                            min="1"
                             value={manualForm.households}
-                            onChange={(e) => handleInputChange('households', Number(e.target.value))}
+                            onChange={(e) => handleInputChange('households', e.target.value === '' ? '' : Number(e.target.value))}
+                            placeholder="e.g. 1700"
                             className="w-full px-4 py-2.5 rounded-xl bg-[var(--bg-primary)] border border-[var(--border-subtle)] focus:border-teal-400 focus:outline-none text-sm font-semibold text-[var(--text-main)] font-mono"
                           />
                         </div>
@@ -2063,7 +2279,8 @@ function FuturePredictionPage({
                             type="number"
                             step="0.1"
                             value={manualForm.birth_rate}
-                            onChange={(e) => handleInputChange('birth_rate', Number(e.target.value))}
+                            onChange={(e) => handleInputChange('birth_rate', e.target.value === '' ? '' : Number(e.target.value))}
+                            placeholder="e.g. 17.5"
                             className="w-full px-3 py-2.5 rounded-xl bg-[var(--bg-primary)] border border-[var(--border-subtle)] focus:border-teal-400 focus:outline-none text-xs font-semibold text-[var(--text-main)]"
                           />
                         </div>
@@ -2075,7 +2292,8 @@ function FuturePredictionPage({
                             type="number"
                             step="0.1"
                             value={manualForm.death_rate}
-                            onChange={(e) => handleInputChange('death_rate', Number(e.target.value))}
+                            onChange={(e) => handleInputChange('death_rate', e.target.value === '' ? '' : Number(e.target.value))}
+                            placeholder="e.g. 6.8"
                             className="w-full px-3 py-2.5 rounded-xl bg-[var(--bg-primary)] border border-[var(--border-subtle)] focus:border-teal-400 focus:outline-none text-xs font-semibold text-[var(--text-main)]"
                           />
                         </div>
@@ -2087,7 +2305,8 @@ function FuturePredictionPage({
                             type="number"
                             step="0.1"
                             value={manualForm.migration_rate}
-                            onChange={(e) => handleInputChange('migration_rate', Number(e.target.value))}
+                            onChange={(e) => handleInputChange('migration_rate', e.target.value === '' ? '' : Number(e.target.value))}
+                            placeholder="e.g. 1.2"
                             className="w-full px-3 py-2.5 rounded-xl bg-[var(--bg-primary)] border border-[var(--border-subtle)] focus:border-teal-400 focus:outline-none text-xs font-semibold text-[var(--text-main)]"
                           />
                         </div>
@@ -2115,7 +2334,8 @@ function FuturePredictionPage({
                             type="number"
                             min="0"
                             value={manualForm.schools}
-                            onChange={(e) => handleInputChange('schools', Number(e.target.value))}
+                            onChange={(e) => handleInputChange('schools', e.target.value === '' ? '' : Number(e.target.value))}
+                            placeholder="e.g. 2"
                             className="w-full px-4 py-2.5 rounded-xl bg-[var(--bg-primary)] border border-[var(--border-subtle)] focus:border-teal-400 focus:outline-none text-sm font-semibold text-[var(--text-main)]"
                           />
                         </div>
@@ -2127,7 +2347,8 @@ function FuturePredictionPage({
                             type="number"
                             min="0"
                             value={manualForm.classrooms}
-                            onChange={(e) => handleInputChange('classrooms', Number(e.target.value))}
+                            onChange={(e) => handleInputChange('classrooms', e.target.value === '' ? '' : Number(e.target.value))}
+                            placeholder="e.g. 16"
                             className="w-full px-4 py-2.5 rounded-xl bg-[var(--bg-primary)] border border-[var(--border-subtle)] focus:border-teal-400 focus:outline-none text-sm font-semibold text-[var(--text-main)]"
                           />
                         </div>
@@ -2142,7 +2363,8 @@ function FuturePredictionPage({
                             type="number"
                             min="0"
                             value={manualForm.school_students}
-                            onChange={(e) => handleInputChange('school_students', Number(e.target.value))}
+                            onChange={(e) => handleInputChange('school_students', e.target.value === '' ? '' : Number(e.target.value))}
+                            placeholder="e.g. 1050"
                             className="w-full px-3 py-2.5 rounded-xl bg-[var(--bg-primary)] border border-[var(--border-subtle)] focus:border-teal-400 focus:outline-none text-xs font-semibold text-[var(--text-main)]"
                           />
                         </div>
@@ -2154,7 +2376,8 @@ function FuturePredictionPage({
                             type="number"
                             min="0"
                             value={manualForm.colleges}
-                            onChange={(e) => handleInputChange('colleges', Number(e.target.value))}
+                            onChange={(e) => handleInputChange('colleges', e.target.value === '' ? '' : Number(e.target.value))}
+                            placeholder="e.g. 0"
                             className="w-full px-3 py-2.5 rounded-xl bg-[var(--bg-primary)] border border-[var(--border-subtle)] focus:border-teal-400 focus:outline-none text-xs font-semibold text-[var(--text-main)]"
                           />
                         </div>
@@ -2166,7 +2389,8 @@ function FuturePredictionPage({
                             type="number"
                             min="0"
                             value={manualForm.hospitals}
-                            onChange={(e) => handleInputChange('hospitals', Number(e.target.value))}
+                            onChange={(e) => handleInputChange('hospitals', e.target.value === '' ? '' : Number(e.target.value))}
+                            placeholder="e.g. 1"
                             className="w-full px-3 py-2.5 rounded-xl bg-[var(--bg-primary)] border border-[var(--border-subtle)] focus:border-teal-400 focus:outline-none text-xs font-semibold text-[var(--text-main)]"
                           />
                         </div>
@@ -2190,9 +2414,10 @@ function FuturePredictionPage({
                           <input
                             type="number"
                             step="0.5"
-                            min="1"
+                            min="0"
                             value={manualForm.road_length_km}
-                            onChange={(e) => handleInputChange('road_length_km', Number(e.target.value))}
+                            onChange={(e) => handleInputChange('road_length_km', e.target.value === '' ? '' : Number(e.target.value))}
+                            placeholder="e.g. 26.5"
                             className="w-full px-4 py-2.5 rounded-xl bg-[var(--bg-primary)] border border-[var(--border-subtle)] focus:border-teal-400 focus:outline-none text-sm font-semibold text-[var(--text-main)] font-mono"
                           />
                         </div>
@@ -2205,6 +2430,7 @@ function FuturePredictionPage({
                             onChange={(e) => handleInputChange('road_condition', e.target.value)}
                             className="w-full px-4 py-2.5 rounded-xl bg-[var(--bg-primary)] border border-[var(--border-subtle)] focus:border-teal-400 focus:outline-none text-sm font-semibold text-[var(--text-main)]"
                           >
+                            <option value="">Select road condition...</option>
                             <option value="Good">Good (Paved / All-Weather)</option>
                             <option value="Average">Average (Semi-Paved)</option>
                             <option value="Poor">Poor (Potholes / Unpaved)</option>
@@ -2222,7 +2448,8 @@ function FuturePredictionPage({
                             min="1980"
                             max="2026"
                             value={manualForm.road_built_year}
-                            onChange={(e) => handleInputChange('road_built_year', Number(e.target.value))}
+                            onChange={(e) => handleInputChange('road_built_year', e.target.value === '' ? '' : Number(e.target.value))}
+                            placeholder="e.g. 2017"
                             className="w-full px-4 py-2.5 rounded-xl bg-[var(--bg-primary)] border border-[var(--border-subtle)] focus:border-teal-400 focus:outline-none text-sm font-semibold text-[var(--text-main)]"
                           />
                         </div>
@@ -2235,7 +2462,8 @@ function FuturePredictionPage({
                             min="1980"
                             max="2026"
                             value={manualForm.last_repair_year}
-                            onChange={(e) => handleInputChange('last_repair_year', Number(e.target.value))}
+                            onChange={(e) => handleInputChange('last_repair_year', e.target.value === '' ? '' : Number(e.target.value))}
+                            placeholder="e.g. 2022"
                             className="w-full px-4 py-2.5 rounded-xl bg-[var(--bg-primary)] border border-[var(--border-subtle)] focus:border-teal-400 focus:outline-none text-sm font-semibold text-[var(--text-main)]"
                           />
                         </div>
@@ -2244,7 +2472,7 @@ function FuturePredictionPage({
                   </div>
                 </div>
 
-                {/* Card 5: Utilities & Coverage Sliders */}
+                {/* Card 5: Utilities & Coverage Dual Controls */}
                 <div className="p-6 rounded-3xl bg-[var(--bg-card)] border border-[var(--border-subtle)] space-y-5">
                   <div className="flex items-center justify-between border-b border-[var(--border-subtle)] pb-3">
                     <div className="flex items-center gap-2 text-teal-400 font-bold text-xs uppercase tracking-wider">
@@ -2252,25 +2480,36 @@ function FuturePredictionPage({
                       <span>Utilities & Socio-Economic Coverage (%)</span>
                     </div>
                     <span className="text-xs text-[var(--text-muted)]">
-                      Current Saturation Level (0–100%)
+                      Slide or enter percentage (0–100%)
                     </span>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     {/* Water */}
                     <div className="space-y-2">
-                      <div className="flex justify-between text-xs">
+                      <div className="flex justify-between items-center text-xs">
                         <span className="font-bold text-[var(--text-muted)] flex items-center gap-1.5">
                           <Droplets className="w-3.5 h-3.5 text-blue-400" />
                           Tap Water Supply
                         </span>
-                        <span className="font-bold text-blue-400">{manualForm.water_coverage}%</span>
+                        <div className="flex items-center gap-1">
+                          <input
+                            type="number"
+                            min="0"
+                            max="100"
+                            placeholder="0"
+                            value={manualForm.water_coverage}
+                            onChange={(e) => handleInputChange('water_coverage', e.target.value === '' ? '' : Number(e.target.value))}
+                            className="w-12 px-1.5 py-0.5 rounded-lg bg-[var(--bg-primary)] border border-[var(--border-subtle)] text-right font-bold text-xs text-blue-400 focus:outline-none"
+                          />
+                          <span className="font-bold text-blue-400">%</span>
+                        </div>
                       </div>
                       <input
                         type="range"
                         min="0"
                         max="100"
-                        value={manualForm.water_coverage}
+                        value={manualForm.water_coverage === '' ? 0 : manualForm.water_coverage}
                         onChange={(e) => handleInputChange('water_coverage', Number(e.target.value))}
                         className="w-full accent-blue-500 cursor-pointer"
                       />
@@ -2278,18 +2517,29 @@ function FuturePredictionPage({
 
                     {/* Electricity */}
                     <div className="space-y-2">
-                      <div className="flex justify-between text-xs">
+                      <div className="flex justify-between items-center text-xs">
                         <span className="font-bold text-[var(--text-muted)] flex items-center gap-1.5">
                           <Zap className="w-3.5 h-3.5 text-amber-400" />
                           Electricity Grid
                         </span>
-                        <span className="font-bold text-amber-400">{manualForm.electricity_coverage}%</span>
+                        <div className="flex items-center gap-1">
+                          <input
+                            type="number"
+                            min="0"
+                            max="100"
+                            placeholder="0"
+                            value={manualForm.electricity_coverage}
+                            onChange={(e) => handleInputChange('electricity_coverage', e.target.value === '' ? '' : Number(e.target.value))}
+                            className="w-12 px-1.5 py-0.5 rounded-lg bg-[var(--bg-primary)] border border-[var(--border-subtle)] text-right font-bold text-xs text-amber-400 focus:outline-none"
+                          />
+                          <span className="font-bold text-amber-400">%</span>
+                        </div>
                       </div>
                       <input
                         type="range"
                         min="0"
                         max="100"
-                        value={manualForm.electricity_coverage}
+                        value={manualForm.electricity_coverage === '' ? 0 : manualForm.electricity_coverage}
                         onChange={(e) => handleInputChange('electricity_coverage', Number(e.target.value))}
                         className="w-full accent-amber-500 cursor-pointer"
                       />
@@ -2297,18 +2547,29 @@ function FuturePredictionPage({
 
                     {/* Internet */}
                     <div className="space-y-2">
-                      <div className="flex justify-between text-xs">
+                      <div className="flex justify-between items-center text-xs">
                         <span className="font-bold text-[var(--text-muted)] flex items-center gap-1.5">
                           <Wifi className="w-3.5 h-3.5 text-purple-400" />
                           Broadband Internet
                         </span>
-                        <span className="font-bold text-purple-400">{manualForm.internet_coverage}%</span>
+                        <div className="flex items-center gap-1">
+                          <input
+                            type="number"
+                            min="0"
+                            max="100"
+                            placeholder="0"
+                            value={manualForm.internet_coverage}
+                            onChange={(e) => handleInputChange('internet_coverage', e.target.value === '' ? '' : Number(e.target.value))}
+                            className="w-12 px-1.5 py-0.5 rounded-lg bg-[var(--bg-primary)] border border-[var(--border-subtle)] text-right font-bold text-xs text-purple-400 focus:outline-none"
+                          />
+                          <span className="font-bold text-purple-400">%</span>
+                        </div>
                       </div>
                       <input
                         type="range"
                         min="0"
                         max="100"
-                        value={manualForm.internet_coverage}
+                        value={manualForm.internet_coverage === '' ? 0 : manualForm.internet_coverage}
                         onChange={(e) => handleInputChange('internet_coverage', Number(e.target.value))}
                         className="w-full accent-purple-500 cursor-pointer"
                       />
@@ -2316,24 +2577,43 @@ function FuturePredictionPage({
 
                     {/* Employment */}
                     <div className="space-y-2">
-                      <div className="flex justify-between text-xs">
+                      <div className="flex justify-between items-center text-xs">
                         <span className="font-bold text-[var(--text-muted)] flex items-center gap-1.5">
                           <Briefcase className="w-3.5 h-3.5 text-emerald-400" />
                           Employment Rate
                         </span>
-                        <span className="font-bold text-emerald-400">{manualForm.employment_rate}%</span>
+                        <div className="flex items-center gap-1">
+                          <input
+                            type="number"
+                            min="0"
+                            max="100"
+                            placeholder="0"
+                            value={manualForm.employment_rate}
+                            onChange={(e) => handleInputChange('employment_rate', e.target.value === '' ? '' : Number(e.target.value))}
+                            className="w-12 px-1.5 py-0.5 rounded-lg bg-[var(--bg-primary)] border border-[var(--border-subtle)] text-right font-bold text-xs text-emerald-400 focus:outline-none"
+                          />
+                          <span className="font-bold text-emerald-400">%</span>
+                        </div>
                       </div>
                       <input
                         type="range"
                         min="0"
                         max="100"
-                        value={manualForm.employment_rate}
+                        value={manualForm.employment_rate === '' ? 0 : manualForm.employment_rate}
                         onChange={(e) => handleInputChange('employment_rate', Number(e.target.value))}
                         className="w-full accent-emerald-500 cursor-pointer"
                       />
                     </div>
                   </div>
                 </div>
+
+                {/* Validation Error Banner */}
+                {manualError && (
+                  <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/30 flex items-center gap-3 text-red-300 text-xs font-semibold">
+                    <AlertTriangle className="w-5 h-5 shrink-0" />
+                    <span>{manualError}</span>
+                  </div>
+                )}
 
                 {/* Big Predict Button */}
                 <div className="pt-2">
