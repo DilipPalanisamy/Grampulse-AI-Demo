@@ -1185,22 +1185,6 @@ function PredictionReportView({
               </button>
             ))}
           </div>
-
-          {/* Quick Colorful PDF Button right on Timeline Bar */}
-          <button
-            type="button"
-            onClick={() => handleDownloadPdf('all')}
-            disabled={downloadingYear !== null}
-            className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-rose-600 via-pink-600 to-rose-500 hover:from-rose-500 hover:to-pink-400 text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-rose-950/40 transition-all hover:scale-105 active:scale-95 cursor-pointer disabled:opacity-50"
-            title="Directly download official 5-year future prediction PDF report alone"
-          >
-            {downloadingYear === 'all' ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
-            ) : (
-              <Download className="w-3.5 h-3.5 text-white" />
-            )}
-            <span>Download 5-Year Prediction PDF</span>
-          </button>
         </div>
       </div>
 
@@ -1497,31 +1481,9 @@ function PredictionReportView({
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
-          <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 font-mono font-bold border border-emerald-500/30">
-            Status: Verified & Active
-          </span>
-          {/* BOTTOM DEDICATED PDF DOWNLOADER BUTTON */}
-          <button
-            type="button"
-            onClick={() => handleDownloadPdf('all')}
-            disabled={downloadingYear !== null}
-            className="px-4 py-2 rounded-xl bg-gradient-to-r from-rose-600 via-pink-600 to-amber-500 hover:from-rose-500 hover:to-amber-400 text-white text-xs font-black flex items-center gap-2 shadow-xl shadow-rose-950/60 ring-2 ring-rose-400/40 transition-all hover:scale-105 active:scale-95 cursor-pointer disabled:opacity-60 disabled:cursor-wait"
-            title="Directly download official 5-year future prediction PDF report alone"
-          >
-            {downloadingYear === 'all' ? (
-              <>
-                <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
-                <span>Downloading 5-Year PDF...</span>
-              </>
-            ) : (
-              <>
-                <Download className="w-3.5 h-3.5 text-white" />
-                <span>Download 5-Year Prediction PDF</span>
-              </>
-            )}
-          </button>
-        </div>
+        <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 font-mono font-bold border border-emerald-500/30">
+          Status: Verified & Active
+        </span>
       </div>
     </div>
   );
@@ -1730,79 +1692,27 @@ function FuturePredictionPage({
     return ((b - d + m) / 10).toFixed(2);
   }, [manualForm.birth_rate, manualForm.death_rate, manualForm.migration_rate]);
 
-  // Top PDF Downloader State & Handler for 5-Year Forecast Alone
-  const [topDownloading, setTopDownloading] = useState(false);
-
-  const activePredictionForDownload = useMemo(() => {
-    if (activeSlide === 'manual' && manualPrediction) {
-      return manualPrediction;
-    }
-    return selectedPrediction;
-  }, [activeSlide, manualPrediction, selectedPrediction]);
-
-  const handleDownloadTopPredictionPdf = useCallback(async () => {
-    if (!activePredictionForDownload) return;
-    try {
-      setTopDownloading(true);
-      await new Promise((resolve) => setTimeout(resolve, 150));
-      generatePredictionPdf({
-        predictionData: activePredictionForDownload,
-        targetYear: 'all',
-        villageName: activePredictionForDownload?.village || selectedLocation?.gp_name,
-        district: activePredictionForDownload?.district || selectedLocation?.district,
-        state: activePredictionForDownload?.state || selectedLocation?.state,
-      });
-    } catch (err) {
-      console.error('Error downloading 5-year prediction PDF from top bar:', err);
-    } finally {
-      setTopDownloading(false);
-    }
-  }, [activePredictionForDownload, selectedLocation]);
-
   return (
     <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-main)] p-4 sm:p-6 lg:p-8 selection:bg-emerald-500 selection:text-white">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* ==================================================
-            NAVIGATION & BREADCRUMBS & TOP PDF DOWNLOADER
+            NAVIGATION & BREADCRUMBS
         ================================================== */}
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={onBackToDashboard}
-              className="flex items-center gap-2 text-xs sm:text-sm font-bold text-emerald-400 hover:text-emerald-300 transition-colors bg-[var(--bg-card)] px-4 py-2 rounded-xl border border-[var(--border-subtle)] hover:border-emerald-500/40 shadow-sm cursor-pointer active:scale-95"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Back to Dashboard</span>
-            </button>
-
-            <div className="hidden sm:flex items-center gap-2 text-xs text-[var(--text-muted)]">
-              <span className="font-semibold text-emerald-400">GramPulse AI</span>
-              <ChevronRight className="w-3.5 h-3.5" />
-              <span>5-Year Development Predictor</span>
-            </div>
-          </div>
-
-          {/* TOP PDF DOWNLOADER BUTTON */}
           <button
             type="button"
-            onClick={handleDownloadTopPredictionPdf}
-            disabled={topDownloading || !activePredictionForDownload}
-            className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-rose-600 via-pink-600 to-amber-500 hover:from-rose-500 hover:to-amber-400 text-white text-xs sm:text-sm font-black flex items-center gap-2 shadow-xl shadow-rose-950/60 ring-2 ring-rose-400/40 transition-all hover:scale-105 active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-            title="Directly download official 5-year future prediction PDF report alone"
+            onClick={onBackToDashboard}
+            className="flex items-center gap-2 text-xs sm:text-sm font-bold text-emerald-400 hover:text-emerald-300 transition-colors bg-[var(--bg-card)] px-4 py-2 rounded-xl border border-[var(--border-subtle)] hover:border-emerald-500/40 shadow-sm cursor-pointer active:scale-95"
           >
-            {topDownloading ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin text-white" />
-                <span>Downloading 5-Year PDF...</span>
-              </>
-            ) : (
-              <>
-                <Download className="w-4 h-4 text-white" />
-                <span>Download 5-Year Prediction PDF</span>
-              </>
-            )}
+            <ArrowLeft className="w-4 h-4" />
+            <span>Back to Dashboard</span>
           </button>
+
+          <div className="flex items-center gap-2 text-xs text-[var(--text-muted)]">
+            <span className="font-semibold text-emerald-400">GramPulse AI</span>
+            <ChevronRight className="w-3.5 h-3.5" />
+            <span>5-Year Development Predictor</span>
+          </div>
         </div>
 
         {/* ==================================================
