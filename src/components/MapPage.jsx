@@ -18,6 +18,7 @@ import {
   Layers,
   Bot,
   TrendingUp,
+  Landmark,
 } from 'lucide-react';
 import { useLocation } from '../context/LocationContext';
 import { useTheme } from '../context/ThemeContext';
@@ -208,7 +209,7 @@ export default function MapPage({ onBackToDashboard, onOpenChatbot }) {
               onClick={onOpenChatbot}
               className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold shadow-lg shadow-emerald-950/40 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
             >
-              <Bot className="w-4 h-4" />
+              <Landmark className="w-4 h-4" />
               <span>Government Schemes Assistant</span>
             </button>
           </div>

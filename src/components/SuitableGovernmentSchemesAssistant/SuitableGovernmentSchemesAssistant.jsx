@@ -28,6 +28,7 @@ import {
   CheckCircle2,
   Info,
   Award,
+  TrendingUp,
 } from 'lucide-react';
 import { useLocation } from '../../context/LocationContext';
 import { useAuth } from '../../context/AuthContext';
@@ -354,10 +355,30 @@ SchemeCard.propTypes = {
 /**
  * Main Suitable Government Schemes Assistant Component.
  */
-export default function SuitableGovernmentSchemesAssistant({ isOpen, onClose, onToggle }) {
+export default function SuitableGovernmentSchemesAssistant({
+  isOpen,
+  onClose,
+  onToggle,
+  onNavigateToPrediction,
+}) {
   const { user } = useAuth();
-  const { selectedLocation, planningHorizon } = useLocation();
+  const { selectedLocation, planningHorizon, setActiveTab } = useLocation();
   const { activePalette } = useTheme();
+
+  const handleGoToPrediction = useCallback(
+    (mode = 'selected') => {
+      if (onClose) onClose();
+      if (onNavigateToPrediction) {
+        onNavigateToPrediction(mode);
+      } else if (setActiveTab) {
+        setActiveTab('prediction');
+      }
+      if (typeof window !== 'undefined') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    },
+    [onClose, onNavigateToPrediction, setActiveTab]
+  );
 
   const [messages, setMessages] = useState([]);
   const [textInput, setTextInput] = useState('');
@@ -457,22 +478,40 @@ You can explore official Central & State schemes on [india.gov.in](https://www.i
     handleSendQuery(textInput);
   };
 
-  // Floating Trigger Button (when closed)
+  // Floating Trigger Buttons Dock (when closed)
   if (!isOpen) {
     return (
-      <button
-        type="button"
-        onClick={onToggle}
-        className="fixed bottom-20 right-6 z-[1090] group flex items-center gap-2.5 px-4 py-3 rounded-full bg-gradient-to-r from-teal-700 via-emerald-600 to-teal-500 hover:from-teal-600 hover:to-emerald-400 text-white font-bold text-xs sm:text-sm shadow-2xl shadow-teal-950/80 ring-4 ring-teal-400/30 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer animate-pulse"
-        title="Open Suitable Government Schemes AI Assistant"
-      >
-        <div className="relative">
-          <Landmark className="w-5 h-5 text-emerald-100" />
-          <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-cyan-300 animate-ping" />
-        </div>
-        <span className="hidden sm:inline font-black tracking-tight">Suitable Government Schemes</span>
-        <span className="sm:hidden font-black">Govt Schemes</span>
-      </button>
+      <div className="fixed bottom-20 right-4 sm:right-6 z-[1090] flex flex-col sm:flex-row items-end sm:items-center gap-2.5 sm:gap-3 pointer-events-none">
+        {/* Future Prediction Floating Trigger Button */}
+        <button
+          type="button"
+          onClick={() => handleGoToPrediction('selected')}
+          className="pointer-events-auto group flex items-center gap-2.5 px-4 py-3 rounded-full bg-gradient-to-r from-indigo-700 via-purple-600 to-teal-500 hover:from-indigo-600 hover:to-purple-500 text-white font-bold text-xs sm:text-sm shadow-2xl shadow-indigo-950/80 ring-4 ring-indigo-400/30 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
+          title="Open 5-Year Village Future Development & Infrastructure Prediction"
+        >
+          <div className="relative">
+            <TrendingUp className="w-5 h-5 text-indigo-100" />
+            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping" />
+          </div>
+          <span className="hidden sm:inline font-black tracking-tight">Future Prediction</span>
+          <span className="sm:hidden font-black">Prediction</span>
+        </button>
+
+        {/* Suitable Government Schemes Floating Trigger Button */}
+        <button
+          type="button"
+          onClick={onToggle}
+          className="pointer-events-auto group flex items-center gap-2.5 px-4 py-3 rounded-full bg-gradient-to-r from-teal-700 via-emerald-600 to-teal-500 hover:from-teal-600 hover:to-emerald-400 text-white font-bold text-xs sm:text-sm shadow-2xl shadow-teal-950/80 ring-4 ring-teal-400/30 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer animate-pulse"
+          title="Open Suitable Government Schemes AI Assistant"
+        >
+          <div className="relative">
+            <Landmark className="w-5 h-5 text-emerald-100" />
+            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-cyan-300 animate-ping" />
+          </div>
+          <span className="hidden sm:inline font-black tracking-tight">Suitable Government Schemes</span>
+          <span className="sm:hidden font-black">Govt Schemes</span>
+        </button>
+      </div>
     );
   }
 
@@ -505,7 +544,16 @@ You can explore official Central & State schemes on [india.gov.in](https://www.i
         </div>
 
         {/* Action Controls */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 sm:gap-1.5">
+          <button
+            type="button"
+            onClick={() => handleGoToPrediction('selected')}
+            className="px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-[11px] font-bold shadow-sm transition-all flex items-center gap-1 cursor-pointer active:scale-95 mr-1"
+            title="Open 5-Year Future Prediction"
+          >
+            <TrendingUp className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Future Prediction</span>
+          </button>
           <button
             type="button"
             onClick={initConversation}
@@ -615,6 +663,22 @@ You can explore official Central & State schemes on [india.gov.in](https://www.i
             <div ref={messagesEndRef} />
           </div>
 
+          {/* Quick Bridge to Future Prediction */}
+          <div className="px-3.5 py-2 bg-[var(--bg-card-hover)] border-t border-[var(--border-subtle)] flex items-center justify-between text-xs flex-shrink-0">
+            <span className="text-[11px] text-[var(--text-muted)] font-medium truncate flex items-center gap-1.5">
+              <TrendingUp className="w-3.5 h-3.5 text-indigo-400" />
+              <span>5-Year Village Development Forecast:</span>
+            </span>
+            <button
+              type="button"
+              onClick={() => handleGoToPrediction('selected')}
+              className="px-2.5 py-1 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-[11px] font-bold shadow-sm transition-all flex items-center gap-1 cursor-pointer active:scale-95 flex-shrink-0"
+            >
+              <TrendingUp className="w-3 h-3" />
+              <span>Future Prediction</span>
+            </button>
+          </div>
+
           {/* 3. Text Query Input Footer */}
           <form
             onSubmit={handleSubmit}
@@ -646,4 +710,5 @@ SuitableGovernmentSchemesAssistant.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
   onToggle: PropTypes.func.isRequired,
+  onNavigateToPrediction: PropTypes.func,
 };

@@ -18,6 +18,7 @@ import {
   Loader2,
   TrendingUp,
   Sparkles,
+  Landmark,
 } from 'lucide-react';
 
 import { useAuth } from '../context/AuthContext';
@@ -252,6 +253,7 @@ function DashboardLayout() {
             isOpen={isChatbotOpen}
             onClose={handleCloseChatbot}
             onToggle={handleToggleChatbot}
+            onNavigateToPrediction={handleNavigateToPrediction}
           />
         </Suspense>
       </div>
@@ -482,7 +484,7 @@ function DashboardLayout() {
                   activePalette.primary,
               }}
             >
-              <Bot
+              <TrendingUp
                 className="w-3.5 h-3.5"
                 style={{
                   color:
@@ -495,7 +497,7 @@ function DashboardLayout() {
               </span>
             </button>
 
-            {/* AI ASSISTANT */}
+            {/* GOVERNMENT SCHEMES */}
 
             <button
               type="button"
@@ -508,7 +510,7 @@ function DashboardLayout() {
                   activePalette.primary,
               }}
             >
-              <Bot
+              <Landmark
                 className="w-3.5 h-3.5"
                 style={{
                   color:
@@ -741,6 +743,9 @@ function DashboardLayout() {
           }
           onToggle={
             handleToggleChatbot
+          }
+          onNavigateToPrediction={
+            handleNavigateToPrediction
           }
         />
 
