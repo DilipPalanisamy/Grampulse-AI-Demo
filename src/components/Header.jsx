@@ -19,6 +19,8 @@ import {
   AlertCircle,
   Compass,
   TrendingUp,
+  Mail,
+  ShieldCheck,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLocation } from '../context/LocationContext';
@@ -78,11 +80,17 @@ export default function Header({ onOpenReportModal }) {
   const [localInput, setLocalInput] = useState('');
   const searchContainerRef = useRef(null);
 
-  // Close search dropdown on outside click
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const profileMenuRef = useRef(null);
+
+  // Close search & profile dropdown on outside click
   useEffect(() => {
     const handleOutsideClick = (e) => {
       if (searchContainerRef.current && !searchContainerRef.current.contains(e.target)) {
         setIsSearchOpen(false);
+      }
+      if (profileMenuRef.current && !profileMenuRef.current.contains(e.target)) {
+        setIsProfileOpen(false);
       }
     };
     document.addEventListener('mousedown', handleOutsideClick);
@@ -394,14 +402,17 @@ export default function Header({ onOpenReportModal }) {
             </button>
           </div>
 
-          {/* User Profile Avatar & Sign Out */}
-          <div className="flex items-center gap-2 pl-2 border-l border-[var(--border-subtle)]">
-            <div
-              className="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white text-xs font-black shadow-md border border-white/10"
-              title={`${user?.name || 'Citizen'} (${user?.email || ''})`}
+          {/* User Profile Avatar (DI Logo) & Sign Out */}
+          <div className="relative flex items-center gap-2 pl-2 border-l border-[var(--border-subtle)]" ref={profileMenuRef}>
+            <button
+              type="button"
+              onClick={() => setIsProfileOpen((prev) => !prev)}
+              className="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 flex items-center justify-center text-white text-xs font-black shadow-md border border-white/20 transition-all hover:scale-105 active:scale-95 cursor-pointer ring-2 ring-transparent hover:ring-emerald-400/40"
+              title={`${user?.name || 'Citizen'} • Click to view Citizen Portal & Profile`}
+              aria-label="User Profile and Citizen Portal"
             >
               {getInitials(user?.name)}
-            </div>
+            </button>
 
             <button
               onClick={logout}
@@ -410,6 +421,77 @@ export default function Header({ onOpenReportModal }) {
             >
               <LogOut className="w-3.5 h-3.5" />
             </button>
+
+            {/* NEAT CITIZEN PROFILE & PORTAL DROPDOWN (Clicking DI Logo) */}
+            {isProfileOpen && (
+              <div className="absolute right-0 top-full mt-2.5 w-80 sm:w-96 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-subtle)] shadow-2xl p-4 sm:p-5 z-50 backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150 space-y-3.5">
+                {/* 1. User Identity Header (Name + Gmail) */}
+                <div className="flex items-center gap-3.5 pb-3 border-b border-[var(--border-subtle)]">
+                  <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white text-sm font-black shadow-lg shadow-emerald-950/40 ring-2 ring-emerald-400/30 shrink-0">
+                    {getInitials(user?.name)}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-sm font-black text-[var(--text-main)] truncate capitalize">
+                        {user?.name || 'Citizen User'}
+                      </h4>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                        Citizen
+                      </span>
+                    </div>
+                    <p className="text-xs text-[var(--text-muted)] truncate flex items-center gap-1.5 mt-0.5">
+                      <Mail className="w-3.5 h-3.5 shrink-0 text-emerald-400" />
+                      <span className="truncate">{user?.email || 'No email registered'}</span>
+                    </p>
+                  </div>
+                </div>
+
+                {/* 2. Citizen Portal Info Box (Moved cleanly from below search bar) */}
+                <div
+                  className="p-3.5 rounded-xl border text-xs space-y-2"
+                  style={{
+                    backgroundColor: `${activePalette.primary}12`,
+                    borderColor: `${activePalette.primary}30`,
+                  }}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5 font-bold" style={{ color: activePalette.primary }}>
+                      <ShieldCheck className="w-4 h-4 shrink-0" />
+                      <span>Citizen Portal Access</span>
+                    </div>
+                    <span className="flex items-center gap-1.5 text-[10px] font-mono text-[var(--text-muted)]">
+                      <span
+                        className="w-2 h-2 rounded-full animate-pulse shrink-0"
+                        style={{ backgroundColor: activePalette.primary }}
+                      />
+                      PostGIS Cluster Active
+                    </span>
+                  </div>
+
+                  <p className="text-[11px] text-[var(--text-muted)] leading-relaxed">
+                    Active Multi-Location GPDP Planning, Census Cohorts &amp; Grievance Access.
+                  </p>
+                </div>
+
+                {/* 3. Action Footer (Sign Out) */}
+                <div className="pt-1 flex items-center justify-between gap-3 border-t border-[var(--border-subtle)]">
+                  <span className="text-[10px] text-[var(--text-muted)] font-mono">
+                    GramPulse AI Governance
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsProfileOpen(false);
+                      logout();
+                    }}
+                    className="px-3 py-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 border border-red-500/30 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95"
+                  >
+                    <LogOut className="w-3.5 h-3.5" />
+                    <span>Sign Out</span>
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
         </div>

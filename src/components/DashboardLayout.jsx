@@ -11,7 +11,6 @@ import {
   MapPin,
   ShieldCheck,
   CheckCircle2,
-  User as UserIcon,
   Building2,
   ArrowRight,
   Bot,
@@ -285,60 +284,7 @@ function DashboardLayout() {
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
-        {/* ====================================================
-            CITIZEN PORTAL
-        ==================================================== */}
 
-        <div
-          className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 rounded-xl border text-xs backdrop-blur-md"
-          style={{
-            backgroundColor:
-              `${activePalette.primary}12`,
-            borderColor:
-              `${activePalette.primary}30`,
-            color:
-              activePalette.primary,
-          }}
-        >
-          <div className="flex items-center gap-2">
-
-            <UserIcon
-              className="w-4 h-4 flex-shrink-0"
-              style={{
-                color:
-                  activePalette.primary,
-              }}
-            />
-
-            <span>
-              <strong>
-                Citizen Portal:
-              </strong>{' '}
-
-              Welcome,{' '}
-              {user?.name || 'Resident'}{' '}
-
-              ({user?.email}) • Active
-              Multi-Location GPDP Planning
-              &amp; Grievance Access
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2 text-[11px] text-[var(--text-muted)]">
-
-            <span
-              className="inline-block w-1.5 h-1.5 rounded-full animate-pulse"
-              style={{
-                backgroundColor:
-                  activePalette.primary,
-              }}
-            />
-
-            <span>
-              PostGIS Cluster Active
-            </span>
-          </div>
-        </div>
 
         {/* ====================================================
             HERO SEARCH
