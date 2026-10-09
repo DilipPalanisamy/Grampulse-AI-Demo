@@ -253,6 +253,7 @@ function DashboardLayout() {
             onClose={handleCloseChatbot}
             onToggle={handleToggleChatbot}
             onNavigateToPrediction={handleNavigateToPrediction}
+            hideFloatingTrigger={true}
           />
         </Suspense>
       </div>

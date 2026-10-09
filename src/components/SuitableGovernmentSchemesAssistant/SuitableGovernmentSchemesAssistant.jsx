@@ -360,6 +360,7 @@ export default function SuitableGovernmentSchemesAssistant({
   onClose,
   onToggle,
   onNavigateToPrediction,
+  hideFloatingTrigger = false,
 }) {
   const { user } = useAuth();
   const { selectedLocation, planningHorizon, setActiveTab } = useLocation();
@@ -480,18 +481,20 @@ You can explore official Central & State schemes on [india.gov.in](https://www.i
 
   // Floating Trigger Buttons Dock (when closed)
   if (!isOpen) {
+    if (hideFloatingTrigger) return null;
+
     return (
-      <div className="fixed bottom-20 right-4 sm:right-6 z-[1090] flex flex-col sm:flex-row items-end sm:items-center gap-2.5 sm:gap-3 pointer-events-none">
+      <div className="fixed bottom-4 sm:bottom-6 right-4 sm:right-6 z-[1090] flex flex-col sm:flex-row items-end sm:items-center gap-2.5 sm:gap-3 pointer-events-none">
         {/* Future Prediction Floating Trigger Button */}
         <button
           type="button"
           onClick={() => handleGoToPrediction('selected')}
-          className="pointer-events-auto group flex items-center gap-2.5 px-4 py-3 rounded-full bg-gradient-to-r from-indigo-700 via-purple-600 to-teal-500 hover:from-indigo-600 hover:to-purple-500 text-white font-bold text-xs sm:text-sm shadow-2xl shadow-indigo-950/80 ring-4 ring-indigo-400/30 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
+          className="pointer-events-auto group flex items-center gap-2 px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-full bg-gradient-to-r from-indigo-700 via-purple-600 to-teal-500 hover:from-indigo-600 hover:to-purple-500 text-white font-bold text-xs sm:text-sm shadow-xl shadow-indigo-950/80 ring-2 ring-indigo-400/30 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
           title="Open 5-Year Village Future Development & Infrastructure Prediction"
         >
           <div className="relative">
-            <TrendingUp className="w-5 h-5 text-indigo-100" />
-            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping" />
+            <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-100" />
+            <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-amber-400 animate-ping" />
           </div>
           <span className="hidden sm:inline font-black tracking-tight">Future Prediction</span>
           <span className="sm:hidden font-black">Prediction</span>
@@ -501,12 +504,12 @@ You can explore official Central & State schemes on [india.gov.in](https://www.i
         <button
           type="button"
           onClick={onToggle}
-          className="pointer-events-auto group flex items-center gap-2.5 px-4 py-3 rounded-full bg-gradient-to-r from-teal-700 via-emerald-600 to-teal-500 hover:from-teal-600 hover:to-emerald-400 text-white font-bold text-xs sm:text-sm shadow-2xl shadow-teal-950/80 ring-4 ring-teal-400/30 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer animate-pulse"
+          className="pointer-events-auto group flex items-center gap-2 px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-full bg-gradient-to-r from-teal-700 via-emerald-600 to-teal-500 hover:from-teal-600 hover:to-emerald-400 text-white font-bold text-xs sm:text-sm shadow-xl shadow-teal-950/80 ring-2 ring-teal-400/30 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
           title="Open Suitable Government Schemes AI Assistant"
         >
           <div className="relative">
-            <Landmark className="w-5 h-5 text-emerald-100" />
-            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-cyan-300 animate-ping" />
+            <Landmark className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-100" />
+            <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-cyan-300 animate-ping" />
           </div>
           <span className="hidden sm:inline font-black tracking-tight">Suitable Government Schemes</span>
           <span className="sm:hidden font-black">Govt Schemes</span>
@@ -711,4 +714,5 @@ SuitableGovernmentSchemesAssistant.propTypes = {
   onClose: PropTypes.func.isRequired,
   onToggle: PropTypes.func.isRequired,
   onNavigateToPrediction: PropTypes.func,
+  hideFloatingTrigger: PropTypes.bool,
 };

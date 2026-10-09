@@ -79,9 +79,23 @@ export default function Header({ onOpenReportModal }) {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [localInput, setLocalInput] = useState('');
   const searchContainerRef = useRef(null);
+  const searchInputRef = useRef(null);
 
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const profileMenuRef = useRef(null);
+
+  // Global Ctrl+K / Cmd+K keyboard shortcut to focus search
+  useEffect(() => {
+    const handleGlobalKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+        setIsSearchOpen(true);
+      }
+    };
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, []);
 
   // Close search & profile dropdown on outside click
   useEffect(() => {
@@ -193,39 +207,49 @@ export default function Header({ onOpenReportModal }) {
         </div>
 
         {/* ================================================================= */}
-        {/* 2. CENTER: ENLARGED PROMINENT INTERACTIVE SEARCH BAR              */}
+        {/* 2. CENTER: SLEEK, ATTRACTIVE COMPACT SEARCH BAR                   */}
         {/* ================================================================= */}
-        <div className="flex-1 max-w-2xl mx-1 sm:mx-4 relative overflow-visible" ref={searchContainerRef}>
+        <div className="flex-1 max-w-md lg:max-w-lg mx-2 sm:mx-3 relative overflow-visible" ref={searchContainerRef}>
           <div className="relative flex items-center group">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors" style={{ color: activePalette.primary }}>
-              <Search className="w-5 h-5" />
+            <div
+              className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors duration-200 group-focus-within:text-emerald-500"
+              style={{ color: activePalette.primary }}
+            >
+              <Search className="w-4 h-4 transition-transform duration-200 group-focus-within:scale-110" />
             </div>
 
             <input
+              ref={searchInputRef}
               type="text"
               value={localInput}
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
               onFocus={() => setIsSearchOpen(true)}
               placeholder="Search village, town, or Panchayat..."
-              className="w-full pl-11 pr-10 py-3 text-sm sm:text-base font-medium shadow-lg rounded-xl bg-[var(--bg-primary)] border border-[var(--border-subtle)] focus:border-[var(--color-primary)] text-[var(--text-main)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-glow)] transition-all font-sans"
+              className="w-full pl-9 sm:pl-10 pr-14 sm:pr-16 py-2 sm:py-2.5 text-xs sm:text-sm font-medium rounded-2xl bg-[var(--bg-primary)]/85 hover:bg-[var(--bg-primary)] focus:bg-[var(--bg-card)] border border-[var(--border-subtle)] hover:border-emerald-500/40 focus:border-emerald-500 text-[var(--text-main)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-emerald-500/20 shadow-xs hover:shadow-sm focus:shadow-md focus:shadow-emerald-500/10 backdrop-blur-md transition-all duration-200 font-sans"
             />
 
-            {/* Clear Button or Spinner */}
-            {localInput ? (
-              <button
-                type="button"
-                onClick={handleClear}
-                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[var(--text-muted)] hover:text-[var(--text-main)] cursor-pointer transition-colors"
-                title="Clear query"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            ) : isSearching ? (
-              <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none" style={{ color: activePalette.primary }}>
-                <Loader2 className="w-4 h-4 animate-spin" />
-              </div>
-            ) : null}
+            {/* Clear Button, Spinner, or Keyboard Hint Badge */}
+            <div className="absolute inset-y-0 right-0 pr-3 flex items-center gap-1.5">
+              {localInput ? (
+                <button
+                  type="button"
+                  onClick={handleClear}
+                  className="p-1 rounded-md text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-card-hover)] cursor-pointer transition-colors"
+                  title="Clear query"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              ) : isSearching ? (
+                <div className="flex items-center text-emerald-500">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                </div>
+              ) : (
+                <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 text-[10px] font-mono font-semibold text-[var(--text-muted)] bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-md shadow-xs pointer-events-none select-none">
+                  Ctrl K
+                </kbd>
+              )}
+            </div>
           </div>
 
           {/* Autocomplete Dropdown with Highlighted Text Matches */}
