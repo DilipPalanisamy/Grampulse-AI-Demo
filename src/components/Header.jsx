@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import {
   Sparkles,
-  Calendar,
   PlusCircle,
   LogOut,
   MapPin,
@@ -66,8 +65,6 @@ export default function Header({ onOpenReportModal }) {
     selectedLocation,
     selectedGpId,
     selectLocation,
-    planningHorizon,
-    setPlanningHorizon,
     searchResults,
     isSearching,
     handleSearch,
@@ -361,22 +358,6 @@ export default function Header({ onOpenReportModal }) {
             </button>
           </div>
 
-          {/* Planning Horizon Selector */}
-          <div className="hidden lg:flex items-center gap-1.5 bg-[var(--bg-primary)] px-2.5 py-2 rounded-xl border border-[var(--border-subtle)] text-xs text-[var(--text-muted)] flex-shrink-0">
-            <Calendar className="w-3.5 h-3.5 text-[var(--text-subtle)]" />
-            <span className="text-[11px] font-semibold text-[var(--text-muted)]">Horizon:</span>
-            <select
-              value={planningHorizon}
-              onChange={(e) => setPlanningHorizon(Number(e.target.value))}
-              aria-label="Select Planning Horizon"
-              className="bg-transparent font-bold focus:outline-none cursor-pointer text-xs"
-              style={{ color: activePalette.primary }}
-            >
-              <option value={3} className="bg-[var(--bg-card)] text-[var(--text-main)]">3 Yrs</option>
-              <option value={5} className="bg-[var(--bg-card)] text-[var(--text-main)]">5 Yrs</option>
-              <option value={7} className="bg-[var(--bg-card)] text-[var(--text-main)]">7 Yrs</option>
-            </select>
-          </div>
 
           {/* Visual Theme Toggle & Customizer Control in Top Navigation */}
           <div className="flex items-center gap-1.5 flex-shrink-0">
