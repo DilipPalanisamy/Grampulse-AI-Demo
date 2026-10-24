@@ -5,9 +5,17 @@ import { searchSpatialLocation, reverseGeocodeLocation } from './api';
 const SEARCH_RESULTS_CACHE = new Map();
 const REVERSE_GEOCODE_CACHE = new Map();
 
+const getBackendBaseUrl = () => {
+  const envUrl = import.meta.env?.VITE_API_BASE_URL;
+  if (envUrl) {
+    return envUrl.replace(/\/api\/v1\/?$/, '');
+  }
+  return 'http://127.0.0.1:8000';
+};
+
 /**
- * Searches real-world Indian villages, towns, and cities via live OpenStreetMap Nominatim
- * and backend GIS spatial geocoding engine.
+ * Searches real-world Indian villages and towns via the official FastAPI Census directory.
+ * Connects directly to GET /village/search?query=<query>.
  */
 export const searchRealVillages = async (query = '', stateFilter = '') => {
   const cleanQ = (query || '').trim();
@@ -20,7 +28,53 @@ export const searchRealVillages = async (query = '', stateFilter = '') => {
     return SEARCH_RESULTS_CACHE.get(cacheKey);
   }
 
-  // 1. First attempt query via Backend Spatial API
+  // 1. PRIMARY: Query existing FastAPI Backend Official Census Search Endpoint
+  try {
+    const backendBase = getBackendBaseUrl();
+    const res = await axios.get(`${backendBase}/village/search`, {
+      params: { query: cleanQ, limit: 15 },
+      timeout: 5000,
+    });
+
+    if (res.data && res.data.status && Array.isArray(res.data.results) && res.data.results.length > 0) {
+      const formatted = res.data.results.map((item, idx) => {
+        const censusCode = item.census_code || null;
+        const gpId = censusCode ? parseInt(censusCode, 10) : 1000 + idx;
+        const locType = item.level === 'TOWN' ? 'Census Town' : item.level || 'Village';
+
+        return {
+          gp_id: gpId,
+          gp_code: censusCode ? `CENSUS-${censusCode}` : `GP-${gpId}`,
+          gp_name: item.name,
+          village_name: item.name,
+          raw_name: item.raw_name,
+          location_type: locType,
+          level: item.level,
+          census_code: censusCode,
+          subdistrict_code: item.subdistrict_code,
+          district: item.district || 'Coimbatore',
+          state: item.state || 'Tamil Nadu',
+          population: item.population ?? null,
+          households: item.households ?? null,
+          reference_year: item.reference_year || 2011,
+          source: item.source || 'Census of India 2011 Primary Census Abstract',
+          isOfficialCensus: true,
+          tagline: `${item.name} (${locType}, ${item.district || 'Tamil Nadu'})`,
+          description: `Authentic Census 2011 record: Pop ${item.population ? item.population.toLocaleString() : 'N/A'}, HH ${item.households ? item.households.toLocaleString() : 'N/A'}. Ref Year: ${item.reference_year || 2011}.`,
+          // Coordinates fallback for map positioning if known
+          lat: 11.05 + (idx * 0.02),
+          lng: 77.05 + (idx * 0.02),
+        };
+      });
+
+      SEARCH_RESULTS_CACHE.set(cacheKey, formatted);
+      return formatted;
+    }
+  } catch (backendErr) {
+    console.warn('FastAPI backend Census search unavailable or timed out:', backendErr);
+  }
+
+  // 2. SECONDARY: Backend Spatial GIS Search Fallback
   try {
     const backendResults = await searchSpatialLocation(cleanQ, stateFilter);
     if (Array.isArray(backendResults) && backendResults.length > 0) {
@@ -28,6 +82,7 @@ export const searchRealVillages = async (query = '', stateFilter = '') => {
         gp_id: item.gp_id,
         gp_code: item.gp_code,
         gp_name: item.gp_name,
+        village_name: item.gp_name,
         district: item.district,
         state: item.state,
         lat: item.lat,
@@ -40,10 +95,10 @@ export const searchRealVillages = async (query = '', stateFilter = '') => {
       return formatted;
     }
   } catch (backendErr) {
-    console.warn('Backend spatial search fallback to direct OSM Nominatim:', backendErr);
+    // Continue to OSM Nominatim
   }
 
-  // 2. Direct Query to OpenStreetMap Nominatim Geocoding API
+  // 3. TERTIARY: OpenStreetMap Nominatim Live Geocoding Fallback
   try {
     const searchUrl = 'https://nominatim.openstreetmap.org/search';
     const searchQuery = stateFilter ? `${cleanQ}, ${stateFilter}, India` : `${cleanQ}, India`;
@@ -95,14 +150,15 @@ export const searchRealVillages = async (query = '', stateFilter = '') => {
           gp_id: gpId,
           gp_code: `GP-${String(gpId % 1000).padStart(3, '0')}`,
           gp_name: name,
+          village_name: name,
           district: district,
           state: state,
           lat: lat,
           lng: lng,
           geojson: item.geojson,
           boundingbox: item.boundingbox,
-          tagline: `Real Geospatial Habitation (${district}, ${state})`,
-          description: `Live geocoded settlement at ${lat.toFixed(4)}°N, ${lng.toFixed(4)}°E connected to PostGIS & MoPR spatial network.`,
+          tagline: `Real Settlement (${district}, ${state})`,
+          description: `Geocoded settlement at ${lat.toFixed(4)}°N, ${lng.toFixed(4)}°E.`,
           isLiveGeocoded: true,
         };
       });
@@ -110,7 +166,7 @@ export const searchRealVillages = async (query = '', stateFilter = '') => {
     SEARCH_RESULTS_CACHE.set(cacheKey, liveResults);
     return liveResults;
   } catch (err) {
-    console.error('Live Nominatim geocoding error:', err);
+    console.error('Village search geocoding error:', err);
     return [];
   }
 };
@@ -179,6 +235,7 @@ export const reverseGeocodeCoordinates = async (lat, lng) => {
       gp_id: gpId,
       gp_code: `GP-PIN-${String(gpId % 1000).padStart(3, '0')}`,
       gp_name: name,
+      village_name: name,
       district: district,
       state: state,
       lat: Number(lat),
@@ -197,6 +254,7 @@ export const reverseGeocodeCoordinates = async (lat, lng) => {
       gp_id: 9999,
       gp_code: 'GP-PIN-MANUAL',
       gp_name: `Point (${lat.toFixed(3)}, ${lng.toFixed(3)})`,
+      village_name: `Point (${lat.toFixed(3)}, ${lng.toFixed(3)})`,
       district: 'Local District',
       state: 'India',
       lat: Number(lat),

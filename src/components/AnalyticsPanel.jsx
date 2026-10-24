@@ -123,45 +123,49 @@ const AnalyticsPanel = ({
   const targetYear = analytics?.target_year || p?.target_year || 2029;
   const priorities = analytics?.priority_analysis || p?.priority_analysis || {};
 
-  // 1. Population Metrics (Demographic ML Extrapolator)
-  const popCurrent = Number(p?.population_current || 5800);
-  const popProjected = Number(p?.population_projected || 6341);
-  const popGrowth = Number(p?.population_growth || popProjected - popCurrent);
+  // 1. Population Metrics (Authentic Census Baseline & Demographic Model Projection)
+  const rawPop = selectedLocation?.indicators?.total_population?.value ?? selectedLocation?.population ?? p?.population_current;
+  const popCurrent = rawPop != null ? Number(rawPop) : null;
+  const popProjected = p?.population_projected != null ? Number(p.population_projected) : (popCurrent != null ? Math.round(popCurrent * 1.09) : null);
+  const popGrowth = popProjected != null && popCurrent != null ? popProjected - popCurrent : null;
 
   // 2. Water Metrics (JJM 55 LPD Norm)
-  const waterDemand = Number(p?.water_demand_projected_lpd || popProjected * 55);
-  const waterSupply = Number(p?.water_supply_current_lpd || 275000);
-  const waterDeficit = Number(p?.water_deficit_lpd || Math.max(0, waterDemand - waterSupply));
-  const waterDeficitPct = Math.min(100, Math.round((waterDeficit / (waterDemand || 1)) * 100));
-  const waterCoveragePct = Math.min(100, Math.max(0, Math.round((waterSupply / (waterDemand || 1)) * 100)));
+  const rawWaterSupply = selectedLocation?.daily_water_supply_liters ?? p?.water_supply_current_lpd;
+  const waterSupply = rawWaterSupply != null ? Number(rawWaterSupply) : (popCurrent != null ? Math.round(popCurrent * 50) : null);
+  const waterDemand = popProjected != null ? Number(p?.water_demand_projected_lpd || popProjected * 55) : (popCurrent != null ? popCurrent * 55 : null);
+  const waterDeficit = waterDemand != null && waterSupply != null ? Math.max(0, waterDemand - waterSupply) : null;
+  const waterDeficitPct = waterDeficit != null && waterDemand ? Math.min(100, Math.round((waterDeficit / waterDemand) * 100)) : 0;
+  const waterCoveragePct = waterSupply != null && waterDemand ? Math.min(100, Math.max(0, Math.round((waterSupply / waterDemand) * 100))) : (selectedLocation?.indicators?.tap_water_coverage_percent?.value ?? 0);
 
   // 3. Education Metrics (RTE 1:30 Classroom Ratio)
-  const classRequired = Number(p?.classrooms_required || Math.ceil((popProjected * 0.18) / 30));
-  const classCurrent = Number(p?.classrooms_current || 28);
-  const classGap = Number(p?.classroom_gap || Math.max(0, classRequired - classCurrent));
-  const classGapPct = Math.min(100, Math.round((classGap / (classRequired || 1)) * 100));
-  const classCoveragePct = Math.min(100, Math.max(0, Math.round((classCurrent / (classRequired || 1)) * 100)));
+  const rawClassrooms = selectedLocation?.indicators?.udise_total_classrooms?.value ?? selectedLocation?.school_classrooms_count ?? p?.classrooms_current;
+  const classCurrent = rawClassrooms != null ? Number(rawClassrooms) : null;
+  const classRequired = popProjected != null ? Number(p?.classrooms_required || Math.ceil((popProjected * 0.18) / 30)) : (popCurrent != null ? Math.ceil((popCurrent * 0.18) / 30) : null);
+  const classGap = classRequired != null && classCurrent != null ? Math.max(0, classRequired - classCurrent) : null;
+  const classGapPct = classGap != null && classRequired ? Math.min(100, Math.round((classGap / classRequired) * 100)) : 0;
+  const classCoveragePct = classCurrent != null && classRequired ? Math.min(100, Math.max(0, Math.round((classCurrent / classRequired) * 100))) : 0;
 
   // 4. Roads Metrics (PMGSY 1.25 km / 1,000 population)
-  const roadRequired = Number(p?.road_required_km || ((popProjected / 1000) * 1.25).toFixed(2));
-  const roadCurrent = Number(p?.road_coverage_km || 6.20);
-  const roadDeficit = Number(p?.paved_road_deficit_km || p?.road_gap_km || Math.max(0, roadRequired - roadCurrent));
-  const roadDeficitPct = Math.min(100, Math.round((roadDeficit / (roadRequired || 1)) * 100));
-  const roadCoveragePct = Math.min(100, Math.max(0, Math.round((roadCurrent / (roadRequired || 1)) * 100)));
+  const rawRoad = selectedLocation?.indicators?.village_road_length_km?.value ?? selectedLocation?.road_coverage_km ?? p?.road_coverage_km;
+  const roadCurrent = rawRoad != null ? Number(rawRoad) : null;
+  const roadRequired = popProjected != null ? Number(p?.road_required_km || ((popProjected / 1000) * 1.25).toFixed(2)) : (popCurrent != null ? Number(((popCurrent / 1000) * 1.25).toFixed(2)) : null);
+  const roadDeficit = roadRequired != null && roadCurrent != null ? Number(Math.max(0, roadRequired - roadCurrent).toFixed(2)) : null;
+  const roadDeficitPct = roadDeficit != null && roadRequired ? Math.min(100, Math.round((roadDeficit / roadRequired) * 100)) : 0;
+  const roadCoveragePct = roadCurrent != null && roadRequired ? Math.min(100, Math.max(0, Math.round((roadCurrent / roadRequired) * 100))) : 0;
 
   // 5. Healthcare Telemetry & IPHS National Norm Metrics
   const counts = infrastructure?.counts || {};
-  const healthNodesCount = counts.healthcare || 1;
-  const subCentresCount = counts.sub_centres || Math.max(1, Math.ceil(popCurrent / 5000));
+  const healthNodesCount = counts.healthcare || (selectedLocation?.indicators?.public_health_centre?.value ? 1 : 0);
+  const subCentresCount = counts.sub_centres || (popCurrent != null ? Math.max(1, Math.ceil(popCurrent / 5000)) : 1);
 
-  const requiredPHCs = Math.max(1, Math.ceil(popProjected / 30000));
+  const requiredPHCs = popProjected != null ? Math.max(1, Math.ceil(popProjected / 30000)) : 1;
   const phcGap = Math.max(0, requiredPHCs - healthNodesCount);
-  const isHealthcareAdequate = healthNodesCount >= requiredPHCs && subCentresCount >= Math.ceil(popProjected / 5000);
+  const isHealthcareAdequate = healthNodesCount >= requiredPHCs && subCentresCount >= (popProjected != null ? Math.ceil(popProjected / 5000) : 1);
 
   // Priority Tiers Evaluation
-  const waterTier = waterDeficit > 20000 || waterDeficitPct >= 30 ? 'P1' : waterDeficit >= 8000 || waterDeficitPct >= 15 ? 'P2' : waterDeficit > 0 ? 'P3' : 'ADEQUATE';
-  const classTier = classGap >= 6 || classGapPct >= 30 ? 'P1' : classGap >= 3 || classGapPct >= 15 ? 'P2' : classGap > 0 ? 'P3' : 'ADEQUATE';
-  const roadTier = roadDeficit >= 2.5 || roadDeficitPct >= 30 ? 'P1' : roadDeficit >= 1.5 || roadDeficitPct >= 15 ? 'P2' : roadDeficit > 0 ? 'P3' : 'ADEQUATE';
+  const waterTier = waterDeficit != null && (waterDeficit > 20000 || waterDeficitPct >= 30) ? 'P1' : waterDeficit != null && (waterDeficit >= 8000 || waterDeficitPct >= 15) ? 'P2' : waterDeficit != null && waterDeficit > 0 ? 'P3' : 'ADEQUATE';
+  const classTier = classGap != null && (classGap >= 6 || classGapPct >= 30) ? 'P1' : classGap != null && (classGap >= 3 || classGapPct >= 15) ? 'P2' : classGap != null && classGap > 0 ? 'P3' : 'ADEQUATE';
+  const roadTier = roadDeficit != null && (roadDeficit >= 2.5 || roadDeficitPct >= 30) ? 'P1' : roadDeficit != null && (roadDeficit >= 1.5 || roadDeficitPct >= 15) ? 'P2' : roadDeficit != null && roadDeficit > 0 ? 'P3' : 'ADEQUATE';
   const healthTier = phcGap >= 1 ? 'P1' : !isHealthcareAdequate ? 'P2' : 'ADEQUATE';
 
   const waterBadge = getPriorityBadge(priorities?.water?.priority || waterTier, waterDeficit <= 0);
@@ -237,16 +241,18 @@ const AnalyticsPanel = ({
               </p>
               <div className="flex items-baseline gap-2.5 mt-2">
                 <span className="text-3xl font-extrabold text-[var(--text-main)] font-mono tracking-tight">
-                  {popProjected.toLocaleString()}
+                  {popProjected != null ? popProjected.toLocaleString() : 'N/A'}
                 </span>
-                <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
-                  +{popGrowth.toLocaleString()} (+{p?.growth_rate_pct || 1.8}%)
-                </span>
+                {popGrowth != null && (
+                  <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                    +{popGrowth.toLocaleString()} (+{p?.growth_rate_pct || 1.8}%)
+                  </span>
+                )}
               </div>
             </div>
             <p className="text-xs text-[var(--text-muted)] flex items-center gap-2 mt-4 pt-3 border-t border-[var(--border-subtle)]">
               <span className="w-2 h-2 rounded-full bg-blue-400" />
-              Base Population: <strong>{popCurrent.toLocaleString()} citizens</strong>
+              Base Population: <strong>{popCurrent != null ? `${popCurrent.toLocaleString()} citizens` : 'Unavailable'}</strong>
             </p>
           </div>
 
@@ -267,20 +273,20 @@ const AnalyticsPanel = ({
               </p>
               <div className="flex items-baseline gap-2 mt-2">
                 <span className="text-3xl font-extrabold text-rose-600 dark:text-rose-400 font-mono tracking-tight">
-                  {waterDeficit > 0 ? `-${Math.round(waterDeficit).toLocaleString()}` : '0'}
+                  {waterDeficit != null ? (waterDeficit > 0 ? `-${Math.round(waterDeficit).toLocaleString()}` : '0') : 'Unavailable'}
                 </span>
                 <span className="text-xs font-medium text-[var(--text-muted)]">LPD (55 L/capita norm)</span>
               </div>
             </div>
             <div className="mt-4 pt-3 border-t border-[var(--border-subtle)]">
               <div className="flex justify-between text-xs text-[var(--text-muted)] mb-1.5 font-medium">
-                <span>Supply: {Math.round(waterSupply / 1000)}k LPD</span>
-                <span className="font-mono font-bold text-[var(--text-main)]">{waterCoveragePct}% Coverage</span>
+                <span>Supply: {waterSupply != null ? `${Math.round(waterSupply / 1000)}k LPD` : 'Unavailable'}</span>
+                <span className="font-mono font-bold text-[var(--text-main)]">{waterCoveragePct != null ? `${waterCoveragePct}% Coverage` : 'Unavailable'}</span>
               </div>
               <div className="w-full bg-[var(--bg-primary)] h-2 rounded-full overflow-hidden">
                 <div
                   className={`${waterBadge.barColor} h-full rounded-full transition-all duration-500`}
-                  style={{ width: `${waterCoveragePct}%` }}
+                  style={{ width: `${waterCoveragePct != null ? waterCoveragePct : 0}%` }}
                 />
               </div>
             </div>
@@ -303,20 +309,20 @@ const AnalyticsPanel = ({
               </p>
               <div className="flex items-baseline gap-2 mt-2">
                 <span className="text-3xl font-extrabold text-amber-600 dark:text-amber-400 font-mono tracking-tight">
-                  {classGap > 0 ? `-${classGap}` : '0'}
+                  {classGap != null ? (classGap > 0 ? `-${classGap}` : '0') : 'Unavailable'}
                 </span>
                 <span className="text-xs font-medium text-[var(--text-muted)]">Rooms (1:30 pupil ratio)</span>
               </div>
             </div>
             <div className="mt-4 pt-3 border-t border-[var(--border-subtle)]">
               <div className="flex justify-between text-xs text-[var(--text-muted)] mb-1.5 font-medium">
-                <span>Active: {classCurrent} / {classRequired} rooms</span>
-                <span className="font-mono font-bold text-[var(--text-main)]">{classCoveragePct}% Capacity</span>
+                <span>Active: {classCurrent != null ? `${classCurrent} / ${classRequired || 'N/A'} rooms` : 'Unavailable'}</span>
+                <span className="font-mono font-bold text-[var(--text-main)]">{classCoveragePct != null ? `${classCoveragePct}% Capacity` : 'Unavailable'}</span>
               </div>
               <div className="w-full bg-[var(--bg-primary)] h-2 rounded-full overflow-hidden">
                 <div
                   className={`${classBadge.barColor} h-full rounded-full transition-all duration-500`}
-                  style={{ width: `${classCoveragePct}%` }}
+                  style={{ width: `${classCoveragePct != null ? classCoveragePct : 0}%` }}
                 />
               </div>
             </div>
@@ -382,20 +388,20 @@ const AnalyticsPanel = ({
               </p>
               <div className="flex items-baseline gap-2 mt-2">
                 <span className="text-3xl font-extrabold text-orange-600 dark:text-orange-400 font-mono tracking-tight">
-                  {roadDeficit > 0 ? `-${Number(roadDeficit).toFixed(1)}` : '0.0'}
+                  {roadDeficit != null ? (roadDeficit > 0 ? `-${Number(roadDeficit).toFixed(1)}` : '0.0') : 'Unavailable'}
                 </span>
                 <span className="text-xs font-medium text-[var(--text-muted)]">KM (1.25 km / 1,000 pop norm)</span>
               </div>
             </div>
             <div className="mt-4 pt-3 border-t border-[var(--border-subtle)]">
               <div className="flex justify-between text-xs text-[var(--text-muted)] mb-1.5 font-medium">
-                <span>Paved: {Number(roadCurrent).toFixed(1)} / {Number(roadRequired).toFixed(1)} km</span>
-                <span className="font-mono font-bold text-[var(--text-main)]">{roadCoveragePct}% Target</span>
+                <span>Paved: {roadCurrent != null ? `${Number(roadCurrent).toFixed(1)} / ${Number(roadRequired).toFixed(1)} km` : 'Unavailable'}</span>
+                <span className="font-mono font-bold text-[var(--text-main)]">{roadCoveragePct != null && roadCurrent != null ? `${roadCoveragePct}% Target` : 'Unavailable'}</span>
               </div>
               <div className="w-full bg-[var(--bg-primary)] h-2 rounded-full overflow-hidden">
                 <div
                   className={`${roadBadge.barColor} h-full rounded-full transition-all duration-500`}
-                  style={{ width: `${roadCoveragePct}%` }}
+                  style={{ width: `${roadCoveragePct != null && roadCurrent != null ? roadCoveragePct : 0}%` }}
                 />
               </div>
             </div>

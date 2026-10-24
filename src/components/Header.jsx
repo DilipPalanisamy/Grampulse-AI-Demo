@@ -258,7 +258,7 @@ export default function Header({ onOpenReportModal }) {
               <div className="flex items-center justify-between px-3 py-1.5 border-b border-[var(--border-subtle)] text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">
                 <span className="flex items-center gap-1.5" style={{ color: activePalette.primary }}>
                   <Globe className="w-3.5 h-3.5" />
-                  {localInput.trim().length > 0 ? 'Live Geocoded Matches (Nominatim GIS)' : 'Registered Habitations'}
+                  {localInput.trim().length > 0 ? 'Official Census & GIS Matches' : 'Registered Habitations'}
                 </span>
                 <span>{displayResults.length} Results</span>
               </div>
@@ -266,7 +266,7 @@ export default function Header({ onOpenReportModal }) {
               {displayResults.length === 0 ? (
                 <div className="py-7 text-center text-xs text-[var(--text-muted)] space-y-1">
                   <p className="font-semibold text-[var(--text-main)]">No habitations found for &ldquo;{localInput}&rdquo;</p>
-                  <p className="text-[11px] text-[var(--text-subtle)]">Querying OpenStreetMap live geocoding directory...</p>
+                  <p className="text-[11px] text-[var(--text-subtle)]">Querying official Census directory...</p>
                 </div>
               ) : (
                 displayResults.map((village, idx) => {

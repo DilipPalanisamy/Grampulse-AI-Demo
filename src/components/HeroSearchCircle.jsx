@@ -60,12 +60,12 @@ function HeroSearchCircle({ onNavigateToMap }) {
   };
 
   const quickPanchayats = [
-    { name: 'Odanthurai (TN)', id: 4 },
-    { name: 'Keeladi (TN)', id: 7 },
-    { name: 'Thiruvaiyaru (TN)', id: 8 },
-    { name: 'Punsari (GJ)', id: 2 },
-    { name: 'Hiware Bazar (MH)', id: 1 },
-    { name: 'Kuthambakkam (TN)', id: 6 },
+    { name: 'Chinniyampalayam', queryName: 'Chinniyampalayam', district: 'Coimbatore', id: 644405 },
+    { name: 'Karamadai', queryName: 'Karamadai', district: 'Coimbatore', id: 644365 },
+    { name: 'Sirumugai', queryName: 'Sirumugai', district: 'Coimbatore', id: 644368 },
+    { name: 'Odanthurai', queryName: 'Odanthurai', district: 'Coimbatore', id: 644383 },
+    { name: 'Annur', queryName: 'Annur', district: 'Coimbatore', id: 644388 },
+    { name: 'Madukkarai', queryName: 'Madukkarai', district: 'Coimbatore', id: 644420 },
   ];
 
   const displayResults =
@@ -240,10 +240,14 @@ function HeroSearchCircle({ onNavigateToMap }) {
               key={`quick-${p.id}`}
               type="button"
               onClick={() => {
-                const target = locations.find((l) => Number(l.gp_id) === Number(p.id));
-                if (target) {
-                  selectLocation(target);
-                }
+                selectLocation({
+                  gp_name: p.queryName,
+                  village_name: p.queryName,
+                  district: p.district,
+                  state: 'Tamil Nadu',
+                  census_code: p.id,
+                  gp_id: p.id,
+                });
               }}
               className={`px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${
                 isSelected

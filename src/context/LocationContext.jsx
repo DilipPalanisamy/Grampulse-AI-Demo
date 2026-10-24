@@ -6,9 +6,11 @@ import {
   fetchPanchayatAnalytics,
   resolveLivePanchayat,
   fetchSpatialInfrastructure,
+  fetchVillageData,
+  searchVillages,
 } from '../services/api';
 import { searchRealVillages } from '../services/villageSearchService';
-import { resolveOfficialVillageData, deriveOfficialVillageMetrics } from '../services/officialVillageDataService';
+import { resolveOfficialVillageData } from '../services/officialVillageDataService';
 import { queryOverpassInfrastructure } from '../utils/overpassApi';
 
 import { useAuth } from './AuthContext';
@@ -16,23 +18,24 @@ import { useAuth } from './AuthContext';
 const LocationContext = createContext(null);
 
 const SAFE_DEFAULT_VILLAGE = {
-  gp_id: 101,
-  gp_code: 'GP-TN-TPR-101',
-  gp_name: 'Koduvai',
-  village_name: 'Koduvai',
-  district: 'Tiruppur',
+  gp_id: 644405,
+  gp_code: 'CENSUS-644405',
+  gp_name: 'Chinniyampalayam',
+  village_name: 'Chinniyampalayam',
+  location_type: 'Census Town',
+  district: 'Coimbatore',
   state: 'Tamil Nadu',
-  lat: 10.9634,
-  lng: 77.4727,
-  population: 5800,
-  total_population: 5800,
-  households: 1318,
-  daily_water_supply_liters: 394400,
-  school_classrooms_count: 33,
-  schools: 3,
-  road_coverage_km: 8.4,
-  tagline: 'Koduvai Official Smart Habitation & GPDP Governance',
-  description: 'Official administrative telemetry, predictive deficit planning, and active Jal Jeevan & PMGSY infrastructure for Koduvai.',
+  lat: 11.0267,
+  lng: 77.0617,
+  population: 8232,
+  total_population: 8232,
+  households: 2349,
+  hl11_households: 2422,
+  schools: 2,
+  school_classrooms_count: 39,
+  road_coverage_km: null,
+  tagline: 'Chinniyampalayam (Census Town, Coimbatore)',
+  description: 'Authentic government records from Census 2011, Table HL-11, and UDISE+ school education module.',
   isOfficialData: true,
   geojson: null,
   boundingbox: null,
@@ -79,66 +82,49 @@ const buildInitialVillage = (villageInput = null) => {
         villageInput.villageOrCity ||
         villageInput.gpName ||
         villageInput.name ||
-        'Koduvai'
+        'Chinniyampalayam'
       ).trim();
 
-      const isKoduvai = name.toLowerCase().includes('koduvai');
-      const district = String(villageInput.district || (isKoduvai ? 'Tiruppur' : `${name} District`)).trim();
+      const district = String(villageInput.district || 'Coimbatore').trim();
       const state = String(villageInput.state || 'Tamil Nadu').trim();
-      const metrics = deriveOfficialVillageMetrics(name, district, state);
 
       return {
-        gp_id: Number(villageInput.gp_id || (isKoduvai ? 101 : metrics.gp_id)),
-        gp_code: villageInput.gp_code || (isKoduvai ? 'GP-TN-TPR-101' : metrics.gp_code),
+        gp_id: Number(villageInput.gp_id || villageInput.census_code || 644405),
+        gp_code: villageInput.gp_code || (villageInput.census_code ? `CENSUS-${villageInput.census_code}` : 'CENSUS-644405'),
         gp_name: name,
         village_name: name,
+        location_type: villageInput.location_type || 'Census Town',
         district,
         state,
-        lat: Number(villageInput.lat ?? (isKoduvai ? 10.9634 : 11.2982)),
-        lng: Number(villageInput.lng ?? (isKoduvai ? 77.4727 : 76.9366)),
-        population: Number(villageInput.population || metrics.population),
-        total_population: Number(villageInput.population || metrics.population),
-        households: Number(villageInput.households || metrics.households),
-        daily_water_supply_liters: Number(villageInput.daily_water_supply_liters || metrics.daily_water_supply_liters),
-        school_classrooms_count: Number(villageInput.school_classrooms_count || metrics.school_classrooms_count),
-        schools: Number(villageInput.schools || metrics.schools),
-        road_coverage_km: Number(villageInput.road_coverage_km || metrics.road_coverage_km),
-        tagline: villageInput.tagline || `${name} Official Smart Habitation & GPDP Governance`,
-        description:
-          villageInput.description ||
-          `Official administrative and demographic telemetry for ${name} (${district} District, ${state}), calibrated with Census of India, Jal Jeevan Mission, and PMGSY national standards.`,
-        isOfficialData: true,
+        lat: Number(villageInput.lat ?? 11.0267),
+        lng: Number(villageInput.lng ?? 77.0617),
+        population: villageInput.population != null ? Number(villageInput.population) : 8232,
+        total_population: villageInput.total_population != null ? Number(villageInput.total_population) : 8232,
+        households: villageInput.households != null ? Number(villageInput.households) : 2349,
+        hl11_households: villageInput.hl11_households != null ? Number(villageInput.hl11_households) : 2422,
+        schools: villageInput.schools != null ? Number(villageInput.schools) : 2,
+        school_classrooms_count: villageInput.school_classrooms_count != null ? Number(villageInput.school_classrooms_count) : 39,
+        road_coverage_km: villageInput.road_coverage_km != null ? Number(villageInput.road_coverage_km) : null,
+        tagline: villageInput.tagline || `${name} (${district})`,
+        description: villageInput.description || `Official government records from Census of India 2011 and UDISE+ directory.`,
+        indicators: villageInput.indicators || {},
+        categories: villageInput.categories || {},
+        isOfficialData: Boolean(villageInput.isOfficialData ?? true),
         geojson: villageInput.geojson || null,
         boundingbox: villageInput.boundingbox || null,
       };
     }
 
-    const name = typeof villageInput === 'string' && villageInput.trim() ? villageInput.trim() : 'Koduvai';
-    const isKoduvai = name.toLowerCase().includes('koduvai');
-    const district = isKoduvai ? 'Tiruppur' : `${name} District`;
-    const state = 'Tamil Nadu';
-    const metrics = deriveOfficialVillageMetrics(name, district, state);
+    if (typeof villageInput === 'string' && villageInput.trim()) {
+      const name = villageInput.trim();
+      return {
+        ...SAFE_DEFAULT_VILLAGE,
+        gp_name: name,
+        village_name: name,
+      };
+    }
 
-    return {
-      gp_id: isKoduvai ? 101 : metrics.gp_id,
-      gp_code: isKoduvai ? 'GP-TN-TPR-101' : metrics.gp_code,
-      gp_name: name,
-      village_name: name,
-      district,
-      state,
-      lat: isKoduvai ? 10.9634 : 11.2982,
-      lng: isKoduvai ? 77.4727 : 76.9366,
-      population: metrics.population,
-      total_population: metrics.population,
-      households: metrics.households,
-      daily_water_supply_liters: metrics.daily_water_supply_liters,
-      school_classrooms_count: metrics.school_classrooms_count,
-      schools: metrics.schools,
-      road_coverage_km: metrics.road_coverage_km,
-      tagline: `${name} Official Smart Habitation & GPDP Governance`,
-      description: `Official administrative telemetry, predictive deficit planning, and active Jal Jeevan & PMGSY infrastructure for ${name}.`,
-      isOfficialData: true,
-    };
+    return SAFE_DEFAULT_VILLAGE;
   } catch (err) {
     console.error('Error building initial village:', err);
     return SAFE_DEFAULT_VILLAGE;
@@ -253,6 +239,24 @@ export const LocationProvider = ({ children }) => {
       }
     };
     initLocations();
+  }, []);
+
+  // Hydrate authentic backend indicators for the initial active location on mount
+  useEffect(() => {
+    const hydrateInitial = async () => {
+      const active = selectedLocation;
+      if (active?.gp_name && (!active.indicators || Object.keys(active.indicators).length === 0)) {
+        try {
+          const gov = await fetchVillageData(active.gp_name, active.district || 'Coimbatore');
+          if (gov && gov.status) {
+            handleSelectLocation(gov, false);
+          }
+        } catch (e) {
+          console.warn('Initial village hydration error:', e);
+        }
+      }
+    };
+    hydrateInitial();
   }, []);
 
   // Ref to hold active location without recreating callbacks
@@ -374,43 +378,106 @@ export const LocationProvider = ({ children }) => {
    */
   const handleSelectLocation = useCallback(async (locationOrId, shouldRouteToDashboard = true) => {
     if (typeof locationOrId === 'object' && locationOrId !== null) {
-      const rawName = locationOrId.gp_name || locationOrId.name || 'Habitation';
-      const locObj = {
-        gp_id: locationOrId.gp_id || Math.floor(1000 + Math.random() * 9000),
-        gp_name: rawName,
-        district: locationOrId.district || 'District',
-        state: locationOrId.state || 'Tamil Nadu',
-        lat: Number(locationOrId.lat ?? locationOrId.latitude ?? 11.2982),
-        lng: Number(locationOrId.lng ?? locationOrId.longitude ?? 76.9366),
-        population: locationOrId.population || 5000,
-        daily_water_supply_liters: locationOrId.daily_water_supply_liters || 275000,
-        school_classrooms_count: locationOrId.school_classrooms_count || 24,
-        road_coverage_km: locationOrId.road_coverage_km || 18.5,
-        gp_code: locationOrId.gp_code || `GP-${locationOrId.gp_id || 'PIN'}`,
-        ...locationOrId,
-      };
+      const rawName = locationOrId.gp_name || locationOrId.village_name || locationOrId.name || 'Selected Location';
+      const district = locationOrId.district || 'Coimbatore';
 
+      // 1. Fetch real government data from FastAPI backend
+      let govData = null;
       try {
-        // Dynamically resolve baseline metrics & register in backend PostGIS
-        const resolved = await resolveLivePanchayat(locObj);
-        const mergedObj = { ...locObj, ...resolved };
-
-        setLocations((prev) => {
-          if (!prev.some((p) => Number(p.gp_id) === Number(mergedObj.gp_id))) {
-            return [mergedObj, ...prev];
-          }
-          return prev.map((p) => (Number(p.gp_id) === Number(mergedObj.gp_id) ? mergedObj : p));
-        });
-        setSelectedGpId(Number(mergedObj.gp_id));
-      } catch (e) {
-        setLocations((prev) => {
-          if (!prev.some((p) => Number(p.gp_id) === Number(locObj.gp_id))) {
-            return [locObj, ...prev];
-          }
-          return prev;
-        });
-        setSelectedGpId(Number(locObj.gp_id));
+        govData = await fetchVillageData(rawName, district);
+      } catch (err) {
+        console.warn(`Failed to fetch backend data for ${rawName}:`, err);
       }
+
+      let mergedObj;
+      if (govData && govData.status) {
+        const inds = govData.indicators || {};
+        const admin = govData.administrative_identifiers || {};
+        const censusCode = admin.census_code || locationOrId.census_code || null;
+        const matchedName = govData.matched_location_name || rawName;
+        const locType = govData.location_type || locationOrId.location_type || 'Village';
+
+        mergedObj = {
+          ...locationOrId,
+          gp_id: censusCode ? parseInt(censusCode, 10) : (locationOrId.gp_id || 1001),
+          gp_code: censusCode ? `CENSUS-${censusCode}` : (locationOrId.gp_code || `GP-${matchedName.slice(0, 3).toUpperCase()}`),
+          gp_name: matchedName,
+          village_name: matchedName,
+          location_type: locType,
+          district: govData.district || district,
+          state: govData.state || 'Tamil Nadu',
+          census_code: censusCode,
+          subdistrict_code: admin.subdistrict_code || locationOrId.subdistrict_code || null,
+
+          // Real Indicators from Backend
+          population: inds.total_population?.value ?? null,
+          total_population: inds.total_population?.value ?? null,
+          male_population: inds.male_population?.value ?? null,
+          female_population: inds.female_population?.value ?? null,
+          children_0_6: inds.children_0_6?.value ?? null,
+          households: inds.total_households?.value ?? null,
+          hl11_households: inds.hl11_total_households?.value ?? null,
+          literate_population: inds.literate_population?.value ?? null,
+          illiterate_population: inds.illiterate_population?.value ?? null,
+          total_workers: inds.total_workers?.value ?? null,
+          main_workers: inds.main_workers?.value ?? null,
+          marginal_workers: inds.marginal_workers?.value ?? null,
+          non_workers: inds.non_workers?.value ?? null,
+
+          // Amenities & Infrastructure
+          electricity_coverage: inds.household_electricity_coverage?.value ?? null,
+          tap_water_coverage: inds.tap_water_coverage_percent?.value ?? null,
+          latrine_coverage: inds.latrine_facility_coverage?.value ?? null,
+          schools: inds.udise_school_count?.value ?? null,
+          school_classrooms_count: inds.udise_total_classrooms?.value ?? null,
+          road_coverage_km: inds.village_road_length_km?.value ?? null,
+          road_connectivity: inds.road_connectivity_status?.value ?? null,
+          broadband_connectivity: inds.bharatnet_gp_connectivity?.value ?? null,
+          health_centre: inds.public_health_centre?.value ?? null,
+          hospital_beds: inds.hospital_beds_count?.value ?? null,
+
+          indicators: inds,
+          categories: govData.categories || {},
+          census_baseline: govData.census_baseline || null,
+          sources_used: govData.sources_used || [],
+          isOfficialData: true,
+          tagline: `${matchedName} (${locType}, ${govData.district || district})`,
+          description: `Authentic government data from Census 2011, Table HL-11, and Ministry of Education UDISE+ directory.`,
+        };
+      } else {
+        // Unknown or unmatched location: clean null indicators, no fake numbers
+        mergedObj = {
+          ...locationOrId,
+          gp_id: locationOrId.gp_id || Math.floor(1000 + Math.random() * 9000),
+          gp_name: rawName,
+          village_name: rawName,
+          location_type: locationOrId.location_type || 'Unmatched Location',
+          district: district,
+          state: locationOrId.state || 'Tamil Nadu',
+          population: null,
+          total_population: null,
+          households: null,
+          hl11_households: null,
+          schools: null,
+          school_classrooms_count: null,
+          road_coverage_km: null,
+          indicators: {},
+          isOfficialData: false,
+          tagline: `${rawName} (Unverified Record)`,
+          description: `Official village-level Census and UDISE+ data unavailable for this query.`,
+        };
+      }
+
+      setLocations((prev) => {
+        const list = Array.isArray(prev) ? prev : [];
+        const exists = list.some((p) => String(p?.gp_name || '').toLowerCase() === String(mergedObj.gp_name || '').toLowerCase());
+        if (!exists) {
+          return [mergedObj, ...list];
+        }
+        return list.map((p) => String(p?.gp_name || '').toLowerCase() === String(mergedObj.gp_name || '').toLowerCase() ? mergedObj : p);
+      });
+
+      setSelectedGpId(Number(mergedObj.gp_id));
     } else {
       const gpId = Number(locationOrId);
       if (!gpId) return;

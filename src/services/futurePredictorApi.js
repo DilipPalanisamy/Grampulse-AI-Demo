@@ -61,6 +61,57 @@ export async function generateFuturePrediction(payload) {
   return data;
 }
 
+/*
+============================================================
+FETCH AUTHENTIC GOVERNMENT DATA FOR VILLAGE
+============================================================
+*/
+
+export async function fetchOfficialVillageData(villageName, district = 'Coimbatore') {
+  const baseUrl = getApiBaseUrl();
+  try {
+    const res = await fetch(
+      `${baseUrl}/village/data?village_name=${encodeURIComponent(villageName)}&district=${encodeURIComponent(district)}`
+    );
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch (err) {
+    console.warn('Failed to fetch official village data from backend:', err);
+  }
+  return null;
+}
+
+export async function searchOfficialVillages(query = '', limit = 20) {
+  const baseUrl = getApiBaseUrl();
+  try {
+    const res = await fetch(
+      `${baseUrl}/village/search?query=${encodeURIComponent(query)}&limit=${limit}`
+    );
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch (err) {
+    console.warn('Failed to search official villages:', err);
+  }
+  return { status: false, count: 0, results: [] };
+}
+
+export async function fetchVillageValidation(villageName, district = 'Coimbatore') {
+  const baseUrl = getApiBaseUrl();
+  try {
+    const res = await fetch(
+      `${baseUrl}/village/validation?village_name=${encodeURIComponent(villageName)}&district=${encodeURIComponent(district)}`
+    );
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch (err) {
+    console.warn('Failed to fetch village validation report:', err);
+  }
+  return null;
+}
+
 /**
  * Robust client-side fallback prediction if server is temporarily unreachable.
  */
@@ -299,52 +350,45 @@ export function buildPredictionPayload({
 
   /*
   ----------------------------------------------------------
-  POPULATION
+  POPULATION (Authentic Census Baseline)
   ----------------------------------------------------------
   */
 
   const population =
     numberOrDefault(
+      location.indicators?.total_population?.value ??
       location.population ??
       location.total_population ??
-      analyticData.population ??
-      analyticData.total_population ??
-      infra.population,
-      12500
+      analyticData.population,
+      5000
     );
 
   /*
   ----------------------------------------------------------
-  HOUSEHOLDS
+  HOUSEHOLDS (Authentic Census PCA / HL-11)
   ----------------------------------------------------------
   */
 
   const households =
     integerOrDefault(
+      location.indicators?.total_households?.value ??
       location.households ??
-      analyticData.households ??
-      infra.households,
-      Math.max(
-        1,
-        Math.round(
-          population / 4
-        )
-      )
+      analyticData.households,
+      Math.max(1, Math.round(population / 4))
     );
 
   /*
   ----------------------------------------------------------
-  SCHOOLS
+  SCHOOLS (Authentic UDISE+ School Directory)
   ----------------------------------------------------------
   */
 
   const schools =
     integerOrDefault(
+      location.indicators?.udise_school_count?.value ??
       location.schools ??
-      (location.school_classrooms_count ? Math.max(1, Math.ceil(location.school_classrooms_count / 8)) : null) ??
-      analyticData.schools ??
-      infra.schools,
-      2
+      analyticData.schools,
+      1
     );
 
   /*
@@ -414,17 +458,18 @@ export function buildPredictionPayload({
 
   const waterCoverage =
     numberOrDefault(
+      location.indicators?.tap_water_coverage_percent?.value ??
+      location.tap_water_coverage ??
       location.water_coverage ??
-      analyticData.water_coverage ??
-      infra.water_coverage,
+      analyticData.water_coverage,
       calculatedWaterCoverage
     );
 
   const electricityCoverage =
     numberOrDefault(
+      location.indicators?.household_electricity_coverage?.value ??
       location.electricity_coverage ??
-      analyticData.electricity_coverage ??
-      infra.electricity_coverage,
+      analyticData.electricity_coverage,
       95
     );
 

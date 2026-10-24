@@ -3,6 +3,14 @@ import axios from 'axios';
 // Base URL configured for FastAPI backend (aligned with 127.0.0.1)
 const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL || 'http://127.0.0.1:8000/api/v1';
 
+export const getBackendBaseUrl = () => {
+  const envUrl = import.meta.env?.VITE_API_BASE_URL;
+  if (envUrl) {
+    return envUrl.replace(/\/api\/v1\/?$/, '');
+  }
+  return 'http://127.0.0.1:8000';
+};
+
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
   timeout: 3000,
@@ -10,6 +18,65 @@ export const apiClient = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+/**
+ * Live Official FastAPI Backend Endpoints (Single Source of Truth)
+ */
+export const fetchVillageData = async (villageName, district = 'Coimbatore') => {
+  try {
+    const base = getBackendBaseUrl();
+    const res = await axios.get(`${base}/village/data`, {
+      params: { village_name: villageName, district },
+      timeout: 6000,
+    });
+    return res.data;
+  } catch (err) {
+    console.warn(`Failed to fetch official village data for ${villageName}:`, err);
+    return null;
+  }
+};
+
+export const fetchVillageIndicators = async (villageName, district = 'Coimbatore') => {
+  try {
+    const base = getBackendBaseUrl();
+    const res = await axios.get(`${base}/village/indicators`, {
+      params: { village_name: villageName, district },
+      timeout: 6000,
+    });
+    return res.data;
+  } catch (err) {
+    console.warn(`Failed to fetch village indicators for ${villageName}:`, err);
+    return null;
+  }
+};
+
+export const fetchVillageValidation = async (villageName, district = 'Coimbatore') => {
+  try {
+    const base = getBackendBaseUrl();
+    const res = await axios.get(`${base}/village/validation`, {
+      params: { village_name: villageName, district },
+      timeout: 6000,
+    });
+    return res.data;
+  } catch (err) {
+    console.warn(`Failed to fetch village validation for ${villageName}:`, err);
+    return null;
+  }
+};
+
+export const searchVillages = async (query, limit = 20) => {
+  try {
+    const base = getBackendBaseUrl();
+    const res = await axios.get(`${base}/village/search`, {
+      params: { query, limit },
+      timeout: 5000,
+    });
+    return res.data;
+  } catch (err) {
+    console.warn(`Failed to search villages for query '${query}':`, err);
+    return { status: false, count: 0, results: [] };
+  }
+};
 
 /**
  * Live OpenStreetMap Nominatim Geocoding Spatial Search
@@ -132,28 +199,30 @@ export const generateOfficialPanchayatAnalytics = (
   const targetYear = new Date().getFullYear() + years;
   const villageName = loc?.gp_name || loc?.village_name || 'Habitation';
   const district = loc?.district || 'District';
-  const state = loc?.state || 'Tamil Nadu';
-  const popCurrent = Number(loc?.population || loc?.total_population || 5800);
-  const popProjected = Math.round(popCurrent * Math.pow(1 + rate, years));
-  const popGrowth = popProjected - popCurrent;
+  const rawPop = loc?.population ?? loc?.total_population ?? loc?.indicators?.total_population?.value;
+  const popCurrent = rawPop != null ? Number(rawPop) : null;
+  const popProjected = popCurrent != null ? Math.round(popCurrent * Math.pow(1 + rate, years)) : null;
+  const popGrowth = popProjected != null && popCurrent != null ? popProjected - popCurrent : null;
 
   // Water: Jal Jeevan Mission standard (55 LPD rural demand)
-  const waterDemand = Math.round(popProjected * 55);
-  const waterSupply = Math.round(loc?.daily_water_supply_liters || popCurrent * 50);
-  const waterDeficit = Math.max(0, waterDemand - waterSupply);
-  const waterDeficitPct = Math.min(100, Math.round((waterDeficit / (waterDemand || 1)) * 100));
+  const waterDemand = popProjected != null ? Math.round(popProjected * 55) : null;
+  const waterSupply = loc?.daily_water_supply_liters ? Number(loc.daily_water_supply_liters) : (popCurrent != null ? Math.round(popCurrent * 50) : null);
+  const waterDeficit = waterDemand != null && waterSupply != null ? Math.max(0, waterDemand - waterSupply) : null;
+  const waterDeficitPct = waterDeficit != null && waterDemand ? Math.min(100, Math.round((waterDeficit / waterDemand) * 100)) : 0;
 
-  // Education: UDISE+ RTE 30:1 ratio (~17% population school age)
-  const classRequired = Math.max(6, Math.ceil((popProjected * 0.17) / 30));
-  const classCurrent = Number(loc?.school_classrooms_count || Math.max(6, Math.ceil((popCurrent * 0.17) / 30) - 3));
-  const classGap = Math.max(0, classRequired - classCurrent);
-  const classGapPct = Math.min(100, Math.round((classGap / (classRequired || 1)) * 100));
+  // Education: UDISE+ schools and classrooms
+  const rawClassrooms = loc?.school_classrooms_count ?? loc?.indicators?.udise_total_classrooms?.value;
+  const classCurrent = rawClassrooms != null ? Number(rawClassrooms) : null;
+  const classRequired = popProjected != null ? Math.max(1, Math.ceil((popProjected * 0.17) / 30)) : null;
+  const classGap = classRequired != null && classCurrent != null ? Math.max(0, classRequired - classCurrent) : null;
+  const classGapPct = classGap != null && classRequired ? Math.min(100, Math.round((classGap / classRequired) * 100)) : 0;
 
   // Roads: PMGSY all-weather road target (~1.25 km / 1,000 pop)
-  const roadRequired = Number(((popProjected / 1000) * 1.25).toFixed(2));
-  const roadCurrent = Number(loc?.road_coverage_km || ((popCurrent / 1000) * 1.15).toFixed(2));
-  const roadDeficit = Number(Math.max(0, roadRequired - roadCurrent).toFixed(2));
-  const roadDeficitPct = Math.min(100, Math.round((roadDeficit / (roadRequired || 1)) * 100));
+  const rawRoad = loc?.road_coverage_km ?? loc?.indicators?.village_road_length_km?.value;
+  const roadCurrent = rawRoad != null ? Number(rawRoad) : null;
+  const roadRequired = popProjected != null ? Number(((popProjected / 1000) * 1.25).toFixed(2)) : null;
+  const roadDeficit = roadRequired != null && roadCurrent != null ? Number(Math.max(0, roadRequired - roadCurrent).toFixed(2)) : null;
+  const roadDeficitPct = roadDeficit != null && roadRequired ? Math.min(100, Math.round((roadDeficit / roadRequired) * 100)) : 0;
 
   const waterTier = waterDeficit > 20000 || waterDeficitPct >= 30 ? 'P1' : waterDeficit >= 8000 || waterDeficitPct >= 15 ? 'P2' : 'P3';
   const classTier = classGap >= 6 || classGapPct >= 30 ? 'P1' : classGap >= 3 || classGapPct >= 15 ? 'P2' : 'P3';
