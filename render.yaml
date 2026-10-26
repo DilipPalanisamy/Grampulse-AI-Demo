@@ -36,7 +36,7 @@ services:
       - key: PYTHONUNBUFFERED
         value: "1"
       - key: CORS_ORIGINS
-        value: "http://localhost:5173,http://127.0.0.1:5173,https://grampulse-frontend.onrender.com"
+        value: "http://localhost:5173,http://127.0.0.1:5173,https://grampulse-frontend.onrender.com,https://dilippalanisamy.github.io"
 
   # ---------------------------------------------------------------------------
   # 3. React + Vite Frontend (Production Static Site)

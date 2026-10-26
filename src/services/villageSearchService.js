@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { searchSpatialLocation, reverseGeocodeLocation } from './api';
+import { searchCensusDirectory } from './censusDirectoryService';
 
 // In-memory search cache for instant responses
 const SEARCH_RESULTS_CACHE = new Map();
@@ -96,7 +97,14 @@ export const searchRealVillages = async (query = '', stateFilter = '') => {
     console.warn(`[API ERROR] FastAPI backend Census search failed for '${cleanQ}':`, backendErr?.message || backendErr);
   }
 
-  // 2. SECONDARY: Backend Spatial GIS Search Fallback
+  // 2. SECONDARY: Client-Side Authentic Census Directory Lookup
+  const censusMatches = searchCensusDirectory(cleanQ, 15);
+  if (censusMatches.length > 0) {
+    SEARCH_RESULTS_CACHE.set(cacheKey, censusMatches);
+    return censusMatches;
+  }
+
+  // 3. TERTIARY: Backend Spatial GIS Search Fallback
   try {
     const backendResults = await searchSpatialLocation(cleanQ, stateFilter);
     if (Array.isArray(backendResults) && backendResults.length > 0) {

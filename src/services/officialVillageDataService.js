@@ -14,6 +14,7 @@
 
 import axios from 'axios';
 import { getBackendBaseUrl } from './api';
+import { findCensusRecord } from './censusDirectoryService';
 
 // In-memory cache for fast lookups
 const OFFICIAL_VILLAGE_CACHE = new Map();
@@ -115,7 +116,14 @@ export async function resolveOfficialVillageData(villageOrCityName, stateHint = 
     return officialVillage;
   }
 
-  // 2. UNKNOWN / UNMATCHED SETTLEMENT: Return null indicators without fabricating data
+  // 2. SECONDARY: Fallback to authentic Census 2011 & UDISE+ database
+  const censusRecord = findCensusRecord(cleanName);
+  if (censusRecord) {
+    OFFICIAL_VILLAGE_CACHE.set(cacheKey, censusRecord);
+    return censusRecord;
+  }
+
+  // 3. UNKNOWN / UNMATCHED SETTLEMENT: Return null indicators without fabricating data
   const unknownVillage = {
     gp_id: 9999,
     gp_code: 'GP-UNMATCHED',
