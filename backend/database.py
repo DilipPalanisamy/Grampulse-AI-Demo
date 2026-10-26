@@ -152,7 +152,11 @@ def _init_census_panchayats_and_metrics():
     Populates dynamic in-memory registry with all authentic Census 2011 villages,
     towns, and local bodies in Coimbatore district (District 632) from official PCA and HL-11.
     """
-    import pandas as pd
+    try:
+        import pandas as pd
+    except ImportError:
+        logger.warning("Pandas is not installed; census CSV dataset will be skipped in DB layer.")
+        pd = None
     from pathlib import Path
 
     # Seed baseline working profiles
@@ -283,7 +287,7 @@ def _init_census_panchayats_and_metrics():
     if not hl11_file.exists():
         hl11_file = fp_data_dir / "census_coimbatore_hl11_2011.csv"
 
-    if not pca_file.exists():
+    if not pca_file.exists() or pd is None:
         return
 
     try:

@@ -5,6 +5,7 @@ psycopg2-binary>=2.9.9
 reportlab>=4.0.9
 scikit-learn>=1.4.0
 numpy>=1.26.0
+pandas>=2.1.0
 shapely>=2.0.2
 python-dotenv>=1.0.0
 requests>=2.31.0
