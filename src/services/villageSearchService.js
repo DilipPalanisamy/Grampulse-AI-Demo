@@ -18,13 +18,13 @@ const getBackendBaseUrl = () => {
  * Searches real-world Indian villages and towns via the official FastAPI Census directory.
  * Connects directly to GET /village/search?query=<query>.
  */
-export const searchRealVillages = async (query = '', stateFilter = '') => {
+export const searchRealVillages = async (query = '', districtFilter = '', stateFilter = 'Tamil Nadu') => {
   const cleanQ = (query || '').trim();
   if (!cleanQ || cleanQ.length < 2) {
     return [];
   }
 
-  const cacheKey = `${cleanQ.toLowerCase()}_${stateFilter.toLowerCase()}`;
+  const cacheKey = `${cleanQ.toLowerCase()}_${String(districtFilter || '').toLowerCase()}_${stateFilter.toLowerCase()}`;
   if (SEARCH_RESULTS_CACHE.has(cacheKey)) {
     return SEARCH_RESULTS_CACHE.get(cacheKey);
   }
@@ -34,9 +34,13 @@ export const searchRealVillages = async (query = '', stateFilter = '') => {
     const backendBase = getBackendBaseUrl();
     const searchUrl = `${backendBase}/village/search?query=${encodeURIComponent(cleanQ)}&limit=15`;
     console.log(`[API REQUEST] GET ${searchUrl}`);
+    const params = { query: cleanQ, limit: 15 };
+    if (districtFilter && districtFilter !== 'All Districts' && districtFilter !== 'Tamil Nadu') {
+      params.district = districtFilter;
+    }
     const res = await axios.get(`${backendBase}/village/search`, {
-      params: { query: cleanQ, limit: 15 },
-      timeout: 5000,
+      params,
+      timeout: 2000,
     });
 
     if (res.data && res.data.status && Array.isArray(res.data.results) && res.data.results.length > 0) {
@@ -75,7 +79,7 @@ export const searchRealVillages = async (query = '', stateFilter = '') => {
           is_ward: isWard,
           census_code: censusCode,
           subdistrict_code: item.subdistrict_code,
-          district: item.district || 'Coimbatore',
+          district: item.district || 'Tamil Nadu',
           state: item.state || 'Tamil Nadu',
           population: item.population ?? null,
           households: item.households ?? null,
@@ -84,7 +88,6 @@ export const searchRealVillages = async (query = '', stateFilter = '') => {
           isOfficialCensus: true,
           tagline: `${item.name} (${locType}, ${item.district || 'Tamil Nadu'})`,
           description: `Authentic Census 2011 record: Pop ${item.population ? item.population.toLocaleString() : 'N/A'}, HH ${item.households ? item.households.toLocaleString() : 'N/A'}. Ref Year: ${item.reference_year || 2011}.`,
-          // Coordinates fallback for map positioning if known
           lat: 11.05 + (idx * 0.02),
           lng: 77.05 + (idx * 0.02),
         };
@@ -97,8 +100,8 @@ export const searchRealVillages = async (query = '', stateFilter = '') => {
     console.warn(`[API ERROR] FastAPI backend Census search failed for '${cleanQ}':`, backendErr?.message || backendErr);
   }
 
-  // 2. SECONDARY: Client-Side Authentic Census Directory Lookup
-  const censusMatches = searchCensusDirectory(cleanQ, 15);
+  // 2. SECONDARY: Client-Side Authentic Census Directory Lookup across all 38 districts
+  const censusMatches = searchCensusDirectory(cleanQ, districtFilter, 15);
   if (censusMatches.length > 0) {
     SEARCH_RESULTS_CACHE.set(cacheKey, censusMatches);
     return censusMatches;

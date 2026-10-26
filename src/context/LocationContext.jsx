@@ -10,8 +10,7 @@ import {
   searchVillages,
 } from '../services/api';
 import { searchRealVillages } from '../services/villageSearchService';
-import { resolveOfficialVillageData } from '../services/officialVillageDataService';
-import { findCensusRecord } from '../services/censusDirectoryService';
+import { findCensusRecord, getTopCensusRecords, getDistricts } from '../services/censusDirectoryService';
 import { queryOverpassInfrastructure } from '../utils/overpassApi';
 
 import { useAuth } from './AuthContext';
@@ -329,8 +328,9 @@ export const LocationProvider = ({ children }) => {
   );
   const [locations, setLocations] = useState(() => {
     const list = [initialVillage];
-    for (const v of PRELOADED_AUTHENTIC_VILLAGES) {
-      if (Number(v.gp_id) !== Number(initialVillage.gp_id) && String(v.gp_name).toLowerCase() !== String(initialVillage.gp_name).toLowerCase()) {
+    const topRecords = getTopCensusRecords(30);
+    for (const v of topRecords) {
+      if (!list.some((existing) => Number(existing.gp_id) === Number(v.gp_id) || String(existing.gp_name).toLowerCase() === String(v.gp_name).toLowerCase())) {
         list.push(v);
       }
     }
@@ -352,6 +352,21 @@ export const LocationProvider = ({ children }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
+
+  // Statewide Tamil Nadu District State (All 38 Districts)
+  const [selectedDistrict, setSelectedDistrict] = useState('All Districts');
+  const districts = useMemo(() => getDistricts(), []);
+
+  // Update available quick habitations when district filter changes
+  useEffect(() => {
+    const list = getTopCensusRecords(25, selectedDistrict);
+    setLocations((prev) => {
+      const active = prev?.[0];
+      if (!active) return list;
+      const filtered = list.filter((l) => Number(l.gp_id) !== Number(active.gp_id));
+      return [active, ...filtered];
+    });
+  }, [selectedDistrict]);
 
   // Active Location Object (guaranteed non-null)
   const selectedLocation = useMemo(() => {
@@ -548,7 +563,7 @@ export const LocationProvider = ({ children }) => {
   /**
    * Search real villages dynamically via OpenStreetMap Nominatim and backend GIS
    */
-  const handleSearch = useCallback((query) => {
+  const handleSearch = useCallback((query, districtOverride = null) => {
     setSearchQuery(query);
     if (!query || query.trim().length === 0) {
       setSearchResults([]);
@@ -562,9 +577,11 @@ export const LocationProvider = ({ children }) => {
       clearTimeout(debounceTimeoutRef.current);
     }
 
+    const effectiveDist = districtOverride || selectedDistrict;
+
     debounceTimeoutRef.current = setTimeout(async () => {
       try {
-        const results = await searchRealVillages(query);
+        const results = await searchRealVillages(query, effectiveDist);
         setSearchResults(results);
       } catch (err) {
         console.error('Village search error:', err);
@@ -572,7 +589,7 @@ export const LocationProvider = ({ children }) => {
         setIsSearching(false);
       }
     }, 250);
-  }, []);
+  }, [selectedDistrict]);
 
   /**
    * Unified Location Selection Handler:
@@ -594,41 +611,52 @@ export const LocationProvider = ({ children }) => {
   const handleSelectLocation = useCallback(async (locationOrId, shouldRouteToDashboard = true) => {
     const currentReqId = ++selectionReqIdRef.current;
 
-    if (typeof locationOrId === 'object' && locationOrId !== null) {
+    let targetLocation = locationOrId;
+    if (typeof locationOrId !== 'object' || locationOrId === null) {
+      const rec = findCensusRecord(locationOrId);
+      if (rec) {
+        targetLocation = rec;
+      } else {
+        const numId = Number(locationOrId);
+        targetLocation = { gp_id: numId, gp_name: `Location ${numId}`, id: numId };
+      }
+    }
+
+    if (targetLocation && typeof targetLocation === 'object') {
       const rawName =
-        locationOrId.gp_name ||
-        locationOrId.village_name ||
-        locationOrId.village ||
-        locationOrId.matched_location_name ||
-        locationOrId.name ||
-        locationOrId.census_baseline?.location_name ||
+        targetLocation.gp_name ||
+        targetLocation.village_name ||
+        targetLocation.village ||
+        targetLocation.matched_location_name ||
+        targetLocation.name ||
+        targetLocation.census_baseline?.location_name ||
         'Selected Location';
-      const district = locationOrId.district || 'Coimbatore';
+      const district = targetLocation.district || (selectedDistrict !== 'All Districts' ? selectedDistrict : 'Tamil Nadu');
       // Query by authentic town/village name so backend resolves Census PCA and Table HL-11 accurately
-      const queryParam = locationOrId.village_name || locationOrId.village || locationOrId.gp_name || locationOrId.name || locationOrId.census_code || rawName;
+      const queryParam = targetLocation.village_name || targetLocation.village || targetLocation.gp_name || targetLocation.name || targetLocation.census_code || rawName;
 
-      console.log('[DEBUG-SELECT] Selected village name:', rawName, 'Census ID:', locationOrId?.census_code, 'Input object:', locationOrId);
+      console.log('[DEBUG-SELECT] Selected village name:', rawName, 'District:', district, 'Census ID:', targetLocation?.census_code, 'Input object:', targetLocation);
 
-      const immediateGpId = locationOrId.census_code
-        ? Number(locationOrId.census_code)
-        : (Number(locationOrId.gp_id) || Math.floor(1000 + Math.random() * 9000));
+      const immediateGpId = targetLocation.census_code
+        ? Number(targetLocation.census_code)
+        : (Number(targetLocation.gp_id || targetLocation.id) || Math.floor(1000 + Math.random() * 9000));
 
-      // Match against authentic Census directory (covers all 306+ villages and towns in Coimbatore)
-      const censusDirectoryMatch = findCensusRecord(locationOrId.census_code || immediateGpId || queryParam || rawName);
+      // Match against authentic Census directory across all 38 districts of Tamil Nadu
+      const censusDirectoryMatch = findCensusRecord(targetLocation.census_code || immediateGpId || queryParam || rawName, district);
 
       // Match against preloaded authentic repository records (Karamadai, Chinniyampalayam, Sirumugai)
       const knownPreload = censusDirectoryMatch || PRELOADED_AUTHENTIC_VILLAGES.find(
         (v) =>
           (immediateGpId && Number(v.gp_id) === immediateGpId) ||
-          (locationOrId.census_code && String(v.census_code) === String(locationOrId.census_code)) ||
+          (targetLocation.census_code && String(v.census_code) === String(targetLocation.census_code)) ||
           String(v.gp_name || '').toLowerCase() === String(rawName).toLowerCase()
       );
 
-      const existingInds = (locationOrId.indicators && Object.keys(locationOrId.indicators).length > 0)
-        ? locationOrId.indicators
+      const existingInds = (targetLocation.indicators && Object.keys(targetLocation.indicators).length > 0)
+        ? targetLocation.indicators
         : (knownPreload?.indicators || {});
 
-      const existingBaseline = locationOrId.census_baseline || knownPreload?.census_baseline || null;
+      const existingBaseline = targetLocation.census_baseline || knownPreload?.census_baseline || null;
 
       // 1. Immediately preserve authentic indicators if known, and set placeholder for fresh fetch
       const interimObj = {
@@ -740,7 +768,7 @@ export const LocationProvider = ({ children }) => {
         };
       } else {
         // Fallback to authentic Census 2011 & UDISE+ directory if Render backend query fails
-        const censusFallback = findCensusRecord(locationOrId.census_code || immediateGpId || queryParam || rawName);
+        const censusFallback = findCensusRecord(locationOrId.census_code || immediateGpId || queryParam || rawName, district);
         const activeBaseline = censusFallback || knownPreload;
         const fallbackInds = (locationOrId.indicators && Object.keys(locationOrId.indicators).length > 0)
           ? locationOrId.indicators
@@ -843,11 +871,15 @@ export const LocationProvider = ({ children }) => {
     loadIssues,
     loadInfrastructure,
     handleIssueCreated,
-    // Search
+    // Search & Statewide Directory
     searchQuery,
     searchResults,
     isSearching,
     handleSearch,
+    // Statewide Tamil Nadu Districts
+    selectedDistrict,
+    setSelectedDistrict,
+    districts,
     // Page Tab Navigation
     activeTab,
     setActiveTab,

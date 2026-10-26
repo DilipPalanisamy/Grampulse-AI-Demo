@@ -727,7 +727,8 @@ const MapView = ({
               .filter((l) => l && l.gp_name)
               .slice(0, 8)
               .map((loc, idx) => {
-                const isSelected = Number(loc.gp_id) === Number(selectedGpId);
+                const isSelected = Number(loc.gp_id) === Number(selectedGpId) ||
+                  (loc.census_code && selectedLocation?.census_code && String(loc.census_code) === String(selectedLocation.census_code));
                 return (
                   <button
                     key={`chip-${loc.gp_id || idx}-${loc.gp_name || 'loc'}`}

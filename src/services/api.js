@@ -29,7 +29,7 @@ export const fetchVillageData = async (villageName, district = 'Coimbatore') => 
   try {
     const res = await axios.get(`${base}/village/data`, {
       params: { village_name: villageName, district },
-      timeout: 15000,
+      timeout: 2500,
     });
     console.log(`[API RESPONSE] 200 OK from ${reqUrl}`, {
       status: res.data?.status,

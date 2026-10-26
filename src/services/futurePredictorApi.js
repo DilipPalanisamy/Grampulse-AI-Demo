@@ -273,6 +273,17 @@ function generateClientFallbackPrediction(payload) {
         population_change_percent: Number((((years[years.length - 1].population - currentPop) / currentPop) * 100).toFixed(2)),
       },
     },
+    census_baseline: payload.census_baseline || payload.selectedLocation?.census_baseline || {
+      location_name: villageName,
+      location_type: payload.selectedLocation?.location_type || 'Local Body',
+      year: 2011,
+      population: Math.round(currentPop),
+      households: Math.round(currentPop / 4),
+      electricity_coverage_percent: Number(payload.electricity_coverage) || null,
+      tap_water_coverage_percent: Number(payload.water_coverage) || null,
+      latrine_coverage_percent: Number(payload.selectedLocation?.latrine_coverage) || null,
+    },
+    indicators: payload.indicators || payload.selectedLocation?.indicators || {},
   };
 }
 
@@ -626,5 +637,14 @@ export function buildPredictionPayload({
 
     employment_rate:
       employmentRate,
+
+    census_baseline:
+      location.census_baseline || null,
+
+    indicators:
+      location.indicators || {},
+
+    selectedLocation:
+      location,
   };
 }

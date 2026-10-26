@@ -1,17 +1,26 @@
 /**
  * =============================================================================
- * GramPulse AI - Census Directory Service (Client-Side Resilient Government Data)
+ * GramPulse AI - Statewide Tamil Nadu Census Directory Service
  * =============================================================================
- * Indexes all official Census 2011 and UDISE+ records for local bodies in
- * Coimbatore district. Guarantees that GitHub Pages displays authentic
- * government data even during Render cold-starts or backend timeouts.
+ * Indexes authentic government data across all 38 districts of Tamil Nadu.
+ * Primary sources:
+ * 1. Census of India 2011 Primary Census Abstract (PCA)
+ * 2. Census of India 2011 Table HL-11 (1,097 Urban Local Bodies across 38 districts)
+ * 3. Ministry of Education UDISE+ School Directory
+ * 4. Tamil Nadu Local Government Directory (18,710 Revenue Villages)
+ *
+ * Guarantees that GitHub Pages displays authentic government records for any
+ * selected district and local body even during Render cold-starts or backend timeouts.
  * =============================================================================
  */
 
-import COMPACT_RECORDS from '../data/coimbatoreCensusDirectory.json';
+import COIMBATORE_RECORDS from '../data/coimbatoreCensusDirectory.json';
+import TOWNS_RECORDS from '../data/tamilNaduTownsDirectory.json';
+import DISTRICTS_DATA from '../data/tamilNaduDistricts.json';
 
-const NAME_INDEX = new Map();
 const CODE_INDEX = new Map();
+const NAME_INDEX = new Map();
+const DISTRICT_INDEX = new Map();
 
 function normalize(str) {
   return String(str || '')
@@ -26,74 +35,77 @@ function normalize(str) {
 function expandRecord(r) {
   if (!r) return null;
 
+  const dist = r.district || 'Tamil Nadu';
+  const locType = r.type || 'Village';
+
   const indicators = {
     total_population: {
       indicator: 'total_population',
-      value: r.pop,
+      value: r.pop ?? null,
       unit: 'persons',
-      data_status: 'HISTORICAL',
+      data_status: r.pop != null ? 'HISTORICAL' : 'UNAVAILABLE',
       source: 'Census of India 2011 Primary Census Abstract',
       reference_year: 2011,
     },
     total_households: {
       indicator: 'total_households',
-      value: r.hh,
+      value: r.hh ?? null,
       unit: 'households',
-      data_status: 'HISTORICAL',
-      source: 'Census of India 2011 Primary Census Abstract',
+      data_status: r.hh != null ? 'HISTORICAL' : 'UNAVAILABLE',
+      source: 'Census of India 2011 Table HL-11 / PCA',
       reference_year: 2011,
     },
     male_population: {
       indicator: 'male_population',
-      value: r.m,
+      value: r.m ?? null,
       unit: 'persons',
-      data_status: 'HISTORICAL',
+      data_status: r.m != null ? 'HISTORICAL' : 'UNAVAILABLE',
       source: 'Census 2011 PCA',
       reference_year: 2011,
     },
     female_population: {
       indicator: 'female_population',
-      value: r.f,
+      value: r.f ?? null,
       unit: 'persons',
-      data_status: 'HISTORICAL',
+      data_status: r.f != null ? 'HISTORICAL' : 'UNAVAILABLE',
       source: 'Census 2011 PCA',
       reference_year: 2011,
     },
     children_0_6: {
       indicator: 'children_0_6',
-      value: r.p06,
+      value: r.p06 ?? null,
       unit: 'persons',
-      data_status: 'HISTORICAL',
+      data_status: r.p06 != null ? 'HISTORICAL' : 'UNAVAILABLE',
       source: 'Census 2011 PCA',
       reference_year: 2011,
     },
     literate_population: {
       indicator: 'literate_population',
-      value: r.lit,
+      value: r.lit ?? null,
       unit: 'persons',
-      data_status: 'HISTORICAL',
+      data_status: r.lit != null ? 'HISTORICAL' : 'UNAVAILABLE',
       source: 'Census 2011 PCA',
       reference_year: 2011,
     },
     illiterate_population: {
       indicator: 'illiterate_population',
-      value: r.ill,
+      value: r.ill ?? null,
       unit: 'persons',
-      data_status: 'HISTORICAL',
+      data_status: r.ill != null ? 'HISTORICAL' : 'UNAVAILABLE',
       source: 'Census 2011 PCA',
       reference_year: 2011,
     },
     total_workers: {
       indicator: 'total_workers',
-      value: r.work,
+      value: r.work ?? null,
       unit: 'persons',
-      data_status: 'HISTORICAL',
+      data_status: r.work != null ? 'HISTORICAL' : 'UNAVAILABLE',
       source: 'Census 2011 PCA',
       reference_year: 2011,
     },
     household_electricity_coverage: {
       indicator: 'household_electricity_coverage',
-      value: r.elec,
+      value: r.elec ?? null,
       unit: 'percent',
       data_status: r.elec != null ? 'HISTORICAL' : 'UNAVAILABLE',
       source: 'Census of India 2011 Table HL-11',
@@ -101,7 +113,7 @@ function expandRecord(r) {
     },
     tap_water_coverage_percent: {
       indicator: 'tap_water_coverage_percent',
-      value: r.water,
+      value: r.water ?? null,
       unit: 'percent',
       data_status: r.water != null ? 'HISTORICAL' : 'UNAVAILABLE',
       source: 'Census of India 2011 Table HL-11',
@@ -109,7 +121,7 @@ function expandRecord(r) {
     },
     latrine_facility_coverage: {
       indicator: 'latrine_facility_coverage',
-      value: r.lat_cov,
+      value: r.lat_cov ?? null,
       unit: 'percent',
       data_status: r.lat_cov != null ? 'HISTORICAL' : 'UNAVAILABLE',
       source: 'Census of India 2011 Table HL-11',
@@ -117,17 +129,17 @@ function expandRecord(r) {
     },
     udise_school_count: {
       indicator: 'udise_school_count',
-      value: r.schools,
+      value: r.schools ?? null,
       unit: 'schools',
-      data_status: [644405, 803962, 803960].includes(r.id) ? 'VERIFIED' : 'HISTORICAL',
+      data_status: r.schools != null ? 'HISTORICAL' : 'UNAVAILABLE',
       source: 'Ministry of Education UDISE+ Directory',
       reference_year: 2024,
     },
     udise_total_classrooms: {
       indicator: 'udise_total_classrooms',
-      value: r.classrooms,
+      value: r.classrooms ?? null,
       unit: 'classrooms',
-      data_status: [644405, 803962, 803960].includes(r.id) ? 'VERIFIED' : 'HISTORICAL',
+      data_status: r.classrooms != null ? 'HISTORICAL' : 'UNAVAILABLE',
       source: 'Ministry of Education UDISE+ Directory',
       reference_year: 2024,
     },
@@ -138,63 +150,101 @@ function expandRecord(r) {
     gp_code: `CENSUS-${r.id}`,
     gp_name: r.name,
     village_name: r.name,
+    native_name: r.native_name || null,
     matched_location_name: r.raw_name || r.name,
-    location_type: r.type,
-    district: 'Coimbatore',
+    location_type: locType,
+    district: dist,
+    subdistrict_name: r.taluk || r.mandal || null,
+    pincode: r.pincode || null,
     state: 'Tamil Nadu',
     census_code: String(r.id),
-    lat: r.lat,
-    lng: r.lng,
-    population: r.pop,
-    total_population: r.pop,
-    male_population: r.m,
-    female_population: r.f,
-    children_0_6: r.p06,
-    households: r.hh,
-    hl11_households: r.hl_hh,
-    electricity_coverage: r.elec,
-    tap_water_coverage: r.water,
-    latrine_coverage: r.lat_cov,
-    schools: r.schools,
-    school_classrooms_count: r.classrooms,
-    literate_population: r.lit,
-    illiterate_population: r.ill,
-    total_workers: r.work,
+    lat: r.lat ?? null,
+    lng: r.lng ?? null,
+    population: r.pop ?? null,
+    total_population: r.pop ?? null,
+    male_population: r.m ?? null,
+    female_population: r.f ?? null,
+    children_0_6: r.p06 ?? null,
+    households: r.hh ?? null,
+    hl11_households: r.hl_hh ?? r.hh ?? null,
+    electricity_coverage: r.elec ?? null,
+    tap_water_coverage: r.water ?? null,
+    latrine_coverage: r.lat_cov ?? null,
+    schools: r.schools ?? null,
+    school_classrooms_count: r.classrooms ?? null,
+    literate_population: r.lit ?? null,
+    illiterate_population: r.ill ?? null,
+    total_workers: r.work ?? null,
     road_coverage_km: null,
     isOfficialData: true,
-    tagline: `${r.name} (${r.type}, Coimbatore)`,
-    description: `Authentic government records from Census 2011, Table HL-11, and Ministry of Education UDISE+ directory.`,
+    tagline: `${r.name} (${locType}, ${dist})`,
+    description: r.elec != null || r.pop != null
+      ? `Authentic government records from Census 2011 Table HL-11/PCA and UDISE+ Directory.`
+      : `Official Tamil Nadu administrative village. Indicators handled with strict data authenticity.`,
     indicators,
     census_baseline: {
       location_name: r.name,
-      location_type: r.type,
+      location_type: locType,
       year: 2011,
-      population: r.pop,
-      male_population: r.m,
-      female_population: r.f,
-      children_0_6: r.p06,
-      households: r.hh,
-      hl11_households: r.hl_hh,
-      literate_population: r.lit,
-      electricity_coverage_percent: r.elec,
-      tap_water_coverage_percent: r.water,
-      latrine_coverage_percent: r.lat_cov,
+      population: r.pop ?? null,
+      male_population: r.m ?? null,
+      female_population: r.f ?? null,
+      children_0_6: r.p06 ?? null,
+      households: r.hh ?? null,
+      hl11_households: r.hl_hh ?? r.hh ?? null,
+      literate_population: r.lit ?? null,
+      electricity_coverage_percent: r.elec ?? null,
+      tap_water_coverage_percent: r.water ?? null,
+      latrine_coverage_percent: r.lat_cov ?? null,
+      district: dist,
     },
   };
 }
 
-// Build indexes
-for (const r of COMPACT_RECORDS) {
-  CODE_INDEX.set(String(r.id), r);
-  CODE_INDEX.set(Number(r.id), r);
+// 1. Build synchronous index of Towns across all 38 districts + Coimbatore PCA records
+const PRIMARY_RECORDS = [];
+const seenPrimaryCodes = new Set();
 
-  const normName = normalize(r.name);
-  NAME_INDEX.set(normName, r);
+// Add Coimbatore PCA records first (rich demographics + UDISE+)
+for (const r of COIMBATORE_RECORDS) {
+  const code = String(r.id);
+  seenPrimaryCodes.add(code);
+  const rec = { ...r, district: r.district || 'Coimbatore' };
+  PRIMARY_RECORDS.push(rec);
+  CODE_INDEX.set(code, rec);
+  CODE_INDEX.set(Number(code), rec);
 
-  const normRaw = normalize(r.raw_name);
-  if (normRaw && !NAME_INDEX.has(normRaw)) {
-    NAME_INDEX.set(normRaw, r);
-  }
+  const norm = normalize(r.name);
+  NAME_INDEX.set(`coimbatore:${norm}`, rec);
+  if (!NAME_INDEX.has(norm)) NAME_INDEX.set(norm, rec);
+
+  const rawNorm = normalize(r.raw_name);
+  if (rawNorm && !NAME_INDEX.has(rawNorm)) NAME_INDEX.set(rawNorm, rec);
+
+  const dKey = 'coimbatore';
+  if (!DISTRICT_INDEX.has(dKey)) DISTRICT_INDEX.set(dKey, []);
+  DISTRICT_INDEX.get(dKey).push(rec);
+}
+
+// Add statewide towns from all 38 districts
+for (const r of TOWNS_RECORDS) {
+  const code = String(r.id);
+  if (seenPrimaryCodes.has(code)) continue;
+  seenPrimaryCodes.add(code);
+  PRIMARY_RECORDS.push(r);
+  CODE_INDEX.set(code, r);
+  CODE_INDEX.set(Number(code), r);
+
+  const dKey = normalize(r.district || 'Tamil Nadu');
+  const norm = normalize(r.name);
+  NAME_INDEX.set(`${dKey}:${norm}`, r);
+  if (!NAME_INDEX.has(norm)) NAME_INDEX.set(norm, r);
+
+  const rawNorm = normalize(r.raw_name);
+  if (rawNorm && !NAME_INDEX.has(rawNorm)) NAME_INDEX.set(rawNorm, r);
+
+  if (!DISTRICT_INDEX.has(dKey)) DISTRICT_INDEX.set(dKey, []);
+  DISTRICT_INDEX.get(dKey).push(r);
 }
 
 const ALIASES = {
@@ -207,38 +257,119 @@ const ALIASES = {
   madukkaraitp: 'madukkarai',
 };
 
+// 2. Dynamic on-demand loader for 18,710 rural villages
+let _villagesCache = null;
+let _loadingVillagesPromise = null;
+
+export async function ensureVillagesLoaded() {
+  if (_villagesCache) return _villagesCache;
+  if (_loadingVillagesPromise) return _loadingVillagesPromise;
+
+  _loadingVillagesPromise = import('../data/tamilNaduVillagesIndex.json')
+    .then((mod) => {
+      const list = mod.default || mod || [];
+      _villagesCache = list;
+      // Index villages
+      for (const v of list) {
+        const code = String(v.id || v.code);
+        if (!CODE_INDEX.has(code)) {
+          CODE_INDEX.set(code, v);
+          CODE_INDEX.set(Number(code), v);
+        }
+        const dKey = normalize(v.district);
+        const norm = normalize(v.name);
+        if (!NAME_INDEX.has(`${dKey}:${norm}`)) {
+          NAME_INDEX.set(`${dKey}:${norm}`, v);
+        }
+      }
+      return _villagesCache;
+    })
+    .catch((err) => {
+      console.warn('Could not load statewide villages index:', err);
+      _villagesCache = [];
+      return _villagesCache;
+    });
+
+  return _loadingVillagesPromise;
+}
+
 /**
- * Finds an authentic Census record by name or code.
+ * Returns list of all 38 official districts in Tamil Nadu
  */
-export function findCensusRecord(queryOrCode) {
+export function getDistricts() {
+  return DISTRICTS_DATA;
+}
+
+/**
+ * Finds an authentic Census record by name or code with optional district filter.
+ */
+export function findCensusRecord(queryOrCode, districtFilter = null) {
   if (!queryOrCode) return null;
 
+  const dKey = districtFilter ? normalize(districtFilter) : null;
+  const isAllDistricts = !dKey || dKey === 'all' || dKey === 'alldistricts' || dKey === 'tamilnadu';
+
   // 1. Direct code lookup
-  if (typeof queryOrCode === 'number' || /^\d+$/.test(String(queryOrCode).trim())) {
-    const code = String(queryOrCode).trim();
-    if (CODE_INDEX.has(code)) {
-      return expandRecord(CODE_INDEX.get(code));
+  const cleanStr = String(queryOrCode).trim();
+  const numericCode = cleanStr.replace(/^CENSUS-/i, '').trim();
+
+  if (/^\d+$/.test(numericCode)) {
+    if (CODE_INDEX.has(numericCode)) {
+      const rec = CODE_INDEX.get(numericCode);
+      if (isAllDistricts || normalize(rec.district) === dKey) {
+        return expandRecord(rec);
+      }
     }
   }
 
-  // 2. Direct name match
+  // 2. Direct name match with district filter
   const norm = normalize(queryOrCode);
+  if (!isAllDistricts) {
+    const distScopedKey = `${dKey}:${norm}`;
+    if (NAME_INDEX.has(distScopedKey)) {
+      return expandRecord(NAME_INDEX.get(distScopedKey));
+    }
+  }
+
   if (NAME_INDEX.has(norm)) {
-    return expandRecord(NAME_INDEX.get(norm));
+    const candidate = NAME_INDEX.get(norm);
+    if (isAllDistricts || normalize(candidate.district) === dKey) {
+      return expandRecord(candidate);
+    }
   }
 
   // 3. Alias check
   if (ALIASES[norm]) {
     const aliasNorm = normalize(ALIASES[norm]);
+    if (!isAllDistricts && NAME_INDEX.has(`${dKey}:${aliasNorm}`)) {
+      return expandRecord(NAME_INDEX.get(`${dKey}:${aliasNorm}`));
+    }
     if (NAME_INDEX.has(aliasNorm)) {
       return expandRecord(NAME_INDEX.get(aliasNorm));
     }
   }
 
-  // 4. Substring / Prefix match
-  for (const [key, r] of NAME_INDEX.entries()) {
-    if (key.length >= 4 && (norm.startsWith(key) || key.startsWith(norm) || norm.includes(key))) {
+  // 4. Substring search in district pool
+  const pool = (!isAllDistricts && DISTRICT_INDEX.has(dKey))
+    ? DISTRICT_INDEX.get(dKey)
+    : PRIMARY_RECORDS;
+
+  for (const r of pool) {
+    const rNorm = normalize(r.name);
+    const rawNorm = normalize(r.raw_name);
+    if (rNorm === norm || rawNorm === norm || (norm.length >= 4 && (rNorm.includes(norm) || norm.includes(rNorm)))) {
       return expandRecord(r);
+    }
+  }
+
+  // 5. Check villages cache if already loaded
+  if (_villagesCache) {
+    for (const v of _villagesCache) {
+      if (!isAllDistricts && normalize(v.district) !== dKey) continue;
+      const vNorm = normalize(v.name);
+      if (vNorm === norm || (norm.length >= 4 && vNorm.includes(norm))) {
+        return expandRecord(v);
+      }
     }
   }
 
@@ -246,38 +377,83 @@ export function findCensusRecord(queryOrCode) {
 }
 
 /**
- * Searches Census directory for autocompletion / search queries
+ * Returns key official local bodies across the specified district (or statewide)
  */
-export function searchCensusDirectory(query, limit = 15) {
+export function getTopCensusRecords(limit = 20, district = null) {
+  const dKey = district ? normalize(district) : null;
+  const isAllDistricts = !dKey || dKey === 'all' || dKey === 'alldistricts' || dKey === 'tamilnadu';
+
+  let pool = isAllDistricts
+    ? PRIMARY_RECORDS
+    : (DISTRICT_INDEX.get(dKey) || PRIMARY_RECORDS.filter((r) => normalize(r.district) === dKey));
+
+  if (!pool || pool.length === 0) {
+    pool = PRIMARY_RECORDS;
+  }
+
+  const sorted = [...pool].sort((a, b) => ((b.pop || b.hh || 0) - (a.pop || a.hh || 0)));
+  return sorted.slice(0, limit).map(expandRecord);
+}
+
+/**
+ * Searches Census directory across all 38 districts with optional district filter
+ */
+export function searchCensusDirectory(query, districtFilter = null, limit = 15) {
   const cleanQuery = normalize(query);
-  if (!cleanQuery) return [];
+  const rawQ = String(query || '').trim().toLowerCase();
+  if (!cleanQuery && !rawQ) return [];
+
+  const dKey = districtFilter ? normalize(districtFilter) : null;
+  const isAllDistricts = !dKey || dKey === 'all' || dKey === 'alldistricts' || dKey === 'tamilnadu';
+
+  // Trigger background lazy loading of villages on search
+  ensureVillagesLoaded();
 
   const results = [];
   const seen = new Set();
 
-  for (const r of COMPACT_RECORDS) {
+  const pool = (!isAllDistricts && DISTRICT_INDEX.has(dKey))
+    ? DISTRICT_INDEX.get(dKey)
+    : PRIMARY_RECORDS;
+
+  for (const r of pool) {
+    if (!isAllDistricts && normalize(r.district) !== dKey) continue;
     const norm = normalize(r.name);
-    if (norm.includes(cleanQuery) && !seen.has(r.id)) {
+    const normRaw = normalize(r.raw_name);
+    const codeStr = String(r.id);
+
+    if (
+      (norm.includes(cleanQuery) || normRaw.includes(cleanQuery) || codeStr.includes(cleanQuery)) &&
+      !seen.has(r.id)
+    ) {
       seen.add(r.id);
-      results.push({
-        gp_id: r.id,
-        gp_code: `CENSUS-${r.id}`,
-        gp_name: r.name,
-        village_name: r.name,
-        district: 'Coimbatore',
-        state: 'Tamil Nadu',
-        location_type: r.type,
-        census_code: String(r.id),
-        population: r.pop,
-        households: r.hh,
-        lat: r.lat,
-        lng: r.lng,
-        isOfficialData: true,
-        tagline: `${r.name} (${r.type}, Coimbatore)`,
-      });
-      if (results.length >= limit) break;
+      results.push(expandRecord(r));
+      if (results.length >= limit) return results;
+    }
+  }
+
+  // If results not full, search villages cache if loaded
+  if (results.length < limit && _villagesCache) {
+    for (const v of _villagesCache) {
+      if (!isAllDistricts && normalize(v.district) !== dKey) continue;
+      const vNorm = normalize(v.name);
+      const codeStr = String(v.id || v.code);
+      const native = String(v.native_name || '').toLowerCase();
+
+      if (
+        (vNorm.includes(cleanQuery) || codeStr.includes(cleanQuery) || native.includes(rawQ)) &&
+        !seen.has(v.id || v.code)
+      ) {
+        seen.add(v.id || v.code);
+        results.push(expandRecord(v));
+        if (results.length >= limit) break;
+      }
     }
   }
 
   return results;
+}
+
+export function getAllCensusRecords(district = null) {
+  return getTopCensusRecords(100, district);
 }

@@ -24,14 +24,14 @@ const OFFICIAL_VILLAGE_CACHE = new Map();
  * Falls back gracefully to null/unavailable indicators for unknown settlements
  * without inventing fake metrics.
  */
-export async function resolveOfficialVillageData(villageOrCityName, stateHint = '') {
+export async function resolveOfficialVillageData(villageOrCityName, districtOrStateHint = '', stateHint = '') {
   const cleanName = String(villageOrCityName || '').trim();
   if (!cleanName) {
     return null;
   }
 
-  const cleanStateHint = String(stateHint || '').trim();
-  const cacheKey = `${cleanName.toLowerCase()}_${cleanStateHint.toLowerCase()}`;
+  const cleanDistHint = String(districtOrStateHint || '').trim();
+  const cacheKey = `${cleanName.toLowerCase()}_${cleanDistHint.toLowerCase()}`;
   if (OFFICIAL_VILLAGE_CACHE.has(cacheKey)) {
     return OFFICIAL_VILLAGE_CACHE.get(cacheKey);
   }
@@ -41,9 +41,13 @@ export async function resolveOfficialVillageData(villageOrCityName, stateHint = 
 
   // 1. PRIMARY: Fetch real government data from FastAPI backend
   try {
+    const params = { village_name: cleanName };
+    if (cleanDistHint && cleanDistHint !== 'All Districts' && cleanDistHint !== 'Tamil Nadu') {
+      params.district = cleanDistHint;
+    }
     const res = await axios.get(`${backendBase}/village/data`, {
-      params: { village_name: cleanName, district: 'Coimbatore' },
-      timeout: 6000,
+      params,
+      timeout: 2500,
     });
     if (res.data && res.data.status) {
       backendData = res.data;
@@ -116,8 +120,8 @@ export async function resolveOfficialVillageData(villageOrCityName, stateHint = 
     return officialVillage;
   }
 
-  // 2. SECONDARY: Fallback to authentic Census 2011 & UDISE+ database
-  const censusRecord = findCensusRecord(cleanName);
+  // 2. SECONDARY: Fallback to authentic Census 2011 & UDISE+ database across all 38 districts
+  const censusRecord = findCensusRecord(cleanName, cleanDistHint);
   if (censusRecord) {
     OFFICIAL_VILLAGE_CACHE.set(cacheKey, censusRecord);
     return censusRecord;

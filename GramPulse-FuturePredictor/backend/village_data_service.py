@@ -179,7 +179,7 @@ def get_village_government_data(
     # -------------------------------------------------------------------------
     # 1. CENSUS DEMOGRAPHICS & BASELINE
     # -------------------------------------------------------------------------
-    census_baseline = get_census_baseline(clean_village)
+    census_baseline = get_census_baseline(clean_village, district_name=district_name)
 
     has_census = census_baseline is not None
     location_type = census_baseline.get("location_type", "Village") if has_census else "Village"
@@ -639,13 +639,13 @@ def get_village_government_data(
         "village": clean_village,
         "matched_location_name": loc_display_name,
         "location_type": location_type,
-        "district": district_name,
+        "district": census_baseline.get("district", district_name) if has_census else district_name,
         "state": "Tamil Nadu",
         "census_baseline": census_baseline,
         "administrative_identifiers": {
             "census_code": location_code,
             "subdistrict_code": census_baseline.get("subdistrict_code") if has_census else None,
-            "district_code": "632",
+            "district_code": census_baseline.get("district_code", "33") if has_census else "33",
             "state_code": "33"
         },
         "data_summary": {

@@ -1,0 +1,529 @@
+[
+  {
+    "name": "Ariyalur",
+    "state": "Tamil Nadu",
+    "lat": 11.1401,
+    "lng": 79.0786,
+    "town_count": 4,
+    "major_towns": [
+      "Jayankondam",
+      "Ariyalur",
+      "Udayarpalayam",
+      "Varadarajanpettai"
+    ]
+  },
+  {
+    "name": "Chengalpattu",
+    "state": "Tamil Nadu",
+    "lat": 12.6819,
+    "lng": 79.9888,
+    "town_count": 50,
+    "major_towns": [
+      "Pallavaram",
+      "Tambaram",
+      "Alandur",
+      "Oggiyamduraipakkam",
+      "Pammal"
+    ]
+  },
+  {
+    "name": "Chennai",
+    "state": "Tamil Nadu",
+    "lat": 13.0827,
+    "lng": 80.2707,
+    "town_count": 1,
+    "major_towns": [
+      "Chennai"
+    ]
+  },
+  {
+    "name": "Coimbatore",
+    "state": "Tamil Nadu",
+    "lat": 11.0168,
+    "lng": 76.9558,
+    "town_count": 69,
+    "major_towns": [
+      "Coimbatore",
+      "Kurichi",
+      "Kuniyamuthur",
+      "Pollachi",
+      "Goundampalayam"
+    ]
+  },
+  {
+    "name": "Cuddalore",
+    "state": "Tamil Nadu",
+    "lat": 11.748,
+    "lng": 79.7714,
+    "town_count": 30,
+    "major_towns": [
+      "Cuddalore",
+      "Neyveli",
+      "Virudhachalam",
+      "Chidambaram",
+      "Panruti"
+    ]
+  },
+  {
+    "name": "Dharmapuri",
+    "state": "Tamil Nadu",
+    "lat": 12.1211,
+    "lng": 78.1582,
+    "town_count": 13,
+    "major_towns": [
+      "Dharmapuri",
+      "Lakkiampatti",
+      "Harur",
+      "Palakkodu",
+      "Pennagaram"
+    ]
+  },
+  {
+    "name": "Dindigul",
+    "state": "Tamil Nadu",
+    "lat": 10.3673,
+    "lng": 77.9803,
+    "town_count": 34,
+    "major_towns": [
+      "Dindigul",
+      "Palani",
+      "Kodaikanal",
+      "Oddanchatram",
+      "Ayakudi"
+    ]
+  },
+  {
+    "name": "Erode",
+    "state": "Tamil Nadu",
+    "lat": 11.341,
+    "lng": 77.7172,
+    "town_count": 59,
+    "major_towns": [
+      "Erode",
+      "Veerappanchatiram",
+      "Kasipalayam",
+      "Gobichettipalayam",
+      "Periyasemur"
+    ]
+  },
+  {
+    "name": "Kallakurichi",
+    "state": "Tamil Nadu",
+    "lat": 11.7383,
+    "lng": 78.9639,
+    "town_count": 10,
+    "major_towns": [
+      "Kallakkurichi",
+      "Tirukkoyilur",
+      "Chinnasalem",
+      "Vadakkanandal",
+      "Ulundurpettai"
+    ]
+  },
+  {
+    "name": "Kancheepuram",
+    "state": "Tamil Nadu",
+    "lat": 12.8342,
+    "lng": 79.7036,
+    "town_count": 25,
+    "major_towns": [
+      "Kancheepuram",
+      "Kundrathur",
+      "Mangadu",
+      "Uthiramerur",
+      "Sriperumbudur"
+    ]
+  },
+  {
+    "name": "Kanniyakumari",
+    "state": "Tamil Nadu",
+    "lat": 8.0883,
+    "lng": 77.5385,
+    "town_count": 96,
+    "major_towns": [
+      "Nagercoil",
+      "Kollancode",
+      "Edaicode",
+      "Pacode",
+      "Aralvaimozhi"
+    ]
+  },
+  {
+    "name": "Karur",
+    "state": "Tamil Nadu",
+    "lat": 10.9601,
+    "lng": 78.0766,
+    "town_count": 19,
+    "major_towns": [
+      "Karur",
+      "Inam Karur",
+      "Thanthoni",
+      "Pallapatti",
+      "Kulithalai"
+    ]
+  },
+  {
+    "name": "Krishnagiri",
+    "state": "Tamil Nadu",
+    "lat": 12.5186,
+    "lng": 78.2137,
+    "town_count": 14,
+    "major_towns": [
+      "Hosur",
+      "Krishnagiri",
+      "Mookondapalli",
+      "Zuzuvadi",
+      "Mathigiri"
+    ]
+  },
+  {
+    "name": "Madurai",
+    "state": "Tamil Nadu",
+    "lat": 9.9252,
+    "lng": 78.1198,
+    "town_count": 39,
+    "major_towns": [
+      "Madurai",
+      "Avaniapuram",
+      "Anaiyur",
+      "Thirumangalam",
+      "Thiruparankundram"
+    ]
+  },
+  {
+    "name": "Mayiladuthurai",
+    "state": "Tamil Nadu",
+    "lat": 11.1075,
+    "lng": 79.6524,
+    "town_count": 6,
+    "major_towns": [
+      "Mayiladuthurai",
+      "Sirkali",
+      "Tharangambadi",
+      "Kuthalam",
+      "Manalmedu"
+    ]
+  },
+  {
+    "name": "Nagapattinam",
+    "state": "Tamil Nadu",
+    "lat": 10.7672,
+    "lng": 79.8449,
+    "town_count": 8,
+    "major_towns": [
+      "Nagapattinam",
+      "Vedaranyam",
+      "Thalainayar",
+      "Velankanni",
+      "Kilvelur"
+    ]
+  },
+  {
+    "name": "Namakkal",
+    "state": "Tamil Nadu",
+    "lat": 11.2189,
+    "lng": 78.1674,
+    "town_count": 34,
+    "major_towns": [
+      "Tiruchengode",
+      "Kumarapalayam",
+      "Namakkal",
+      "Rasipuram",
+      "Pallipalayam"
+    ]
+  },
+  {
+    "name": "Nilgiris",
+    "state": "Tamil Nadu",
+    "lat": 11.4102,
+    "lng": 76.695,
+    "town_count": 18,
+    "major_towns": [
+      "Udhagamandalam",
+      "Coonoor",
+      "Gudalur",
+      "Nelliyalam",
+      "Kotagiri"
+    ]
+  },
+  {
+    "name": "Perambalur",
+    "state": "Tamil Nadu",
+    "lat": 11.2342,
+    "lng": 78.882,
+    "town_count": 5,
+    "major_towns": [
+      "Perambalur",
+      "Kurumbalur",
+      "Arumbavur",
+      "Poolambadi",
+      "Labbaikudikadu"
+    ]
+  },
+  {
+    "name": "Pudukkottai",
+    "state": "Tamil Nadu",
+    "lat": 10.3797,
+    "lng": 78.8208,
+    "town_count": 16,
+    "major_towns": [
+      "Pudukkottai",
+      "Aranthangi",
+      "Pudukkottai",
+      "Ponnamaravathi",
+      "Karambakkudi"
+    ]
+  },
+  {
+    "name": "Ramanathapuram",
+    "state": "Tamil Nadu",
+    "lat": 9.3639,
+    "lng": 78.8395,
+    "town_count": 17,
+    "major_towns": [
+      "Paramakudi",
+      "Ramanathapuram",
+      "Rameswaram",
+      "Keelakarai",
+      "Pattinamkattan"
+    ]
+  },
+  {
+    "name": "Ranipet",
+    "state": "Tamil Nadu",
+    "lat": 12.9229,
+    "lng": 79.3326,
+    "town_count": 22,
+    "major_towns": [
+      "Arakonam",
+      "Arcot",
+      "Ranipettai",
+      "Walajapet",
+      "Melvisharam"
+    ]
+  },
+  {
+    "name": "Salem",
+    "state": "Tamil Nadu",
+    "lat": 11.6643,
+    "lng": 78.146,
+    "town_count": 68,
+    "major_towns": [
+      "Salem",
+      "Attur",
+      "Edappadi",
+      "Mettur",
+      "Edaganasalai"
+    ]
+  },
+  {
+    "name": "Sivaganga",
+    "state": "Tamil Nadu",
+    "lat": 9.8433,
+    "lng": 78.4809,
+    "town_count": 16,
+    "major_towns": [
+      "Karaikkudi",
+      "Devakottai",
+      "Sivaganga",
+      "Manamadurai",
+      "Sankarapuram"
+    ]
+  },
+  {
+    "name": "Tenkasi",
+    "state": "Tamil Nadu",
+    "lat": 8.9594,
+    "lng": 77.3161,
+    "town_count": 24,
+    "major_towns": [
+      "Kadayanallur",
+      "Tenkasi",
+      "Puliankudi",
+      "Sankarankoil",
+      "Surandai"
+    ]
+  },
+  {
+    "name": "Thanjavur",
+    "state": "Tamil Nadu",
+    "lat": 10.787,
+    "lng": 79.1378,
+    "town_count": 34,
+    "major_towns": [
+      "Thanjavur",
+      "Kumbakonam",
+      "Pattukkottai",
+      "Nanjikottai",
+      "Adiramapattinam"
+    ]
+  },
+  {
+    "name": "Theni",
+    "state": "Tamil Nadu",
+    "lat": 10.0104,
+    "lng": 77.4768,
+    "town_count": 28,
+    "major_towns": [
+      "Theni Allinagaram",
+      "Bodinayakanur",
+      "Kambam",
+      "Gudalur",
+      "Chinnamanur"
+    ]
+  },
+  {
+    "name": "Thiruvallur",
+    "state": "Tamil Nadu",
+    "lat": 13.1432,
+    "lng": 79.9074,
+    "town_count": 58,
+    "major_towns": [
+      "Ambattur",
+      "Avadi",
+      "Tiruvottiyur",
+      "Madavaram",
+      "Maduravoyal"
+    ]
+  },
+  {
+    "name": "Thiruvarur",
+    "state": "Tamil Nadu",
+    "lat": 10.7725,
+    "lng": 79.6365,
+    "town_count": 11,
+    "major_towns": [
+      "Mannargudi",
+      "Thiruvarur",
+      "Thiruthuraipoondi",
+      "Kuthanallur",
+      "Muthupet"
+    ]
+  },
+  {
+    "name": "Thoothukkudi",
+    "state": "Tamil Nadu",
+    "lat": 8.7642,
+    "lng": 78.1348,
+    "town_count": 35,
+    "major_towns": [
+      "Thoothukkudi",
+      "Kovilpatti",
+      "Milavittan",
+      "Kayalpattinam",
+      "Mappilaiurani"
+    ]
+  },
+  {
+    "name": "Tiruchirappalli",
+    "state": "Tamil Nadu",
+    "lat": 10.7905,
+    "lng": 78.7047,
+    "town_count": 31,
+    "major_towns": [
+      "Tiruchirappalli",
+      "Manapparai",
+      "Thuvakudi",
+      "Thuraiyur",
+      "Musiri"
+    ]
+  },
+  {
+    "name": "Tirunelveli",
+    "state": "Tamil Nadu",
+    "lat": 8.7139,
+    "lng": 77.7567,
+    "town_count": 29,
+    "major_towns": [
+      "Tirunelveli",
+      "Vikramasingapuram",
+      "Ambasamudram",
+      "Kalakad",
+      "Vadakkuvalliyur"
+    ]
+  },
+  {
+    "name": "Tirupathur",
+    "state": "Tamil Nadu",
+    "lat": 12.4925,
+    "lng": 78.5678,
+    "town_count": 18,
+    "major_towns": [
+      "Ambur",
+      "Vaniyambadi",
+      "Tirupathur",
+      "Jolarpet",
+      "Tirupattur"
+    ]
+  },
+  {
+    "name": "Tiruppur",
+    "state": "Tamil Nadu",
+    "lat": 11.1085,
+    "lng": 77.3411,
+    "town_count": 49,
+    "major_towns": [
+      "Tiruppur",
+      "Velampalayam",
+      "S.Nallur",
+      "Udumalaipettai",
+      "Dharapuram"
+    ]
+  },
+  {
+    "name": "Tiruvannamalai",
+    "state": "Tamil Nadu",
+    "lat": 12.2253,
+    "lng": 79.0747,
+    "town_count": 22,
+    "major_towns": [
+      "Tiruvannamalai",
+      "Arani",
+      "Tiruvethipuram",
+      "Vandavasi",
+      "Polur"
+    ]
+  },
+  {
+    "name": "Vellore",
+    "state": "Tamil Nadu",
+    "lat": 12.9165,
+    "lng": 79.1325,
+    "town_count": 32,
+    "major_towns": [
+      "Vellore",
+      "Gudiyatham",
+      "Sathuvachari",
+      "Pernampattu",
+      "Dharapadavedu"
+    ]
+  },
+  {
+    "name": "Viluppuram",
+    "state": "Tamil Nadu",
+    "lat": 11.9401,
+    "lng": 79.4861,
+    "town_count": 9,
+    "major_towns": [
+      "Viluppuram",
+      "Tindivanam",
+      "Kottakuppam",
+      "Gingee",
+      "Marakkanam"
+    ]
+  },
+  {
+    "name": "Virudhunagar",
+    "state": "Tamil Nadu",
+    "lat": 9.568,
+    "lng": 77.9624,
+    "town_count": 44,
+    "major_towns": [
+      "Rajapalayam",
+      "Aruppukkottai",
+      "Srivilliputhur",
+      "Virudhunagar",
+      "Sivakasi"
+    ]
+  }
+]

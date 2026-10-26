@@ -581,16 +581,17 @@ async def get_chinniyampalayam_udise():
 @app.get("/api/v1/village/search", tags=["Village Government Data"])
 async def search_village_endpoint(
     query: str = Query("", description="Search query or Census code"),
+    district: Optional[str] = Query(None, description="Optional district filter across all 38 districts"),
     limit: int = Query(20, ge=1, le=50, description="Max results"),
 ):
     """
     Searches authentic Tamil Nadu villages, towns, and local bodies
-    from the official Census 2011 directory. Supports village names and census codes.
+    from the official Census 2011 directory across all 38 districts.
     """
     try:
         if search_census_locations is None:
             raise HTTPException(status_code=503, detail="Census search service unavailable")
-        results = search_census_locations(query=query, limit=limit)
+        results = search_census_locations(query=query, district=district, limit=limit)
         return {
             "status": True,
             "query": query,

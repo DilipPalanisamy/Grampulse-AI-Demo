@@ -74,6 +74,9 @@ export default function Header({ onOpenReportModal }) {
     setActiveTab,
     analytics,
     infrastructure,
+    selectedDistrict,
+    setSelectedDistrict,
+    districts,
   } = useLocation();
 
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -209,8 +212,30 @@ export default function Header({ onOpenReportModal }) {
         {/* ================================================================= */}
         {/* 2. CENTER: SLEEK, ATTRACTIVE COMPACT SEARCH BAR                   */}
         {/* ================================================================= */}
-        <div className="flex-1 max-w-md lg:max-w-lg mx-2 sm:mx-3 relative overflow-visible" ref={searchContainerRef}>
-          <div className="relative flex items-center group">
+        <div className="flex-1 max-w-md lg:max-w-xl mx-2 sm:mx-3 relative overflow-visible flex items-center gap-1.5" ref={searchContainerRef}>
+          <select
+            aria-label="Header District Selector"
+            value={selectedDistrict}
+            onChange={(e) => {
+              const newD = e.target.value;
+              setSelectedDistrict(newD);
+              if (localInput) {
+                handleSearch(localInput, newD);
+              }
+            }}
+            className="hidden md:block text-[11px] font-bold px-2 py-2 rounded-xl bg-[var(--bg-primary)] border border-[var(--border-subtle)] text-[var(--text-main)] cursor-pointer focus:outline-none focus:ring-1 shrink-0"
+            style={{ borderColor: `${activePalette.primary}40` }}
+          >
+            <option value="All Districts">All 38 Districts</option>
+            {Array.isArray(districts) &&
+              districts.map((d) => (
+                <option key={`hdr-dist-${d.name}`} value={d.name}>
+                  {d.name}
+                </option>
+              ))}
+          </select>
+
+          <div className="relative flex-1 flex items-center group">
             <div
               className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors duration-200 group-focus-within:text-emerald-500"
               style={{ color: activePalette.primary }}
@@ -225,7 +250,7 @@ export default function Header({ onOpenReportModal }) {
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
               onFocus={() => setIsSearchOpen(true)}
-              placeholder="Search village, town, or Panchayat..."
+              placeholder={selectedDistrict === 'All Districts' ? 'Search village or town in Tamil Nadu...' : `Search in ${selectedDistrict}...`}
               className="w-full pl-9 sm:pl-10 pr-14 sm:pr-16 py-2 sm:py-2.5 text-xs sm:text-sm font-medium rounded-2xl bg-[var(--bg-primary)]/85 hover:bg-[var(--bg-primary)] focus:bg-[var(--bg-card)] border border-[var(--border-subtle)] hover:border-emerald-500/40 focus:border-emerald-500 text-[var(--text-main)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-emerald-500/20 shadow-xs hover:shadow-sm focus:shadow-md focus:shadow-emerald-500/10 backdrop-blur-md transition-all duration-200 font-sans"
             />
 
@@ -300,11 +325,16 @@ export default function Header({ onOpenReportModal }) {
                         </div>
                         <div className="min-w-0 truncate">
                           <p className="text-xs sm:text-sm font-bold text-[var(--text-main)] leading-tight truncate">
-                            <HighlightMatch text={village.gp_name} query={localInput} />
+                            <HighlightMatch text={village.gp_name || village.name} query={localInput} />
+                            {village.native_name && (
+                              <span className="text-[11px] font-normal text-emerald-500 ml-1.5 font-sans">
+                                ({village.native_name})
+                              </span>
+                            )}
                           </p>
                           <p className="text-[11px] text-[var(--text-muted)] truncate">
                             <HighlightMatch
-                              text={`${village.district || 'District'} District, ${village.state || 'India'}`}
+                              text={`${village.location_type || village.level || 'Location'} • ${village.district || 'Tamil Nadu'}`}
                               query={localInput}
                             />
                           </p>
