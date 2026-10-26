@@ -50,20 +50,20 @@ const findRegisteredUserRecord = (identifier) => {
 
 // Demo quick-fill citizen account
 export const DEMO_CITIZEN = {
-  identifier: 'citizen@koduvai.in',
+  identifier: 'citizen@grampulse.gov.in',
   password: 'citizen123',
   name: 'Aarav Sharma',
-  email: 'citizen@koduvai.in',
-  villageOrCity: 'Koduvai',
+  email: 'citizen@grampulse.gov.in',
+  villageOrCity: 'Chinniyampalayam',
   role: 'CITIZEN',
   roleLabel: 'Verified Citizen Resident',
   designation: 'Ward 3 Resident & Gram Sabha Member',
-  gpId: 101,
-  gpName: 'Koduvai',
-  district: 'Tiruppur',
+  gpId: 644405,
+  gpName: 'Chinniyampalayam',
+  district: 'Coimbatore',
   state: 'Tamil Nadu',
-  lat: 10.9634,
-  lng: 77.4727,
+  lat: 11.0267,
+  lng: 77.0617,
   avatar: null,
 };
 
@@ -128,22 +128,22 @@ export const AuthProvider = ({ children }) => {
       const decoded = jwtDecode(credentialResponse.credential);
       let officialVillage = null;
       try {
-        officialVillage = await resolveOfficialVillageData('Koduvai', 'Tamil Nadu');
+        officialVillage = await resolveOfficialVillageData('Chinniyampalayam', 'Tamil Nadu');
       } catch (err) {
-        console.warn('Official village resolution fallback for Google credential:', err);
+        console.warn('Official village resolution for Google credential:', err);
       }
 
       if (!officialVillage) {
         officialVillage = {
-          gp_id: 101,
-          gp_code: 'GP-TN-TPR-101',
-          gp_name: 'Koduvai',
-          village_name: 'Koduvai',
-          district: 'Tiruppur',
+          gp_id: 644405,
+          gp_code: 'CENSUS-644405',
+          gp_name: 'Chinniyampalayam',
+          village_name: 'Chinniyampalayam',
+          district: 'Coimbatore',
           state: 'Tamil Nadu',
-          lat: 10.9634,
-          lng: 77.4727,
-          population: 5800,
+          lat: 11.0267,
+          lng: 77.0617,
+          population: 8232,
           isOfficialData: true,
         };
       }
@@ -194,22 +194,22 @@ export const AuthProvider = ({ children }) => {
       const profile = res.data;
       let officialVillage = null;
       try {
-        officialVillage = await resolveOfficialVillageData('Koduvai', 'Tamil Nadu');
+        officialVillage = await resolveOfficialVillageData('Chinniyampalayam', 'Tamil Nadu');
       } catch (err) {
-        console.warn('Official village resolution fallback for Google token:', err);
+        console.warn('Official village resolution for Google token:', err);
       }
 
       if (!officialVillage) {
         officialVillage = {
-          gp_id: 101,
-          gp_code: 'GP-TN-TPR-101',
-          gp_name: 'Koduvai',
-          village_name: 'Koduvai',
-          district: 'Tiruppur',
+          gp_id: 644405,
+          gp_code: 'CENSUS-644405',
+          gp_name: 'Chinniyampalayam',
+          village_name: 'Chinniyampalayam',
+          district: 'Coimbatore',
           state: 'Tamil Nadu',
-          lat: 10.9634,
-          lng: 77.4727,
-          population: 5800,
+          lat: 11.0267,
+          lng: 77.0617,
+          population: 8232,
           isOfficialData: true,
         };
       }
@@ -310,7 +310,6 @@ export const AuthProvider = ({ children }) => {
     // c. existingRecord.officialVillage (persisted from previous signup)
     // d. existingRecord.villageOrCity (persisted name from previous signup)
     // e. DEMO_CITIZEN match
-    // f. Fallback to Koduvai
     let officialVillage = profileMeta?.officialVillage || null;
 
     if (!officialVillage && profileMeta?.village) {
@@ -321,26 +320,21 @@ export const AuthProvider = ({ children }) => {
       officialVillage = await resolveOfficialVillageData(existingRecord.villageOrCity);
     } else if (!officialVillage && cleanIdentifier.toLowerCase() === DEMO_CITIZEN.identifier.toLowerCase()) {
       officialVillage = await resolveOfficialVillageData(DEMO_CITIZEN.villageOrCity, DEMO_CITIZEN.state);
-    } else if (!officialVillage) {
-      try {
-        officialVillage = await resolveOfficialVillageData('Koduvai', 'Tamil Nadu');
-      } catch (err) {
-        console.warn('Fallback resolveOfficialVillageData error:', err);
-      }
     }
 
-    if (!officialVillage) {
+    if (!officialVillage && (profileMeta?.village || existingRecord?.villageOrCity)) {
+      const fallbackName = profileMeta?.village || existingRecord?.villageOrCity;
       officialVillage = {
-        gp_id: 101,
-        gp_code: 'GP-TN-TPR-101',
-        gp_name: profileMeta?.village || existingRecord?.villageOrCity || 'Koduvai',
-        village_name: profileMeta?.village || existingRecord?.villageOrCity || 'Koduvai',
+        gp_id: 1001,
+        gp_code: 'GP-REG',
+        gp_name: fallbackName,
+        village_name: fallbackName,
         district: existingRecord?.district || 'District',
         state: existingRecord?.state || 'Tamil Nadu',
-        lat: 10.9634,
-        lng: 77.4727,
-        population: 5800,
-        isOfficialData: true,
+        lat: 11.0267,
+        lng: 77.0617,
+        population: null,
+        isOfficialData: false,
       };
     }
 
@@ -417,18 +411,18 @@ export const AuthProvider = ({ children }) => {
         resolvedVillage = await resolveOfficialVillageData(cleanVillage);
       }
 
-      if (!resolvedVillage) {
+      if (!resolvedVillage && cleanVillage) {
         resolvedVillage = {
-          gp_id: 101,
-          gp_code: 'GP-TN-TPR-101',
-          gp_name: cleanVillage || 'Koduvai',
-          village_name: cleanVillage || 'Koduvai',
+          gp_id: 1001,
+          gp_code: 'GP-REG',
+          gp_name: cleanVillage,
+          village_name: cleanVillage,
           district: 'District',
           state: 'Tamil Nadu',
-          lat: 10.9634,
-          lng: 77.4727,
-          population: 5800,
-          isOfficialData: true,
+          lat: 11.0267,
+          lng: 77.0617,
+          population: null,
+          isOfficialData: false,
         };
       }
 

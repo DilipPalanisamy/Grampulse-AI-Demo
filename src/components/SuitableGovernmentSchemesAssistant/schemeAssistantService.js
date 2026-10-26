@@ -23,12 +23,12 @@ export const querySchemeAssistant = async (message, location = {}, chatHistory =
     const payload = {
       message: message.trim(),
       location: {
-        gp_id: location.gp_id || 101,
-        gp_name: location.gp_name || 'Koduvai',
-        district: location.district || 'Tiruppur',
+        gp_id: location.gp_id || null,
+        gp_name: location.gp_name || location.village_name || 'Gram Panchayat',
+        district: location.district || 'Coimbatore',
         state: location.state || 'Tamil Nadu',
-        population: location.population || 5800,
-        gp_code: location.gp_code || `GP-${location.gp_id || '101'}`,
+        population: location.population || null,
+        gp_code: location.gp_code || (location.gp_id ? `GP-${location.gp_id}` : 'GP-ACTIVE'),
       },
       chat_history: chatHistory.slice(-8), // Keep recent conversational turns
     };

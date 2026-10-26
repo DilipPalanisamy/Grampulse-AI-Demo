@@ -69,6 +69,22 @@ logging.basicConfig(
 )
 logger = logging.getLogger("GramPulse-API")
 
+# Import official government data & census services from GramPulse-FuturePredictor backend
+_BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+_FUTURE_PREDICTOR_DIR = os.path.join(_BASE_DIR, "GramPulse-FuturePredictor", "backend")
+if _FUTURE_PREDICTOR_DIR not in sys.path and os.path.exists(_FUTURE_PREDICTOR_DIR):
+    sys.path.insert(0, _FUTURE_PREDICTOR_DIR)
+
+try:
+    from village_data_service import get_village_government_data
+    from census_service import search_census_locations, get_census_baseline
+    from data_validator import validate_village_government_data
+except Exception as _import_err:
+    logger.warning(f"Could not import government data services directly: {_import_err}")
+    get_village_government_data = None
+    search_census_locations = None
+    validate_village_government_data = None
+
 # ---------------------------------------------------------------------------
 # FastAPI Application Instance & Production Middleware Setup
 # ---------------------------------------------------------------------------
@@ -132,6 +148,7 @@ async def root():
     }
 
 
+@app.get("/health", tags=["General"])
 @app.get("/api/v1/health", tags=["General"])
 async def health_check():
     """Verifies API status, spatial engines, and database connectivity."""
@@ -549,6 +566,111 @@ async def get_chinniyampalayam_udise():
             "schools": result.get("schools", []),
         }
     except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+# ---------------------------------------------------------------------------
+# Authentic Multi-Sector Government Data Endpoints (Census, UDISE+, JJM, NHM)
+# ---------------------------------------------------------------------------
+@app.get("/village/search", tags=["Village Government Data"])
+@app.get("/api/v1/village/search", tags=["Village Government Data"])
+async def search_village_endpoint(
+    query: str = Query("", description="Search query or Census code"),
+    limit: int = Query(20, ge=1, le=50, description="Max results"),
+):
+    """
+    Searches authentic Tamil Nadu villages, towns, and local bodies
+    from the official Census 2011 directory. Supports village names and census codes.
+    """
+    try:
+        if search_census_locations is None:
+            raise HTTPException(status_code=503, detail="Census search service unavailable")
+        results = search_census_locations(query=query, limit=limit)
+        return {
+            "status": True,
+            "query": query,
+            "count": len(results),
+            "results": results,
+        }
+    except Exception as exc:
+        logger.error(f"Error searching census locations for '{query}': {exc}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.get("/village/data", tags=["Village Government Data"])
+@app.get("/api/v1/village/data", tags=["Village Government Data"])
+async def get_village_data_endpoint(
+    village_name: str = Query(..., description="Village name or Census code"),
+    district: str = Query("Coimbatore", description="District name"),
+):
+    """
+    Retrieves authentic multi-sector government data for a Tamil Nadu village.
+    Includes Census 2011, UDISE+, JJM, PMGSY, NHM, and BharatNet indicators.
+    """
+    try:
+        if get_village_government_data is None:
+            raise HTTPException(status_code=503, detail="Village government data service unavailable")
+        data = get_village_government_data(
+            village_name=village_name,
+            district_name=district,
+        )
+        return data
+    except Exception as exc:
+        logger.error(f"Error fetching village data for '{village_name}': {exc}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.get("/village/indicators", tags=["Village Government Data"])
+@app.get("/api/v1/village/indicators", tags=["Village Government Data"])
+async def get_village_indicators_endpoint(
+    village_name: str = Query(..., description="Village name or Census code"),
+    district: str = Query("Coimbatore", description="District name"),
+):
+    """
+    Returns indicator-level breakdown with full Step 8 metadata
+    (reference year, official source URL, data status, unit).
+    """
+    try:
+        if get_village_government_data is None:
+            raise HTTPException(status_code=503, detail="Village government data service unavailable")
+        gov_data = get_village_government_data(
+            village_name=village_name,
+            district_name=district,
+        )
+        return {
+            "status": True,
+            "village": gov_data.get("village"),
+            "matched_location": gov_data.get("matched_location_name"),
+            "location_type": gov_data.get("location_type"),
+            "data_summary": gov_data.get("data_summary"),
+            "indicators": list(gov_data.get("indicators", {}).values()),
+        }
+    except Exception as exc:
+        logger.error(f"Error getting village indicators for '{village_name}': {exc}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.get("/village/validation", tags=["Village Government Data"])
+@app.get("/api/v1/village/validation", tags=["Village Government Data"])
+async def get_village_validation_endpoint(
+    village_name: str = Query(..., description="Village name or Census code"),
+    district: str = Query("Coimbatore", description="District name"),
+):
+    """
+    Runs 14-dimension data quality and consistency validation
+    on real government data for the selected village.
+    """
+    try:
+        if get_village_government_data is None or validate_village_government_data is None:
+            raise HTTPException(status_code=503, detail="Data validation service unavailable")
+        gov_data = get_village_government_data(
+            village_name=village_name,
+            district_name=district,
+        )
+        validation_report = validate_village_government_data(gov_data)
+        return validation_report
+    except Exception as exc:
+        logger.error(f"Error getting village validation for '{village_name}': {exc}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(exc))
 
 

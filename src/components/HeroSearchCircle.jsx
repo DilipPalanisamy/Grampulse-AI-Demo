@@ -60,12 +60,12 @@ function HeroSearchCircle({ onNavigateToMap }) {
   };
 
   const quickPanchayats = [
-    { name: 'Chinniyampalayam', queryName: 'Chinniyampalayam', district: 'Coimbatore', id: 644405 },
-    { name: 'Karamadai', queryName: 'Karamadai', district: 'Coimbatore', id: 644365 },
-    { name: 'Sirumugai', queryName: 'Sirumugai', district: 'Coimbatore', id: 644368 },
-    { name: 'Odanthurai', queryName: 'Odanthurai', district: 'Coimbatore', id: 644383 },
-    { name: 'Annur', queryName: 'Annur', district: 'Coimbatore', id: 644388 },
-    { name: 'Madukkarai', queryName: 'Madukkarai', district: 'Coimbatore', id: 644420 },
+    { name: 'Chinniyampalayam', queryName: 'Chinniyampalayam', district: 'Coimbatore', id: 644405, census_code: '644405' },
+    { name: 'Karamadai', queryName: 'Karamadai', district: 'Coimbatore', id: 803962, census_code: '803962' },
+    { name: 'Sirumugai', queryName: 'Sirumugai', district: 'Coimbatore', id: 803960, census_code: '803960' },
+    { name: 'Odanthurai', queryName: 'Odanthurai', district: 'Coimbatore', id: 644383, census_code: '644383' },
+    { name: 'Annur', queryName: 'Annur', district: 'Coimbatore', id: 803969, census_code: '803969' },
+    { name: 'Madukkarai', queryName: 'Madukkarai', district: 'Coimbatore', id: 803975, census_code: '803975' },
   ];
 
   const displayResults =

@@ -189,7 +189,7 @@ export const submitCitizenIssue = async (issueData) => {
  * as a high-fidelity fallback when the backend ML endpoint is unreachable.
  */
 export const generateOfficialPanchayatAnalytics = (
-  gpId = 101,
+  gpId = null,
   horizonYears = 5,
   growthRate = 0.018,
   loc = {}

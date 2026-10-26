@@ -193,19 +193,21 @@ def resolve_udise_infrastructure(village_name: str, fallback_pop: float = 5800.0
                 "source": "UDISE+ Verified Cache",
             }
 
-    # 2. Try live UDISE module search if available
-    if udise and hasattr(udise, "get_location_udise"):
-        try:
-            result = udise.get_location_udise(village_name)
-            if result.get("schools") and len(result["schools"]) > 0:
-                return {
-                    "schools": result.get("schools", []),
-                    "infrastructure": result.get("infrastructure", {}),
-                    "education_impact": result.get("education_impact", {}),
-                    "source": "Live UDISE+ Portal",
-                }
-        except Exception as e:
-            logger.info(f"Live UDISE fetch skipped for '{village_name}': {e}")
+    # 2. Local UDISE School Directory for Tamil Nadu villages
+    try:
+        from udise_service import search_village_schools
+        v_schools = search_village_schools(village_name)
+        if v_schools and len(v_schools) > 0 and calculate_school_infrastructure and calculate_education_impact:
+            infra = calculate_school_infrastructure(v_schools)
+            impact = calculate_education_impact(infra)
+            return {
+                "schools": v_schools,
+                "infrastructure": infra,
+                "education_impact": impact,
+                "source": "UDISE+ School Directory",
+            }
+    except Exception as e:
+        logger.info(f"UDISE school directory lookup skipped for '{village_name}': {e}")
 
     # 3. Deterministic baseline education infrastructure
     est_schools = max(1, round(fallback_pop / 1800))
@@ -273,7 +275,24 @@ def execute_village_future_prediction(payload_data: Dict[str, Any]) -> Dict[str,
     # 1. Parse and sanitize input
     village_name = str(payload_data.get("village_name") or "Selected Village").strip()
     current_year = int(payload_data.get("current_year") or 2026)
-    population = float(payload_data.get("population") or 5800.0)
+    raw_pop = payload_data.get("population")
+    if raw_pop is not None and float(raw_pop) > 0:
+        population = float(raw_pop)
+    else:
+        # Attempt resolution from authentic Census baseline
+        baseline = None
+        try:
+            from census_service import get_census_baseline
+            baseline = get_census_baseline(village_name)
+        except Exception:
+            pass
+        if baseline and baseline.get("total_population"):
+            population = float(baseline["total_population"])
+        else:
+            raise ValueError(
+                f"Required prediction input 'population' is missing for '{village_name}'. "
+                "Official Census records are unavailable for this query."
+            )
     
     households = int(payload_data.get("households") or max(1, round(population / 4)))
     school_students = int(payload_data.get("school_students") or max(1, round(population * 0.16)))

@@ -467,11 +467,11 @@ export default function SuitableGovernmentSchemesAssistant({
     try {
       // Build location payload
       const locPayload = {
-        gp_id: selectedLocation?.gp_id || 101,
-        gp_name: selectedLocation?.gp_name || 'Koduvai',
-        district: selectedLocation?.district || 'Tiruppur',
+        gp_id: selectedLocation?.gp_id || null,
+        gp_name: selectedLocation?.gp_name || selectedLocation?.village_name || 'Gram Panchayat',
+        district: selectedLocation?.district || 'Coimbatore',
         state: selectedLocation?.state || 'Tamil Nadu',
-        population: selectedLocation?.population || 5800,
+        population: selectedLocation?.population || null,
         planning_horizon: planningHorizon || 5,
       };
 

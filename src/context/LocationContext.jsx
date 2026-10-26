@@ -98,12 +98,12 @@ const buildInitialVillage = (villageInput = null) => {
         state,
         lat: Number(villageInput.lat ?? 11.0267),
         lng: Number(villageInput.lng ?? 77.0617),
-        population: villageInput.population != null ? Number(villageInput.population) : 8232,
-        total_population: villageInput.total_population != null ? Number(villageInput.total_population) : 8232,
-        households: villageInput.households != null ? Number(villageInput.households) : 2349,
-        hl11_households: villageInput.hl11_households != null ? Number(villageInput.hl11_households) : 2422,
-        schools: villageInput.schools != null ? Number(villageInput.schools) : 2,
-        school_classrooms_count: villageInput.school_classrooms_count != null ? Number(villageInput.school_classrooms_count) : 39,
+        population: villageInput.population != null ? Number(villageInput.population) : (name === 'Chinniyampalayam' ? 8232 : null),
+        total_population: villageInput.total_population != null ? Number(villageInput.total_population) : (name === 'Chinniyampalayam' ? 8232 : null),
+        households: villageInput.households != null ? Number(villageInput.households) : (name === 'Chinniyampalayam' ? 2349 : null),
+        hl11_households: villageInput.hl11_households != null ? Number(villageInput.hl11_households) : (name === 'Chinniyampalayam' ? 2422 : null),
+        schools: villageInput.schools != null ? Number(villageInput.schools) : (name === 'Chinniyampalayam' ? 2 : null),
+        school_classrooms_count: villageInput.school_classrooms_count != null ? Number(villageInput.school_classrooms_count) : (name === 'Chinniyampalayam' ? 39 : null),
         road_coverage_km: villageInput.road_coverage_km != null ? Number(villageInput.road_coverage_km) : null,
         tagline: villageInput.tagline || `${name} (${district})`,
         description: villageInput.description || `Official government records from Census of India 2011 and UDISE+ directory.`,
@@ -168,7 +168,7 @@ export const LocationProvider = ({ children }) => {
     if (selectedLocation?.lat && selectedLocation?.lng) {
       return [Number(selectedLocation.lat), Number(selectedLocation.lng)];
     }
-    return [10.9634, 77.4727]; // Default to Koduvai / Tamil Nadu
+    return [11.0267, 77.0617]; // Default to Chinniyampalayam / Coimbatore
   }, [selectedLocation]);
 
   // Auto-sync active location when authenticated user session updates
@@ -376,17 +376,62 @@ export const LocationProvider = ({ children }) => {
    * 3. Optionally switches activeTab to 'dashboard'
    * 4. Smoothly scrolls window to top
    */
+  // Request sequencing ref to prevent stale API responses from overwriting newer selection
+  const selectionReqIdRef = useRef(0);
+
+  /**
+   * Sets the active location dynamically:
+   * 1. Immediately saves backend identifier & clears old indicators
+   * 2. Fetches real government data from backend
+   * 3. Prevents stale responses from overwriting newer selections
+   * 4. Updates global location, indicators, and Census baseline
+   */
   const handleSelectLocation = useCallback(async (locationOrId, shouldRouteToDashboard = true) => {
+    const currentReqId = ++selectionReqIdRef.current;
+
     if (typeof locationOrId === 'object' && locationOrId !== null) {
       const rawName = locationOrId.gp_name || locationOrId.village_name || locationOrId.name || 'Selected Location';
       const district = locationOrId.district || 'Coimbatore';
+      const queryParam = locationOrId.census_code || rawName;
 
-      // 1. Fetch real government data from FastAPI backend
+      // 1. Immediately clear old village indicators and set placeholder so old village data never lingers
+      const immediateGpId = locationOrId.census_code ? Number(locationOrId.census_code) : (locationOrId.gp_id || Math.floor(1000 + Math.random() * 9000));
+      const interimObj = {
+        ...locationOrId,
+        gp_id: immediateGpId,
+        gp_name: rawName,
+        village_name: rawName,
+        district,
+        state: locationOrId.state || 'Tamil Nadu',
+        population: locationOrId.population ?? null,
+        total_population: locationOrId.total_population ?? locationOrId.population ?? null,
+        households: locationOrId.households ?? null,
+        schools: locationOrId.schools ?? null,
+        school_classrooms_count: locationOrId.school_classrooms_count ?? null,
+        road_coverage_km: locationOrId.road_coverage_km ?? null,
+        indicators: {},
+        isOfficialData: Boolean(locationOrId.isOfficialCensus || locationOrId.isOfficialData),
+        isLoadingBackend: true,
+      };
+
+      setLocations((prev) => {
+        const list = Array.isArray(prev) ? prev : [];
+        const filtered = list.filter((p) => String(p?.gp_name || '').toLowerCase() !== String(rawName).toLowerCase());
+        return [interimObj, ...filtered];
+      });
+      setSelectedGpId(immediateGpId);
+
+      // 2. Fetch real government data from FastAPI backend
       let govData = null;
       try {
-        govData = await fetchVillageData(rawName, district);
+        govData = await fetchVillageData(queryParam, district);
       } catch (err) {
-        console.warn(`Failed to fetch backend data for ${rawName}:`, err);
+        console.warn(`Failed to fetch backend data for ${queryParam}:`, err);
+      }
+
+      // 3. Stale response guard: discard if user made a newer selection
+      if (currentReqId !== selectionReqIdRef.current) {
+        return;
       }
 
       let mergedObj;
@@ -399,7 +444,7 @@ export const LocationProvider = ({ children }) => {
 
         mergedObj = {
           ...locationOrId,
-          gp_id: censusCode ? parseInt(censusCode, 10) : (locationOrId.gp_id || 1001),
+          gp_id: censusCode ? parseInt(censusCode, 10) : immediateGpId,
           gp_code: censusCode ? `CENSUS-${censusCode}` : (locationOrId.gp_code || `GP-${matchedName.slice(0, 3).toUpperCase()}`),
           gp_name: matchedName,
           village_name: matchedName,
@@ -410,12 +455,12 @@ export const LocationProvider = ({ children }) => {
           subdistrict_code: admin.subdistrict_code || locationOrId.subdistrict_code || null,
 
           // Real Indicators from Backend
-          population: inds.total_population?.value ?? null,
-          total_population: inds.total_population?.value ?? null,
+          population: inds.total_population?.value ?? locationOrId.population ?? null,
+          total_population: inds.total_population?.value ?? locationOrId.population ?? null,
           male_population: inds.male_population?.value ?? null,
           female_population: inds.female_population?.value ?? null,
           children_0_6: inds.children_0_6?.value ?? null,
-          households: inds.total_households?.value ?? null,
+          households: inds.total_households?.value ?? locationOrId.households ?? null,
           hl11_households: inds.hl11_total_households?.value ?? null,
           literate_population: inds.literate_population?.value ?? null,
           illiterate_population: inds.illiterate_population?.value ?? null,
@@ -440,15 +485,19 @@ export const LocationProvider = ({ children }) => {
           categories: govData.categories || {},
           census_baseline: govData.census_baseline || null,
           sources_used: govData.sources_used || [],
-          isOfficialData: true,
+          data_summary: govData.data_summary || null,
+          isOfficialData: Boolean(govData.census_baseline || govData.data_summary?.has_demographics),
+          isLoadingBackend: false,
           tagline: `${matchedName} (${locType}, ${govData.district || district})`,
-          description: `Authentic government data from Census 2011, Table HL-11, and Ministry of Education UDISE+ directory.`,
+          description: govData.data_summary?.has_demographics
+            ? `Authentic government data from Census 2011, Table HL-11, and Ministry of Education UDISE+ directory.`
+            : `Census demographic records unavailable for this village.`,
         };
       } else {
         // Unknown or unmatched location: clean null indicators, no fake numbers
         mergedObj = {
           ...locationOrId,
-          gp_id: locationOrId.gp_id || Math.floor(1000 + Math.random() * 9000),
+          gp_id: immediateGpId,
           gp_name: rawName,
           village_name: rawName,
           location_type: locationOrId.location_type || 'Unmatched Location',
@@ -463,6 +512,7 @@ export const LocationProvider = ({ children }) => {
           road_coverage_km: null,
           indicators: {},
           isOfficialData: false,
+          isLoadingBackend: false,
           tagline: `${rawName} (Unverified Record)`,
           description: `Official village-level Census and UDISE+ data unavailable for this query.`,
         };
@@ -470,11 +520,8 @@ export const LocationProvider = ({ children }) => {
 
       setLocations((prev) => {
         const list = Array.isArray(prev) ? prev : [];
-        const exists = list.some((p) => String(p?.gp_name || '').toLowerCase() === String(mergedObj.gp_name || '').toLowerCase());
-        if (!exists) {
-          return [mergedObj, ...list];
-        }
-        return list.map((p) => String(p?.gp_name || '').toLowerCase() === String(mergedObj.gp_name || '').toLowerCase() ? mergedObj : p);
+        const filtered = list.filter((p) => String(p?.gp_name || '').toLowerCase() !== String(mergedObj.gp_name || '').toLowerCase());
+        return [mergedObj, ...filtered];
       });
 
       setSelectedGpId(Number(mergedObj.gp_id));
