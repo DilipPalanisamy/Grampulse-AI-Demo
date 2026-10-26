@@ -999,6 +999,7 @@ function PredictionReportView({
   isManual = false,
   onModifyManual,
   onRefresh,
+  selectedLocation,
 }) {
   const [selectedYearTab, setSelectedYearTab] = useState('all');
   const [downloadingYear, setDownloadingYear] = useState(null);
@@ -1007,6 +1008,9 @@ function PredictionReportView({
   const years = predictionData?.predictions?.years || [];
   const currentUdise = predictionData?.current_udise || {};
   const infrastructureData = currentUdise?.infrastructure || {};
+
+  const effectiveBaseline = predictionData?.census_baseline || selectedLocation?.census_baseline || null;
+  const effectiveIndicators = predictionData?.indicators || selectedLocation?.indicators || {};
 
   const filteredYears = useMemo(() => {
     if (selectedYearTab === 'all') {
@@ -1198,12 +1202,12 @@ function PredictionReportView({
           </div>
           <div className="text-right">
             <span className="text-[11px] font-bold text-blue-400 bg-blue-500/10 px-2.5 py-1 rounded-lg border border-blue-500/20">
-              {predictionData?.census_baseline?.location_type || 'Village Administration'}
+              {effectiveBaseline?.location_type || 'Village Administration'}
             </span>
           </div>
         </div>
 
-        {predictionData?.census_baseline ? (
+        {effectiveBaseline ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
             {/* Indicator 1: Population */}
             <div className="p-3.5 rounded-2xl bg-[var(--bg-primary)] border border-[var(--border-subtle)] space-y-1.5">
@@ -1214,11 +1218,11 @@ function PredictionReportView({
                 </span>
               </div>
               <div className="text-xl font-black text-[var(--text-main)]">
-                {formatNumber(predictionData.census_baseline.population)} <span className="text-xs font-normal text-[var(--text-muted)]">persons</span>
+                {formatNumber(effectiveBaseline.population || selectedLocation?.population)} <span className="text-xs font-normal text-[var(--text-muted)]">persons</span>
               </div>
               <div className="text-[10px] text-[var(--text-muted)] flex flex-col gap-0.5 pt-1 border-t border-[var(--border-subtle)]">
                 <span>Source: Census of India</span>
-                <span>Ref Year: {predictionData.census_baseline.year || 2011} &bull; Level: {predictionData.census_baseline.location_type || 'Census Town'}</span>
+                <span>Ref Year: {effectiveBaseline.year || 2011} &bull; Level: {effectiveBaseline.location_type || 'Census Town'}</span>
               </div>
             </div>
 
@@ -1231,19 +1235,19 @@ function PredictionReportView({
                 </span>
               </div>
               <div className="text-lg font-black text-[var(--text-main)]">
-                {formatNumber(predictionData.census_baseline.households)} <span className="text-xs font-normal text-[var(--text-muted)]">PCA</span>
-                {predictionData.census_baseline.hl11_households && (
+                {formatNumber(effectiveBaseline.households || selectedLocation?.households)} <span className="text-xs font-normal text-[var(--text-muted)]">PCA</span>
+                {effectiveBaseline.hl11_households && (
                   <>
                     <span className="text-xs text-[var(--text-muted)] font-normal mx-1">/</span>
                     <span className="text-sm font-bold text-blue-400">
-                      {formatNumber(predictionData.census_baseline.hl11_households)} <span className="text-[10px] font-normal text-[var(--text-muted)]">HL-11</span>
+                      {formatNumber(effectiveBaseline.hl11_households)} <span className="text-[10px] font-normal text-[var(--text-muted)]">HL-11</span>
                     </span>
                   </>
                 )}
               </div>
               <div className="text-[10px] text-[var(--text-muted)] flex flex-col gap-0.5 pt-1 border-t border-[var(--border-subtle)]">
                 <span>Source: Census of India (PCA &amp; HL-11)</span>
-                <span>Ref Year: {predictionData.census_baseline.year || 2011} &bull; Level: {predictionData.census_baseline.location_type || 'Census Town'}</span>
+                <span>Ref Year: {effectiveBaseline.year || 2011} &bull; Level: {effectiveBaseline.location_type || 'Census Town'}</span>
               </div>
             </div>
 
@@ -1256,16 +1260,18 @@ function PredictionReportView({
                 </span>
               </div>
               <div className="text-xl font-black text-[var(--text-main)]">
-                {predictionData.census_baseline.literate_population && predictionData.census_baseline.population
-                  ? formatPercent((predictionData.census_baseline.literate_population / predictionData.census_baseline.population) * 100)
-                  : 'Not Available'}
-                <span className="text-xs font-normal text-[var(--text-muted)] ml-1.5">
-                  ({formatNumber(predictionData.census_baseline.literate_population)} lit.)
-                </span>
+                {effectiveBaseline.literate_population && effectiveBaseline.population
+                  ? formatPercent((effectiveBaseline.literate_population / effectiveBaseline.population) * 100)
+                  : (selectedLocation?.literacy_rate != null ? formatPercent(selectedLocation.literacy_rate) : 'Not Available')}
+                {effectiveBaseline.literate_population ? (
+                  <span className="text-xs font-normal text-[var(--text-muted)] ml-1.5">
+                    ({formatNumber(effectiveBaseline.literate_population)} lit.)
+                  </span>
+                ) : null}
               </div>
               <div className="text-[10px] text-[var(--text-muted)] flex flex-col gap-0.5 pt-1 border-t border-[var(--border-subtle)]">
                 <span>Source: Census of India PCA</span>
-                <span>Ref Year: {predictionData.census_baseline.year || 2011} &bull; Male: {formatNumber(predictionData.census_baseline.male_population)} | Female: {formatNumber(predictionData.census_baseline.female_population)}</span>
+                <span>Ref Year: {effectiveBaseline.year || 2011} &bull; Male: {formatNumber(effectiveBaseline.male_population)} | Female: {formatNumber(effectiveBaseline.female_population)}</span>
               </div>
             </div>
 
@@ -1278,11 +1284,11 @@ function PredictionReportView({
                 </span>
               </div>
               <div className="text-xl font-black text-emerald-400">
-                {predictionData?.current_udise?.school_count != null ? predictionData.current_udise.school_count : (predictionData?.indicators?.udise_school_count?.value ?? 'Not Available')} <span className="text-xs font-normal text-[var(--text-muted)]">schools active</span>
+                {predictionData?.current_udise?.school_count != null ? predictionData.current_udise.school_count : (effectiveIndicators?.udise_school_count?.value ?? selectedLocation?.schools ?? 'Not Available')} <span className="text-xs font-normal text-[var(--text-muted)]">schools active</span>
               </div>
               <div className="text-[10px] text-[var(--text-muted)] flex flex-col gap-0.5 pt-1 border-t border-[var(--border-subtle)]">
                 <span>Source: Ministry of Education UDISE+</span>
-                <span>Ref Year: 2023–24 &bull; Classrooms: {formatNumber(predictionData?.current_udise?.infrastructure?.total_classrooms || predictionData?.indicators?.udise_total_classrooms?.value)}</span>
+                <span>Ref Year: 2023–24 &bull; Classrooms: {formatNumber(predictionData?.current_udise?.infrastructure?.total_classrooms || effectiveIndicators?.udise_total_classrooms?.value || selectedLocation?.classrooms || selectedLocation?.school_classrooms_count)}</span>
               </div>
             </div>
 
@@ -1295,11 +1301,13 @@ function PredictionReportView({
                 </span>
               </div>
               <div className="text-xl font-black text-amber-400">
-                {predictionData.census_baseline.electricity_coverage_percent != null
-                  ? formatPercent(predictionData.census_baseline.electricity_coverage_percent)
-                  : (predictionData.indicators?.household_electricity_coverage?.value != null
-                      ? formatPercent(predictionData.indicators.household_electricity_coverage.value)
-                      : 'Not Available')}
+                {effectiveBaseline.electricity_coverage_percent != null
+                  ? formatPercent(effectiveBaseline.electricity_coverage_percent)
+                  : (effectiveIndicators?.household_electricity_coverage?.value != null
+                      ? formatPercent(effectiveIndicators.household_electricity_coverage.value)
+                      : (selectedLocation?.electricity_coverage != null
+                          ? formatPercent(selectedLocation.electricity_coverage)
+                          : 'Not Available'))}
               </div>
               <div className="text-[10px] text-[var(--text-muted)] flex flex-col gap-0.5 pt-1 border-t border-[var(--border-subtle)]">
                 <span>Source: Census of India HL-11</span>
@@ -1316,15 +1324,17 @@ function PredictionReportView({
                 </span>
               </div>
               <div className="text-xl font-black text-blue-400">
-                {predictionData.census_baseline.tap_water_coverage_percent != null
-                  ? formatPercent(predictionData.census_baseline.tap_water_coverage_percent)
-                  : (predictionData.indicators?.tap_water_coverage_percent?.value != null
-                      ? formatPercent(predictionData.indicators.tap_water_coverage_percent.value)
-                      : 'Not Available')}
+                {effectiveBaseline.tap_water_coverage_percent != null
+                  ? formatPercent(effectiveBaseline.tap_water_coverage_percent)
+                  : (effectiveIndicators?.tap_water_coverage_percent?.value != null
+                      ? formatPercent(effectiveIndicators.tap_water_coverage_percent.value)
+                      : (selectedLocation?.tap_water_coverage != null
+                          ? formatPercent(selectedLocation.tap_water_coverage)
+                          : 'Not Available'))}
               </div>
               <div className="text-[10px] text-[var(--text-muted)] flex flex-col gap-0.5 pt-1 border-t border-[var(--border-subtle)]">
-                <span>Source: Census of India HL-11 {predictionData.census_baseline.treated_tap_water_households ? `(${formatNumber(predictionData.census_baseline.treated_tap_water_households)} HH)` : ''}</span>
-                <span>Ref Year: 2011 &bull; Level: {predictionData.census_baseline.location_type || 'Census Town'}</span>
+                <span>Source: Census of India HL-11 {effectiveBaseline.treated_tap_water_households ? `(${formatNumber(effectiveBaseline.treated_tap_water_households)} HH)` : ''}</span>
+                <span>Ref Year: 2011 &bull; Level: {effectiveBaseline.location_type || 'Census Town'}</span>
               </div>
             </div>
 
@@ -1337,15 +1347,17 @@ function PredictionReportView({
                 </span>
               </div>
               <div className="text-xl font-black text-[var(--text-main)]">
-                {predictionData.census_baseline.latrine_coverage_percent != null
-                  ? formatPercent(predictionData.census_baseline.latrine_coverage_percent)
-                  : (predictionData.indicators?.latrine_facility_coverage?.value != null
-                      ? formatPercent(predictionData.indicators.latrine_facility_coverage.value)
-                      : 'Not Available')}
+                {effectiveBaseline.latrine_coverage_percent != null
+                  ? formatPercent(effectiveBaseline.latrine_coverage_percent)
+                  : (effectiveIndicators?.latrine_facility_coverage?.value != null
+                      ? formatPercent(effectiveIndicators.latrine_facility_coverage.value)
+                      : (selectedLocation?.latrine_coverage != null
+                          ? formatPercent(selectedLocation.latrine_coverage)
+                          : 'Not Available'))}
               </div>
               <div className="text-[10px] text-[var(--text-muted)] flex flex-col gap-0.5 pt-1 border-t border-[var(--border-subtle)]">
                 <span>Source: Census of India HL-11</span>
-                <span>Ref Year: 2011 &bull; Level: {predictionData.census_baseline.location_type || 'Census Town'}</span>
+                <span>Ref Year: 2011 &bull; Level: {effectiveBaseline.location_type || 'Census Town'}</span>
               </div>
             </div>
 
@@ -1358,11 +1370,11 @@ function PredictionReportView({
                 </span>
               </div>
               <div className="text-base font-black text-[var(--text-main)] truncate">
-                {predictionData.indicators?.road_connectivity_status?.value || 'Pucca Road Network'}
+                {effectiveIndicators?.road_connectivity_status?.value || 'Pucca Road Network'}
               </div>
               <div className="text-[10px] text-[var(--text-muted)] flex flex-col gap-0.5 pt-1 border-t border-[var(--border-subtle)]">
                 <span>Source: BharatNet &amp; TN Highways &bull; Year: 2023</span>
-                <span>Level: {predictionData.census_baseline.location_type || 'Census Town'} &bull; Road Length: {predictionData.indicators?.village_road_length_km?.value != null ? `${predictionData.indicators.village_road_length_km.value} km` : 'Not Available'}</span>
+                <span>Level: {effectiveBaseline.location_type || 'Census Town'} &bull; Road Length: {effectiveIndicators?.village_road_length_km?.value != null ? `${effectiveIndicators.village_road_length_km.value} km` : (selectedLocation?.road_coverage_km != null ? `${selectedLocation.road_coverage_km} km` : 'Not Available')}</span>
               </div>
             </div>
           </div>
@@ -1773,18 +1785,21 @@ function FuturePredictionPage({
         infrastructure,
       });
 
-      console.log('Fetching prediction for village:', payload);
+      console.log('[DEBUG-FUTURE-PREDICTION] input data:', {
+        selectedLocation,
+        locWithData,
+        payload,
+      });
+
       const result = await generateFuturePrediction(payload);
+      console.log('[DEBUG-FUTURE-PREDICTION] raw result from /predict:', result);
 
       if (result) {
-        if (!result.indicators && locWithData?.indicators) {
-          result.indicators = locWithData.indicators;
-        }
-        if (!result.census_baseline && locWithData?.census_baseline) {
-          result.census_baseline = locWithData.census_baseline;
-        }
+        result.indicators = result.indicators || locWithData?.indicators || selectedLocation?.indicators || {};
+        result.census_baseline = result.census_baseline || locWithData?.census_baseline || selectedLocation?.census_baseline || null;
       }
 
+      console.log('[DEBUG-FUTURE-PREDICTION] final selectedPrediction:', result);
       setSelectedPrediction(result);
     } catch (err) {
       console.error('Error predicting for selected village:', err);
@@ -2201,6 +2216,7 @@ function FuturePredictionPage({
                 modeSubtitle={`Official 5-year projection model for ${selectedLocation?.gp_name || 'Selected Village'} GP using live GIS telemetry & verified UDISE+ records.`}
                 isManual={false}
                 onRefresh={fetchSelectedVillagePrediction}
+                selectedLocation={selectedLocation}
               />
             )}
           </div>

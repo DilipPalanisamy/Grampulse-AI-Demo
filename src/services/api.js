@@ -13,7 +13,7 @@ export const getBackendBaseUrl = () => {
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 3000,
+  timeout: 15000,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -29,7 +29,7 @@ export const fetchVillageData = async (villageName, district = 'Coimbatore') => 
   try {
     const res = await axios.get(`${base}/village/data`, {
       params: { village_name: villageName, district },
-      timeout: 6000,
+      timeout: 15000,
     });
     console.log(`[API RESPONSE] 200 OK from ${reqUrl}`, {
       status: res.data?.status,
@@ -51,7 +51,7 @@ export const fetchVillageIndicators = async (villageName, district = 'Coimbatore
   try {
     const res = await axios.get(`${base}/village/indicators`, {
       params: { village_name: villageName, district },
-      timeout: 6000,
+      timeout: 15000,
     });
     console.log(`[API RESPONSE] 200 OK from ${reqUrl}`, { count: res.data?.indicators?.length });
     return res.data;
@@ -68,7 +68,7 @@ export const fetchVillageValidation = async (villageName, district = 'Coimbatore
   try {
     const res = await axios.get(`${base}/village/validation`, {
       params: { village_name: villageName, district },
-      timeout: 6000,
+      timeout: 15000,
     });
     console.log(`[API RESPONSE] 200 OK from ${reqUrl}`, { verified: res.data?.status });
     return res.data;
@@ -83,7 +83,7 @@ export const searchVillages = async (query, limit = 20) => {
     const base = getBackendBaseUrl();
     const res = await axios.get(`${base}/village/search`, {
       params: { query, limit },
-      timeout: 5000,
+      timeout: 10000,
     });
     return res.data;
   } catch (err) {
@@ -338,7 +338,7 @@ export const fetchPanchayatAnalytics = async (gpId, horizonYears = 5, growthRate
         planning_horizon_years: horizonYears,
         growth_rate: growthRate,
       },
-      timeout: 4000,
+      timeout: 15000,
     });
     if (response?.data && response.data.predictions) {
       return response.data;

@@ -42,29 +42,40 @@ DATABASE_URL: Optional[str] = os.getenv("DATABASE_URL")
 _connection_pool: Optional[pool.SimpleConnectionPool] = None
 
 
+_db_disabled_until: float = 0.0
+
 def get_db_pool(minconn: int = 1, maxconn: int = 10) -> pool.SimpleConnectionPool:
-    """Singleton getter for PostgreSQL connection pool."""
-    global _connection_pool
+    """Singleton getter for PostgreSQL connection pool with circuit breaker."""
+    global _connection_pool, _db_disabled_until
+    import time
+    if time.time() < _db_disabled_until:
+        raise Exception("Database temporarily marked unreachable (circuit breaker active)")
+
     if _connection_pool is None or _connection_pool.closed:
-        if DATABASE_URL:
-            logger.info("Initializing DB connection pool using DATABASE_URL...")
-            _connection_pool = pool.SimpleConnectionPool(
-                minconn, maxconn, dsn=DATABASE_URL
-            )
-        else:
-            logger.info(
-                f"Initializing DB connection pool for '{DB_NAME}' at {DB_HOST}:{DB_PORT}..."
-            )
-            _connection_pool = pool.SimpleConnectionPool(
-                minconn,
-                maxconn,
-                host=DB_HOST,
-                port=DB_PORT,
-                dbname=DB_NAME,
-                user=DB_USER,
-                password=DB_PASSWORD,
-                sslmode=DB_SSLMODE,
-            )
+        try:
+            if DATABASE_URL:
+                logger.info("Initializing DB connection pool using DATABASE_URL...")
+                _connection_pool = pool.SimpleConnectionPool(
+                    minconn, maxconn, dsn=DATABASE_URL, connect_timeout=1
+                )
+            else:
+                logger.info(
+                    f"Initializing DB connection pool for '{DB_NAME}' at {DB_HOST}:{DB_PORT}..."
+                )
+                _connection_pool = pool.SimpleConnectionPool(
+                    minconn,
+                    maxconn,
+                    host=DB_HOST,
+                    port=DB_PORT,
+                    dbname=DB_NAME,
+                    user=DB_USER,
+                    password=DB_PASSWORD,
+                    sslmode=DB_SSLMODE,
+                    connect_timeout=1,
+                )
+        except Exception as e:
+            _db_disabled_until = time.time() + 60.0
+            raise e
     return _connection_pool
 
 

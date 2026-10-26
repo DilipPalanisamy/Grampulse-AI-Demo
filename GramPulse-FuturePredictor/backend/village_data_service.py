@@ -149,9 +149,8 @@ def make_indicator_record(
     }
 
 
-# =============================================================================
-# MAIN FUNCTION: GET COMPLETE VILLAGE GOVERNMENT PROFILE
-# =============================================================================
+# In-memory cache for ultra-fast instant government data responses
+_VILLAGE_GOV_DATA_CACHE: Dict[str, Dict[str, Any]] = {}
 
 def get_village_government_data(
     village_name: str,
@@ -173,6 +172,9 @@ def get_village_government_data(
         }
 
     clean_village = village_name.strip()
+    cache_key = f"{clean_village.lower()}_{district_name.lower()}"
+    if cache_key in _VILLAGE_GOV_DATA_CACHE:
+        return _VILLAGE_GOV_DATA_CACHE[cache_key]
 
     # -------------------------------------------------------------------------
     # 1. CENSUS DEMOGRAPHICS & BASELINE
@@ -632,7 +634,7 @@ def get_village_government_data(
         }
     }
 
-    return {
+    result = {
         "status": True,
         "village": clean_village,
         "matched_location_name": loc_display_name,
@@ -658,3 +660,5 @@ def get_village_government_data(
         "categories": categories,
         "sources_used": list(GOV_SOURCES.values())
     }
+    _VILLAGE_GOV_DATA_CACHE[cache_key] = result
+    return result

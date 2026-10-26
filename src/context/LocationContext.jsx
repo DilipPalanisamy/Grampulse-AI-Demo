@@ -447,7 +447,12 @@ export const LocationProvider = ({ children }) => {
         try {
           const gov = await fetchVillageData(active.gp_name, active.district || 'Coimbatore');
           if (gov && gov.status) {
-            handleSelectLocation(gov, false);
+            handleSelectLocation({
+              ...active,
+              ...gov,
+              gp_name: active.gp_name,
+              village_name: active.village_name || active.gp_name,
+            }, false);
           }
         } catch (e) {
           console.warn('Initial village hydration error:', e);
@@ -589,30 +594,61 @@ export const LocationProvider = ({ children }) => {
     const currentReqId = ++selectionReqIdRef.current;
 
     if (typeof locationOrId === 'object' && locationOrId !== null) {
-      const rawName = locationOrId.gp_name || locationOrId.village_name || locationOrId.name || 'Selected Location';
+      const rawName =
+        locationOrId.gp_name ||
+        locationOrId.village_name ||
+        locationOrId.village ||
+        locationOrId.matched_location_name ||
+        locationOrId.name ||
+        locationOrId.census_baseline?.location_name ||
+        'Selected Location';
       const district = locationOrId.district || 'Coimbatore';
       // Query by authentic town/village name so backend resolves Census PCA and Table HL-11 accurately
-      const queryParam = locationOrId.village_name || locationOrId.gp_name || locationOrId.name || locationOrId.census_code || rawName;
+      const queryParam = locationOrId.village_name || locationOrId.village || locationOrId.gp_name || locationOrId.name || locationOrId.census_code || rawName;
 
-      console.log(`[LocationContext] Selected location: '${rawName}', Census Code: ${locationOrId.census_code}, query: '${queryParam}'`);
+      console.log('[DEBUG-SELECT] Selected village name:', rawName, 'Census ID:', locationOrId?.census_code, 'Input object:', locationOrId);
 
-      // 1. Immediately clear old village indicators and set placeholder so old village data never lingers
-      const immediateGpId = locationOrId.census_code ? Number(locationOrId.census_code) : (locationOrId.gp_id || Math.floor(1000 + Math.random() * 9000));
+      const immediateGpId = locationOrId.census_code
+        ? Number(locationOrId.census_code)
+        : (Number(locationOrId.gp_id) || Math.floor(1000 + Math.random() * 9000));
+
+      // Match against preloaded authentic repository records (Karamadai, Chinniyampalayam, Sirumugai)
+      const knownPreload = PRELOADED_AUTHENTIC_VILLAGES.find(
+        (v) =>
+          (immediateGpId && Number(v.gp_id) === immediateGpId) ||
+          (locationOrId.census_code && String(v.census_code) === String(locationOrId.census_code)) ||
+          String(v.gp_name || '').toLowerCase() === String(rawName).toLowerCase()
+      );
+
+      const existingInds = (locationOrId.indicators && Object.keys(locationOrId.indicators).length > 0)
+        ? locationOrId.indicators
+        : (knownPreload?.indicators || {});
+
+      const existingBaseline = locationOrId.census_baseline || knownPreload?.census_baseline || null;
+
+      // 1. Immediately preserve authentic indicators if known, and set placeholder for fresh fetch
       const interimObj = {
+        ...knownPreload,
         ...locationOrId,
         gp_id: immediateGpId,
         gp_name: rawName,
         village_name: rawName,
         district,
         state: locationOrId.state || 'Tamil Nadu',
-        population: locationOrId.population ?? null,
-        total_population: locationOrId.total_population ?? locationOrId.population ?? null,
-        households: locationOrId.households ?? null,
-        schools: locationOrId.schools ?? null,
-        school_classrooms_count: locationOrId.school_classrooms_count ?? null,
-        road_coverage_km: locationOrId.road_coverage_km ?? null,
-        indicators: {},
-        isOfficialData: Boolean(locationOrId.isOfficialCensus || locationOrId.isOfficialData),
+        population: locationOrId.population ?? knownPreload?.population ?? existingBaseline?.population ?? null,
+        total_population: locationOrId.total_population ?? locationOrId.population ?? knownPreload?.total_population ?? existingBaseline?.population ?? null,
+        households: locationOrId.households ?? knownPreload?.households ?? existingBaseline?.households ?? null,
+        hl11_households: locationOrId.hl11_households ?? knownPreload?.hl11_households ?? existingBaseline?.hl11_households ?? null,
+        electricity_coverage: locationOrId.electricity_coverage ?? knownPreload?.electricity_coverage ?? existingBaseline?.electricity_coverage_percent ?? null,
+        tap_water_coverage: locationOrId.tap_water_coverage ?? knownPreload?.tap_water_coverage ?? existingBaseline?.tap_water_coverage_percent ?? null,
+        latrine_coverage: locationOrId.latrine_coverage ?? knownPreload?.latrine_coverage ?? existingBaseline?.latrine_coverage_percent ?? null,
+        schools: locationOrId.schools ?? knownPreload?.schools ?? existingInds?.udise_school_count?.value ?? null,
+        school_classrooms_count: locationOrId.school_classrooms_count ?? knownPreload?.school_classrooms_count ?? existingInds?.udise_total_classrooms?.value ?? null,
+        literate_population: locationOrId.literate_population ?? knownPreload?.literate_population ?? existingBaseline?.literate_population ?? null,
+        road_coverage_km: locationOrId.road_coverage_km ?? knownPreload?.road_coverage_km ?? null,
+        indicators: existingInds,
+        census_baseline: existingBaseline,
+        isOfficialData: Boolean(locationOrId.isOfficialCensus || locationOrId.isOfficialData || knownPreload?.isOfficialData || existingBaseline),
         isLoadingBackend: true,
       };
 
@@ -627,6 +663,7 @@ export const LocationProvider = ({ children }) => {
       let govData = null;
       try {
         govData = await fetchVillageData(queryParam, district);
+        console.log('[DEBUG-API-RESP] /village/data response for', queryParam, ':', govData);
       } catch (err) {
         console.warn(`Failed to fetch backend data for ${queryParam}:`, err);
       }
@@ -640,11 +677,12 @@ export const LocationProvider = ({ children }) => {
       if (govData && govData.status) {
         const inds = govData.indicators || {};
         const admin = govData.administrative_identifiers || {};
-        const censusCode = admin.census_code || locationOrId.census_code || null;
+        const censusCode = admin.census_code || locationOrId.census_code || knownPreload?.census_code || null;
         const matchedName = govData.matched_location_name || rawName;
-        const locType = govData.location_type || locationOrId.location_type || 'Village';
+        const locType = govData.location_type || locationOrId.location_type || knownPreload?.location_type || 'Village';
 
         mergedObj = {
+          ...knownPreload,
           ...locationOrId,
           gp_id: censusCode ? parseInt(censusCode, 10) : immediateGpId,
           gp_code: censusCode ? `CENSUS-${censusCode}` : (locationOrId.gp_code || `GP-${matchedName.slice(0, 3).toUpperCase()}`),
@@ -658,14 +696,14 @@ export const LocationProvider = ({ children }) => {
           subdistrict_code: admin.subdistrict_code || locationOrId.subdistrict_code || null,
 
           // Real Indicators from Backend
-          population: inds.total_population?.value ?? govData.census_baseline?.population ?? locationOrId.population ?? null,
-          total_population: inds.total_population?.value ?? govData.census_baseline?.population ?? locationOrId.population ?? null,
-          male_population: inds.male_population?.value ?? govData.census_baseline?.male_population ?? null,
-          female_population: inds.female_population?.value ?? govData.census_baseline?.female_population ?? null,
+          population: inds.total_population?.value ?? govData.census_baseline?.population ?? locationOrId.population ?? knownPreload?.population ?? null,
+          total_population: inds.total_population?.value ?? govData.census_baseline?.population ?? locationOrId.population ?? knownPreload?.population ?? null,
+          male_population: inds.male_population?.value ?? govData.census_baseline?.male_population ?? knownPreload?.male_population ?? null,
+          female_population: inds.female_population?.value ?? govData.census_baseline?.female_population ?? knownPreload?.female_population ?? null,
           children_0_6: inds.children_0_6?.value ?? govData.census_baseline?.children_0_6 ?? null,
-          households: inds.total_households?.value ?? govData.census_baseline?.households ?? locationOrId.households ?? null,
-          hl11_households: inds.hl11_total_households?.value ?? govData.census_baseline?.hl11_households ?? null,
-          literate_population: inds.literate_population?.value ?? govData.census_baseline?.literate_population ?? null,
+          households: inds.total_households?.value ?? govData.census_baseline?.households ?? locationOrId.households ?? knownPreload?.households ?? null,
+          hl11_households: inds.hl11_total_households?.value ?? govData.census_baseline?.hl11_households ?? knownPreload?.hl11_households ?? null,
+          literate_population: inds.literate_population?.value ?? govData.census_baseline?.literate_population ?? knownPreload?.literate_population ?? null,
           illiterate_population: inds.illiterate_population?.value ?? govData.census_baseline?.illiterate_population ?? null,
           total_workers: inds.total_workers?.value ?? govData.census_baseline?.total_workers ?? null,
           main_workers: inds.main_workers?.value ?? govData.census_baseline?.main_workers ?? null,
@@ -673,23 +711,23 @@ export const LocationProvider = ({ children }) => {
           non_workers: inds.non_workers?.value ?? govData.census_baseline?.non_workers ?? null,
 
           // Amenities & Infrastructure
-          electricity_coverage: inds.household_electricity_coverage?.value ?? govData.census_baseline?.electricity_coverage_percent ?? null,
-          tap_water_coverage: inds.tap_water_coverage_percent?.value ?? govData.census_baseline?.tap_water_coverage_percent ?? null,
-          latrine_coverage: inds.latrine_facility_coverage?.value ?? govData.census_baseline?.latrine_coverage_percent ?? null,
-          schools: inds.udise_school_count?.value ?? locationOrId.schools ?? null,
-          school_classrooms_count: inds.udise_total_classrooms?.value ?? locationOrId.school_classrooms_count ?? null,
-          road_coverage_km: inds.village_road_length_km?.value ?? locationOrId.road_coverage_km ?? null,
+          electricity_coverage: inds.household_electricity_coverage?.value ?? govData.census_baseline?.electricity_coverage_percent ?? knownPreload?.electricity_coverage ?? null,
+          tap_water_coverage: inds.tap_water_coverage_percent?.value ?? govData.census_baseline?.tap_water_coverage_percent ?? knownPreload?.tap_water_coverage ?? null,
+          latrine_coverage: inds.latrine_facility_coverage?.value ?? govData.census_baseline?.latrine_coverage_percent ?? knownPreload?.latrine_coverage ?? null,
+          schools: inds.udise_school_count?.value ?? locationOrId.schools ?? knownPreload?.schools ?? null,
+          school_classrooms_count: inds.udise_total_classrooms?.value ?? locationOrId.school_classrooms_count ?? knownPreload?.school_classrooms_count ?? null,
+          road_coverage_km: inds.village_road_length_km?.value ?? locationOrId.road_coverage_km ?? knownPreload?.road_coverage_km ?? null,
           road_connectivity: inds.road_connectivity_status?.value ?? null,
           broadband_connectivity: inds.bharatnet_gp_connectivity?.value ?? null,
           health_centre: inds.public_health_centre?.value ?? null,
           hospital_beds: inds.hospital_beds_count?.value ?? null,
 
-          indicators: inds,
+          indicators: Object.keys(inds).length > 0 ? inds : (knownPreload?.indicators || {}),
           categories: govData.categories || {},
-          census_baseline: govData.census_baseline || null,
+          census_baseline: govData.census_baseline || knownPreload?.census_baseline || null,
           sources_used: govData.sources_used || [],
-          data_summary: govData.data_summary || null,
-          isOfficialData: Boolean(govData.census_baseline || govData.data_summary?.has_demographics),
+          data_summary: govData.data_summary || knownPreload?.data_summary || null,
+          isOfficialData: Boolean(govData.census_baseline || govData.data_summary?.has_demographics || knownPreload?.isOfficialData),
           isLoadingBackend: false,
           tagline: `${rawName} (${locType}, ${govData.district || district})`,
           description: govData.data_summary?.has_demographics
@@ -697,27 +735,37 @@ export const LocationProvider = ({ children }) => {
             : `Census demographic records unavailable for this village.`,
         };
       } else {
-        // Unknown or unmatched location: clean null indicators, no fake numbers
+        // Fallback to preloaded authentic village data if available, else clean nulls
+        const fallbackInds = (locationOrId.indicators && Object.keys(locationOrId.indicators).length > 0)
+          ? locationOrId.indicators
+          : (knownPreload?.indicators || {});
+        const fallbackBaseline = locationOrId.census_baseline || knownPreload?.census_baseline || null;
+
         mergedObj = {
+          ...knownPreload,
           ...locationOrId,
           gp_id: immediateGpId,
           gp_name: rawName,
           village_name: rawName,
-          location_type: locationOrId.location_type || 'Unmatched Location',
+          location_type: locationOrId.location_type || knownPreload?.location_type || 'Unmatched Location',
           district: district,
           state: locationOrId.state || 'Tamil Nadu',
-          population: locationOrId.population ?? null,
-          total_population: locationOrId.total_population ?? locationOrId.population ?? null,
-          households: locationOrId.households ?? null,
-          hl11_households: locationOrId.hl11_households ?? null,
-          schools: locationOrId.schools ?? null,
-          school_classrooms_count: locationOrId.school_classrooms_count ?? null,
-          road_coverage_km: locationOrId.road_coverage_km ?? null,
-          indicators: locationOrId.indicators || {},
-          isOfficialData: Boolean(locationOrId.isOfficialCensus || locationOrId.isOfficialData),
+          population: locationOrId.population ?? knownPreload?.population ?? fallbackBaseline?.population ?? null,
+          total_population: locationOrId.total_population ?? locationOrId.population ?? knownPreload?.population ?? fallbackBaseline?.population ?? null,
+          households: locationOrId.households ?? knownPreload?.households ?? fallbackBaseline?.households ?? null,
+          hl11_households: locationOrId.hl11_households ?? knownPreload?.hl11_households ?? fallbackBaseline?.hl11_households ?? null,
+          electricity_coverage: locationOrId.electricity_coverage ?? knownPreload?.electricity_coverage ?? fallbackBaseline?.electricity_coverage_percent ?? null,
+          tap_water_coverage: locationOrId.tap_water_coverage ?? knownPreload?.tap_water_coverage ?? fallbackBaseline?.tap_water_coverage_percent ?? null,
+          latrine_coverage: locationOrId.latrine_coverage ?? knownPreload?.latrine_coverage ?? fallbackBaseline?.latrine_coverage_percent ?? null,
+          schools: locationOrId.schools ?? knownPreload?.schools ?? fallbackInds?.udise_school_count?.value ?? null,
+          school_classrooms_count: locationOrId.school_classrooms_count ?? knownPreload?.school_classrooms_count ?? fallbackInds?.udise_total_classrooms?.value ?? null,
+          road_coverage_km: locationOrId.road_coverage_km ?? knownPreload?.road_coverage_km ?? null,
+          indicators: fallbackInds,
+          census_baseline: fallbackBaseline,
+          isOfficialData: Boolean(locationOrId.isOfficialCensus || locationOrId.isOfficialData || knownPreload?.isOfficialData),
           isLoadingBackend: false,
-          tagline: `${rawName} (Unverified Record)`,
-          description: `Official village-level Census and UDISE+ data unavailable for this query.`,
+          tagline: knownPreload?.tagline || `${rawName} (Unverified Record)`,
+          description: knownPreload?.description || `Official village-level Census and UDISE+ data unavailable for this query.`,
         };
       }
 
@@ -734,6 +782,7 @@ export const LocationProvider = ({ children }) => {
         return [mergedObj, ...filtered];
       });
 
+      console.log('[DEBUG-LOCATION-STATE] LocationContext mergedObj after response:', mergedObj);
       selectedLocationRef.current = mergedObj;
       setSelectedGpId(Number(mergedObj.gp_id));
       loadAnalytics(Number(mergedObj.gp_id), mergedObj);

@@ -210,6 +210,20 @@ const AnalyticsPanel = ({
     return `${num.toFixed(1)}%`;
   };
 
+  console.log('[DEBUG-ANALYTICS-PANEL] selectedLocation:', selectedLocation);
+  console.log('[DEBUG-ANALYTICS-PANEL] analytics:', analytics);
+  console.log('[DEBUG-ANALYTICS-PANEL] Display Values:', {
+    pop: actualPop,
+    households: actualHh,
+    electricity: actualElec,
+    water: actualWater,
+    sanitation: actualSanitation,
+    schools: actualSchools,
+    classrooms: actualClassrooms,
+    road: actualRoadLength,
+    literacyRate: actualLiteracyRate,
+  });
+
   return (
     <div className="space-y-6 sm:space-y-7">
       {/* =================================================================== */}
