@@ -23,43 +23,57 @@ export const apiClient = axios.create({
  * Live Official FastAPI Backend Endpoints (Single Source of Truth)
  */
 export const fetchVillageData = async (villageName, district = 'Coimbatore') => {
+  const base = getBackendBaseUrl();
+  const reqUrl = `${base}/village/data?village_name=${encodeURIComponent(villageName)}&district=${encodeURIComponent(district)}`;
+  console.log(`[API REQUEST] GET ${reqUrl}`);
   try {
-    const base = getBackendBaseUrl();
     const res = await axios.get(`${base}/village/data`, {
       params: { village_name: villageName, district },
       timeout: 6000,
     });
+    console.log(`[API RESPONSE] 200 OK from ${reqUrl}`, {
+      status: res.data?.status,
+      village: res.data?.village,
+      population: res.data?.indicators?.total_population?.value,
+      summary: res.data?.data_summary,
+    });
     return res.data;
   } catch (err) {
-    console.warn(`Failed to fetch official village data for ${villageName}:`, err);
+    console.warn(`[API ERROR] Failed to fetch official village data for ${villageName} at ${reqUrl}:`, err?.message || err);
     return null;
   }
 };
 
 export const fetchVillageIndicators = async (villageName, district = 'Coimbatore') => {
+  const base = getBackendBaseUrl();
+  const reqUrl = `${base}/village/indicators?village_name=${encodeURIComponent(villageName)}&district=${encodeURIComponent(district)}`;
+  console.log(`[API REQUEST] GET ${reqUrl}`);
   try {
-    const base = getBackendBaseUrl();
     const res = await axios.get(`${base}/village/indicators`, {
       params: { village_name: villageName, district },
       timeout: 6000,
     });
+    console.log(`[API RESPONSE] 200 OK from ${reqUrl}`, { count: res.data?.indicators?.length });
     return res.data;
   } catch (err) {
-    console.warn(`Failed to fetch village indicators for ${villageName}:`, err);
+    console.warn(`[API ERROR] Failed to fetch village indicators for ${villageName} at ${reqUrl}:`, err?.message || err);
     return null;
   }
 };
 
 export const fetchVillageValidation = async (villageName, district = 'Coimbatore') => {
+  const base = getBackendBaseUrl();
+  const reqUrl = `${base}/village/validation?village_name=${encodeURIComponent(villageName)}&district=${encodeURIComponent(district)}`;
+  console.log(`[API REQUEST] GET ${reqUrl}`);
   try {
-    const base = getBackendBaseUrl();
     const res = await axios.get(`${base}/village/validation`, {
       params: { village_name: villageName, district },
       timeout: 6000,
     });
+    console.log(`[API RESPONSE] 200 OK from ${reqUrl}`, { verified: res.data?.status });
     return res.data;
   } catch (err) {
-    console.warn(`Failed to fetch village validation for ${villageName}:`, err);
+    console.warn(`[API ERROR] Failed to fetch village validation for ${villageName} at ${reqUrl}:`, err?.message || err);
     return null;
   }
 };

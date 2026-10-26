@@ -31,16 +31,37 @@ export const searchRealVillages = async (query = '', stateFilter = '') => {
   // 1. PRIMARY: Query existing FastAPI Backend Official Census Search Endpoint
   try {
     const backendBase = getBackendBaseUrl();
+    const searchUrl = `${backendBase}/village/search?query=${encodeURIComponent(cleanQ)}&limit=15`;
+    console.log(`[API REQUEST] GET ${searchUrl}`);
     const res = await axios.get(`${backendBase}/village/search`, {
       params: { query: cleanQ, limit: 15 },
       timeout: 5000,
     });
 
     if (res.data && res.data.status && Array.isArray(res.data.results) && res.data.results.length > 0) {
-      const formatted = res.data.results.map((item, idx) => {
+      // Prioritize Town Panchayat and Villages over individual municipal wards
+      const sortedItems = [...res.data.results].sort((a, b) => {
+        const aIsWard = a.level === 'WARD' || Boolean(a.is_ward);
+        const bIsWard = b.level === 'WARD' || Boolean(b.is_ward);
+        if (aIsWard !== bIsWard) return aIsWard ? 1 : -1;
+        const aExact = String(a.name || '').toLowerCase() === cleanQ.toLowerCase();
+        const bExact = String(b.name || '').toLowerCase() === cleanQ.toLowerCase();
+        if (aExact !== bExact) return aExact ? -1 : 1;
+        return (Number(b.population) || 0) - (Number(a.population) || 0);
+      });
+
+      console.log(`[API RESPONSE] 200 OK from ${searchUrl}: ${sortedItems.length} records returned. Top result:`, {
+        name: sortedItems[0]?.name,
+        level: sortedItems[0]?.level,
+        census_code: sortedItems[0]?.census_code,
+        population: sortedItems[0]?.population,
+      });
+
+      const formatted = sortedItems.map((item, idx) => {
         const censusCode = item.census_code || null;
         const gpId = censusCode ? parseInt(censusCode, 10) : 1000 + idx;
-        const locType = item.level === 'TOWN' ? 'Census Town' : item.level || 'Village';
+        const isWard = item.level === 'WARD' || Boolean(item.is_ward);
+        const locType = item.level === 'TOWN' ? 'Town Panchayat' : (isWard ? 'Municipal Ward' : (item.level || 'Village'));
 
         return {
           gp_id: gpId,
@@ -50,6 +71,7 @@ export const searchRealVillages = async (query = '', stateFilter = '') => {
           raw_name: item.raw_name,
           location_type: locType,
           level: item.level,
+          is_ward: isWard,
           census_code: censusCode,
           subdistrict_code: item.subdistrict_code,
           district: item.district || 'Coimbatore',
@@ -71,7 +93,7 @@ export const searchRealVillages = async (query = '', stateFilter = '') => {
       return formatted;
     }
   } catch (backendErr) {
-    console.warn('FastAPI backend Census search unavailable or timed out:', backendErr);
+    console.warn(`[API ERROR] FastAPI backend Census search failed for '${cleanQ}':`, backendErr?.message || backendErr);
   }
 
   // 2. SECONDARY: Backend Spatial GIS Search Fallback

@@ -49,6 +49,11 @@ const getSavedUserVillageObject = () => {
         : null;
     if (rawSession) {
       const parsed = JSON.parse(rawSession);
+      const name = parsed?.officialVillage?.gp_name || parsed?.villageOrCity || parsed?.gpName;
+      if (name && String(name).toLowerCase() === 'koduvai') {
+        // Discard stale legacy Koduvai sessions
+        return null;
+      }
       if (parsed?.officialVillage && parsed.officialVillage.lat) {
         return parsed.officialVillage;
       }
@@ -392,7 +397,10 @@ export const LocationProvider = ({ children }) => {
     if (typeof locationOrId === 'object' && locationOrId !== null) {
       const rawName = locationOrId.gp_name || locationOrId.village_name || locationOrId.name || 'Selected Location';
       const district = locationOrId.district || 'Coimbatore';
-      const queryParam = locationOrId.census_code || rawName;
+      // Query by authentic town/village name so backend resolves Census PCA and Table HL-11 accurately
+      const queryParam = locationOrId.village_name || locationOrId.gp_name || locationOrId.name || locationOrId.census_code || rawName;
+
+      console.log(`[LocationContext] Selected location: '${rawName}', Census Code: ${locationOrId.census_code}, query: '${queryParam}'`);
 
       // 1. Immediately clear old village indicators and set placeholder so old village data never lingers
       const immediateGpId = locationOrId.census_code ? Number(locationOrId.census_code) : (locationOrId.gp_id || Math.floor(1000 + Math.random() * 9000));

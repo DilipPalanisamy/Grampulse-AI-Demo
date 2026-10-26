@@ -1172,10 +1172,24 @@ function PredictionReportView({
                 <h3 className="text-base sm:text-lg font-black text-[var(--text-main)]">
                   Authentic Government Baseline & Source Provenance
                 </h3>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
-                  <CheckCircle2 className="w-3 h-3" />
-                  Official Records
-                </span>
+                {(() => {
+                  const sum = predictionData?.data_summary || selectedLocation?.data_summary;
+                  if (sum?.total_indicators) {
+                    const pct = Math.round((sum.verified_indicators / sum.total_indicators) * 100);
+                    return (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
+                        <CheckCircle2 className="w-3 h-3" />
+                        {pct}% Verified ({sum.verified_indicators}/{sum.total_indicators})
+                      </span>
+                    );
+                  }
+                  return (
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3" />
+                      Official Records
+                    </span>
+                  );
+                })()}
               </div>
               <p className="text-xs text-[var(--text-muted)]">
                 Traceable data from Census of India (ORGI), UDISE+ School Directory, and Ministry of Jal Shakti.

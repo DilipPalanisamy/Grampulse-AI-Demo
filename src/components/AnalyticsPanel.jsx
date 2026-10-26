@@ -134,8 +134,11 @@ const AnalyticsPanel = ({
   const waterSupply = rawWaterSupply != null ? Number(rawWaterSupply) : (popCurrent != null ? Math.round(popCurrent * 50) : null);
   const waterDemand = popProjected != null ? Number(p?.water_demand_projected_lpd || popProjected * 55) : (popCurrent != null ? popCurrent * 55 : null);
   const waterDeficit = waterDemand != null && waterSupply != null ? Math.max(0, waterDemand - waterSupply) : null;
-  const waterDeficitPct = waterDeficit != null && waterDemand ? Math.min(100, Math.round((waterDeficit / waterDemand) * 100)) : 0;
-  const waterCoveragePct = waterSupply != null && waterDemand ? Math.min(100, Math.max(0, Math.round((waterSupply / waterDemand) * 100))) : (selectedLocation?.indicators?.tap_water_coverage_percent?.value ?? 0);
+  const waterCoveragePct = selectedLocation?.indicators?.tap_water_coverage_percent?.value != null
+    ? Number(selectedLocation.indicators.tap_water_coverage_percent.value)
+    : (selectedLocation?.tap_water_coverage != null
+      ? Number(selectedLocation.tap_water_coverage)
+      : (waterSupply != null && waterDemand ? Math.min(100, Math.round((waterSupply / waterDemand) * 100)) : null));
 
   // 3. Education Metrics (RTE 1:30 Classroom Ratio)
   const rawClassrooms = selectedLocation?.indicators?.udise_total_classrooms?.value ?? selectedLocation?.school_classrooms_count ?? p?.classrooms_current;
@@ -209,6 +212,21 @@ const AnalyticsPanel = ({
               <span>{selectedLocation.gp_name}</span>
             </span>
           )}
+          {(() => {
+            const sum = selectedLocation?.data_summary;
+            const tot = sum?.total_indicators ?? (selectedLocation?.indicators ? Object.keys(selectedLocation.indicators).length : 0);
+            const ver = sum?.verified_indicators ?? (selectedLocation?.indicators ? Object.values(selectedLocation.indicators).filter(i => i?.data_status === 'VERIFIED' || i?.data_status === 'HISTORICAL' || (i?.value != null && i?.data_status !== 'UNAVAILABLE')).length : 0);
+            if (tot > 0) {
+              const pct = Math.round((ver / tot) * 100);
+              return (
+                <span className="px-3 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 font-bold flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>{pct}% Verified ({ver}/{tot})</span>
+                </span>
+              );
+            }
+            return null;
+          })()}
           <span className="px-3.5 py-1.5 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 font-bold">
             P1: {waterTier === 'P1' ? 'Water ' : ''}{classTier === 'P1' ? 'Education ' : ''}{roadTier === 'P1' ? 'Roads ' : ''}{healthTier === 'P1' ? 'Health' : ''}
           </span>
