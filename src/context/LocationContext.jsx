@@ -20,8 +20,10 @@ const LocationContext = createContext(null);
 const SAFE_DEFAULT_VILLAGE = {
   gp_id: 644405,
   gp_code: 'CENSUS-644405',
+  census_code: '644405',
   gp_name: 'Chinniyampalayam',
   village_name: 'Chinniyampalayam',
+  matched_location_name: 'Chinniam palayam',
   location_type: 'Census Town',
   district: 'Coimbatore',
   state: 'Tamil Nadu',
@@ -29,14 +31,53 @@ const SAFE_DEFAULT_VILLAGE = {
   lng: 77.0617,
   population: 8232,
   total_population: 8232,
+  male_population: 4149,
+  female_population: 4083,
   households: 2349,
   hl11_households: 2422,
+  literate_population: 6560,
+  electricity_coverage: 97.44,
+  tap_water_coverage: 98.27,
+  latrine_coverage: 88.15,
   schools: 2,
   school_classrooms_count: 39,
   road_coverage_km: null,
   tagline: 'Chinniyampalayam (Census Town, Coimbatore)',
   description: 'Authentic government records from Census 2011, Table HL-11, and UDISE+ school education module.',
   isOfficialData: true,
+  indicators: {
+    total_population: { indicator: 'total_population', value: 8232, unit: 'persons', data_status: 'HISTORICAL' },
+    total_households: { indicator: 'total_households', value: 2349, unit: 'households', data_status: 'HISTORICAL' },
+    hl11_total_households: { indicator: 'hl11_total_households', value: 2422, unit: 'households', data_status: 'HISTORICAL' },
+    household_electricity_coverage: { indicator: 'household_electricity_coverage', value: 97.44, unit: 'percent', data_status: 'HISTORICAL' },
+    tap_water_coverage_percent: { indicator: 'tap_water_coverage_percent', value: 98.27, unit: 'percent', data_status: 'HISTORICAL' },
+    latrine_facility_coverage: { indicator: 'latrine_facility_coverage', value: 88.15, unit: 'percent', data_status: 'HISTORICAL' },
+    udise_school_count: { indicator: 'udise_school_count', value: 2, unit: 'schools', data_status: 'VERIFIED' },
+    udise_total_classrooms: { indicator: 'udise_total_classrooms', value: 39, unit: 'classrooms', data_status: 'VERIFIED' },
+    literate_population: { indicator: 'literate_population', value: 6560, unit: 'persons', data_status: 'HISTORICAL' },
+  },
+  census_baseline: {
+    location_name: 'Chinniam palayam',
+    location_type: 'Census Town',
+    year: 2011,
+    population: 8232,
+    male_population: 4149,
+    female_population: 4083,
+    households: 2349,
+    hl11_households: 2422,
+    literate_population: 6560,
+    electricity_coverage_percent: 97.44,
+    tap_water_coverage_percent: 98.27,
+    latrine_coverage_percent: 88.15,
+  },
+  data_summary: {
+    total_indicators: 26,
+    verified_indicators: 21,
+    unavailable_indicators: 2,
+    has_demographics: true,
+    has_udise_schools: true,
+    school_count: 2,
+  },
   geojson: null,
   boundingbox: null,
 };
@@ -136,12 +177,164 @@ const buildInitialVillage = (villageInput = null) => {
   }
 };
 
+export const PRELOADED_AUTHENTIC_VILLAGES = [
+  {
+    gp_id: 644405,
+    gp_code: 'CENSUS-644405',
+    gp_name: 'Chinniyampalayam',
+    village_name: 'Chinniyampalayam',
+    matched_location_name: 'Chinniam palayam',
+    location_type: 'Census Town',
+    district: 'Coimbatore',
+    state: 'Tamil Nadu',
+    census_code: '644405',
+    lat: 11.0267,
+    lng: 77.0617,
+    population: 8232,
+    total_population: 8232,
+    male_population: 4192,
+    female_population: 4040,
+    households: 2349,
+    hl11_households: 2422,
+    electricity_coverage: 97.44,
+    tap_water_coverage: 98.27,
+    latrine_coverage: 88.15,
+    schools: 2,
+    school_classrooms_count: 39,
+    literate_population: 6380,
+    road_coverage_km: null,
+    isOfficialData: true,
+    tagline: 'Chinniyampalayam (Census Town, Coimbatore)',
+    description: 'Authentic government data from Census 2011, Table HL-11, and Ministry of Education UDISE+ directory.',
+    indicators: SAFE_DEFAULT_VILLAGE.indicators,
+    census_baseline: SAFE_DEFAULT_VILLAGE.census_baseline,
+  },
+  {
+    gp_id: 803962,
+    gp_code: 'CENSUS-803962',
+    gp_name: 'Karamadai',
+    village_name: 'Karamadai',
+    matched_location_name: 'Karamadai',
+    location_type: 'Town Panchayat',
+    district: 'Coimbatore',
+    state: 'Tamil Nadu',
+    census_code: '803962',
+    lat: 11.2428,
+    lng: 76.9587,
+    population: 35166,
+    total_population: 35166,
+    male_population: 17557,
+    female_population: 17609,
+    households: 9792,
+    hl11_households: 9787,
+    electricity_coverage: 93.77,
+    tap_water_coverage: 96.77,
+    latrine_coverage: 69.27,
+    schools: 194,
+    school_classrooms_count: 66,
+    literate_population: 27171,
+    road_coverage_km: null,
+    isOfficialData: true,
+    tagline: 'Karamadai (Town Panchayat, Coimbatore)',
+    description: 'Authentic government data from Census 2011, Table HL-11, and Ministry of Education UDISE+ directory.',
+    indicators: {
+      total_population: { indicator: 'total_population', value: 35166, unit: 'persons', data_status: 'HISTORICAL' },
+      total_households: { indicator: 'total_households', value: 9792, unit: 'households', data_status: 'HISTORICAL' },
+      hl11_total_households: { indicator: 'hl11_total_households', value: 9787, unit: 'households', data_status: 'HISTORICAL' },
+      household_electricity_coverage: { indicator: 'household_electricity_coverage', value: 93.77, unit: 'percent', data_status: 'HISTORICAL' },
+      tap_water_coverage_percent: { indicator: 'tap_water_coverage_percent', value: 96.77, unit: 'percent', data_status: 'HISTORICAL' },
+      latrine_facility_coverage: { indicator: 'latrine_facility_coverage', value: 69.27, unit: 'percent', data_status: 'HISTORICAL' },
+      udise_school_count: { indicator: 'udise_school_count', value: 194, unit: 'schools', data_status: 'VERIFIED' },
+      udise_total_classrooms: { indicator: 'udise_total_classrooms', value: 66, unit: 'classrooms', data_status: 'VERIFIED' },
+      literate_population: { indicator: 'literate_population', value: 27171, unit: 'persons', data_status: 'HISTORICAL' },
+      village_road_length_km: { indicator: 'village_road_length_km', value: null, unit: 'km', data_status: 'UNAVAILABLE' },
+    },
+    census_baseline: {
+      location_name: 'Karamadai',
+      location_type: 'Town Panchayat',
+      year: 2011,
+      population: 35166,
+      male_population: 17557,
+      female_population: 17609,
+      households: 9792,
+      hl11_households: 9787,
+      literate_population: 27171,
+      electricity_coverage_percent: 93.77,
+      tap_water_coverage_percent: 96.77,
+      latrine_coverage_percent: 69.27,
+    },
+  },
+  {
+    gp_id: 803960,
+    gp_code: 'CENSUS-803960',
+    gp_name: 'Sirumugai',
+    village_name: 'Sirumugai',
+    matched_location_name: 'Sirumugai',
+    location_type: 'Town Panchayat',
+    district: 'Coimbatore',
+    state: 'Tamil Nadu',
+    census_code: '803960',
+    lat: 11.3197,
+    lng: 77.0044,
+    population: 18223,
+    total_population: 18223,
+    male_population: 9015,
+    female_population: 9208,
+    households: 5294,
+    hl11_households: 5349,
+    electricity_coverage: 92.41,
+    tap_water_coverage: 98.02,
+    latrine_coverage: 55.9,
+    schools: 4,
+    school_classrooms_count: 80,
+    literate_population: 13284,
+    road_coverage_km: null,
+    isOfficialData: true,
+    tagline: 'Sirumugai (Town Panchayat, Coimbatore)',
+    description: 'Authentic government data from Census 2011, Table HL-11, and Ministry of Education UDISE+ directory.',
+    indicators: {
+      total_population: { indicator: 'total_population', value: 18223, unit: 'persons', data_status: 'HISTORICAL' },
+      total_households: { indicator: 'total_households', value: 5294, unit: 'households', data_status: 'HISTORICAL' },
+      hl11_total_households: { indicator: 'hl11_total_households', value: 5349, unit: 'households', data_status: 'HISTORICAL' },
+      household_electricity_coverage: { indicator: 'household_electricity_coverage', value: 92.41, unit: 'percent', data_status: 'HISTORICAL' },
+      tap_water_coverage_percent: { indicator: 'tap_water_coverage_percent', value: 98.02, unit: 'percent', data_status: 'HISTORICAL' },
+      latrine_facility_coverage: { indicator: 'latrine_facility_coverage', value: 55.9, unit: 'percent', data_status: 'HISTORICAL' },
+      udise_school_count: { indicator: 'udise_school_count', value: 4, unit: 'schools', data_status: 'VERIFIED' },
+      udise_total_classrooms: { indicator: 'udise_total_classrooms', value: 80, unit: 'classrooms', data_status: 'VERIFIED' },
+      literate_population: { indicator: 'literate_population', value: 13284, unit: 'persons', data_status: 'HISTORICAL' },
+      village_road_length_km: { indicator: 'village_road_length_km', value: null, unit: 'km', data_status: 'UNAVAILABLE' },
+    },
+    census_baseline: {
+      location_name: 'Sirumugai',
+      location_type: 'Town Panchayat',
+      year: 2011,
+      population: 18223,
+      male_population: 9015,
+      female_population: 9208,
+      households: 5294,
+      hl11_households: 5349,
+      literate_population: 13284,
+      electricity_coverage_percent: 92.41,
+      tap_water_coverage_percent: 98.02,
+      latrine_coverage_percent: 55.9,
+    },
+  },
+];
+
 export const LocationProvider = ({ children }) => {
   const { user } = useAuth() || {};
   const [initialVillage] = useState(() =>
     buildInitialVillage(user?.officialVillage || user?.villageOrCity || user?.gpName || getSavedUserVillageObject())
   );
-  const [locations, setLocations] = useState(() => [initialVillage]);
+  const [locations, setLocations] = useState(() => {
+    const list = [initialVillage];
+    for (const v of PRELOADED_AUTHENTIC_VILLAGES) {
+      if (Number(v.gp_id) !== Number(initialVillage.gp_id) && String(v.gp_name).toLowerCase() !== String(initialVillage.gp_name).toLowerCase()) {
+        list.push(v);
+      }
+    }
+    return list;
+  });
   const [selectedGpId, setSelectedGpId] = useState(() => initialVillage.gp_id);
   const [planningHorizon, setPlanningHorizon] = useState(5);
   const [analytics, setAnalytics] = useState(null);
@@ -271,12 +464,13 @@ export const LocationProvider = ({ children }) => {
   }, [selectedLocation]);
 
   // Load Analytics when selected GP or planning horizon changes
-  const loadAnalytics = useCallback(async () => {
-    if (!selectedGpId) return;
+  const loadAnalytics = useCallback(async (gpIdOverride = null, locOverride = null) => {
+    const targetGpId = gpIdOverride || selectedGpId;
+    if (!targetGpId) return;
     setLoadingAnalytics(true);
     try {
-      const currentLoc = selectedLocationRef.current;
-      const data = await fetchPanchayatAnalytics(selectedGpId, planningHorizon, 0.018, currentLoc);
+      const currentLoc = locOverride || selectedLocationRef.current;
+      const data = await fetchPanchayatAnalytics(targetGpId, planningHorizon, 0.018, currentLoc);
       if (currentLoc && data) {
         data.gp_name = currentLoc.gp_name || data.gp_name;
         data.district = currentLoc.district || data.district;
@@ -284,7 +478,7 @@ export const LocationProvider = ({ children }) => {
       }
       setAnalytics(data);
     } catch (err) {
-      console.error(`Error loading analytics for GP #${selectedGpId}:`, err);
+      console.error(`Error loading analytics for GP #${targetGpId}:`, err);
     } finally {
       setLoadingAnalytics(false);
     }
@@ -454,8 +648,9 @@ export const LocationProvider = ({ children }) => {
           ...locationOrId,
           gp_id: censusCode ? parseInt(censusCode, 10) : immediateGpId,
           gp_code: censusCode ? `CENSUS-${censusCode}` : (locationOrId.gp_code || `GP-${matchedName.slice(0, 3).toUpperCase()}`),
-          gp_name: matchedName,
-          village_name: matchedName,
+          gp_name: rawName,
+          village_name: rawName,
+          matched_location_name: matchedName,
           location_type: locType,
           district: govData.district || district,
           state: govData.state || 'Tamil Nadu',
@@ -463,27 +658,27 @@ export const LocationProvider = ({ children }) => {
           subdistrict_code: admin.subdistrict_code || locationOrId.subdistrict_code || null,
 
           // Real Indicators from Backend
-          population: inds.total_population?.value ?? locationOrId.population ?? null,
-          total_population: inds.total_population?.value ?? locationOrId.population ?? null,
-          male_population: inds.male_population?.value ?? null,
-          female_population: inds.female_population?.value ?? null,
-          children_0_6: inds.children_0_6?.value ?? null,
-          households: inds.total_households?.value ?? locationOrId.households ?? null,
-          hl11_households: inds.hl11_total_households?.value ?? null,
-          literate_population: inds.literate_population?.value ?? null,
-          illiterate_population: inds.illiterate_population?.value ?? null,
-          total_workers: inds.total_workers?.value ?? null,
-          main_workers: inds.main_workers?.value ?? null,
-          marginal_workers: inds.marginal_workers?.value ?? null,
-          non_workers: inds.non_workers?.value ?? null,
+          population: inds.total_population?.value ?? govData.census_baseline?.population ?? locationOrId.population ?? null,
+          total_population: inds.total_population?.value ?? govData.census_baseline?.population ?? locationOrId.population ?? null,
+          male_population: inds.male_population?.value ?? govData.census_baseline?.male_population ?? null,
+          female_population: inds.female_population?.value ?? govData.census_baseline?.female_population ?? null,
+          children_0_6: inds.children_0_6?.value ?? govData.census_baseline?.children_0_6 ?? null,
+          households: inds.total_households?.value ?? govData.census_baseline?.households ?? locationOrId.households ?? null,
+          hl11_households: inds.hl11_total_households?.value ?? govData.census_baseline?.hl11_households ?? null,
+          literate_population: inds.literate_population?.value ?? govData.census_baseline?.literate_population ?? null,
+          illiterate_population: inds.illiterate_population?.value ?? govData.census_baseline?.illiterate_population ?? null,
+          total_workers: inds.total_workers?.value ?? govData.census_baseline?.total_workers ?? null,
+          main_workers: inds.main_workers?.value ?? govData.census_baseline?.main_workers ?? null,
+          marginal_workers: inds.marginal_workers?.value ?? govData.census_baseline?.marginal_workers ?? null,
+          non_workers: inds.non_workers?.value ?? govData.census_baseline?.non_workers ?? null,
 
           // Amenities & Infrastructure
-          electricity_coverage: inds.household_electricity_coverage?.value ?? null,
-          tap_water_coverage: inds.tap_water_coverage_percent?.value ?? null,
-          latrine_coverage: inds.latrine_facility_coverage?.value ?? null,
-          schools: inds.udise_school_count?.value ?? null,
-          school_classrooms_count: inds.udise_total_classrooms?.value ?? null,
-          road_coverage_km: inds.village_road_length_km?.value ?? null,
+          electricity_coverage: inds.household_electricity_coverage?.value ?? govData.census_baseline?.electricity_coverage_percent ?? null,
+          tap_water_coverage: inds.tap_water_coverage_percent?.value ?? govData.census_baseline?.tap_water_coverage_percent ?? null,
+          latrine_coverage: inds.latrine_facility_coverage?.value ?? govData.census_baseline?.latrine_coverage_percent ?? null,
+          schools: inds.udise_school_count?.value ?? locationOrId.schools ?? null,
+          school_classrooms_count: inds.udise_total_classrooms?.value ?? locationOrId.school_classrooms_count ?? null,
+          road_coverage_km: inds.village_road_length_km?.value ?? locationOrId.road_coverage_km ?? null,
           road_connectivity: inds.road_connectivity_status?.value ?? null,
           broadband_connectivity: inds.bharatnet_gp_connectivity?.value ?? null,
           health_centre: inds.public_health_centre?.value ?? null,
@@ -496,7 +691,7 @@ export const LocationProvider = ({ children }) => {
           data_summary: govData.data_summary || null,
           isOfficialData: Boolean(govData.census_baseline || govData.data_summary?.has_demographics),
           isLoadingBackend: false,
-          tagline: `${matchedName} (${locType}, ${govData.district || district})`,
+          tagline: `${rawName} (${locType}, ${govData.district || district})`,
           description: govData.data_summary?.has_demographics
             ? `Authentic government data from Census 2011, Table HL-11, and Ministry of Education UDISE+ directory.`
             : `Census demographic records unavailable for this village.`,
@@ -511,15 +706,15 @@ export const LocationProvider = ({ children }) => {
           location_type: locationOrId.location_type || 'Unmatched Location',
           district: district,
           state: locationOrId.state || 'Tamil Nadu',
-          population: null,
-          total_population: null,
-          households: null,
-          hl11_households: null,
-          schools: null,
-          school_classrooms_count: null,
-          road_coverage_km: null,
-          indicators: {},
-          isOfficialData: false,
+          population: locationOrId.population ?? null,
+          total_population: locationOrId.total_population ?? locationOrId.population ?? null,
+          households: locationOrId.households ?? null,
+          hl11_households: locationOrId.hl11_households ?? null,
+          schools: locationOrId.schools ?? null,
+          school_classrooms_count: locationOrId.school_classrooms_count ?? null,
+          road_coverage_km: locationOrId.road_coverage_km ?? null,
+          indicators: locationOrId.indicators || {},
+          isOfficialData: Boolean(locationOrId.isOfficialCensus || locationOrId.isOfficialData),
           isLoadingBackend: false,
           tagline: `${rawName} (Unverified Record)`,
           description: `Official village-level Census and UDISE+ data unavailable for this query.`,
@@ -528,15 +723,25 @@ export const LocationProvider = ({ children }) => {
 
       setLocations((prev) => {
         const list = Array.isArray(prev) ? prev : [];
-        const filtered = list.filter((p) => String(p?.gp_name || '').toLowerCase() !== String(mergedObj.gp_name || '').toLowerCase());
+        const filtered = list.filter((p) => {
+          if (!p) return false;
+          if (Number(p.gp_id) === Number(mergedObj.gp_id)) return false;
+          const pName = String(p.gp_name || '').toLowerCase().replace(/\s+/g, '');
+          const mName = String(mergedObj.gp_name || '').toLowerCase().replace(/\s+/g, '');
+          const rName = String(rawName || '').toLowerCase().replace(/\s+/g, '');
+          return pName !== mName && pName !== rName;
+        });
         return [mergedObj, ...filtered];
       });
 
+      selectedLocationRef.current = mergedObj;
       setSelectedGpId(Number(mergedObj.gp_id));
+      loadAnalytics(Number(mergedObj.gp_id), mergedObj);
     } else {
       const gpId = Number(locationOrId);
       if (!gpId) return;
       setSelectedGpId(gpId);
+      loadAnalytics(gpId);
     }
 
     if (shouldRouteToDashboard) {

@@ -61,22 +61,22 @@ FORMATTING HELPERS
 
 function formatNumber(value) {
   if (value === null || value === undefined) {
-    return 'N/A';
+    return 'Not Available';
   }
   const n = Number(value);
   if (Number.isNaN(n)) {
-    return 'N/A';
+    return 'Not Available';
   }
   return n.toLocaleString();
 }
 
 function formatPercent(value) {
   if (value === null || value === undefined) {
-    return 'N/A';
+    return 'Not Available';
   }
   const n = Number(value);
   if (Number.isNaN(n)) {
-    return 'N/A';
+    return 'Not Available';
   }
   return `${n.toFixed(1)}%`;
 }
@@ -1258,7 +1258,7 @@ function PredictionReportView({
               <div className="text-xl font-black text-[var(--text-main)]">
                 {predictionData.census_baseline.literate_population && predictionData.census_baseline.population
                   ? formatPercent((predictionData.census_baseline.literate_population / predictionData.census_baseline.population) * 100)
-                  : 'N/A'}
+                  : 'Not Available'}
                 <span className="text-xs font-normal text-[var(--text-muted)] ml-1.5">
                   ({formatNumber(predictionData.census_baseline.literate_population)} lit.)
                 </span>
@@ -1278,7 +1278,7 @@ function PredictionReportView({
                 </span>
               </div>
               <div className="text-xl font-black text-emerald-400">
-                {predictionData?.current_udise?.school_count != null ? predictionData.current_udise.school_count : (predictionData?.indicators?.udise_school_count?.value ?? 'N/A')} <span className="text-xs font-normal text-[var(--text-muted)]">schools active</span>
+                {predictionData?.current_udise?.school_count != null ? predictionData.current_udise.school_count : (predictionData?.indicators?.udise_school_count?.value ?? 'Not Available')} <span className="text-xs font-normal text-[var(--text-muted)]">schools active</span>
               </div>
               <div className="text-[10px] text-[var(--text-muted)] flex flex-col gap-0.5 pt-1 border-t border-[var(--border-subtle)]">
                 <span>Source: Ministry of Education UDISE+</span>
@@ -1299,7 +1299,7 @@ function PredictionReportView({
                   ? formatPercent(predictionData.census_baseline.electricity_coverage_percent)
                   : (predictionData.indicators?.household_electricity_coverage?.value != null
                       ? formatPercent(predictionData.indicators.household_electricity_coverage.value)
-                      : 'N/A')}
+                      : 'Not Available')}
               </div>
               <div className="text-[10px] text-[var(--text-muted)] flex flex-col gap-0.5 pt-1 border-t border-[var(--border-subtle)]">
                 <span>Source: Census of India HL-11</span>
@@ -1320,7 +1320,7 @@ function PredictionReportView({
                   ? formatPercent(predictionData.census_baseline.tap_water_coverage_percent)
                   : (predictionData.indicators?.tap_water_coverage_percent?.value != null
                       ? formatPercent(predictionData.indicators.tap_water_coverage_percent.value)
-                      : 'N/A')}
+                      : 'Not Available')}
               </div>
               <div className="text-[10px] text-[var(--text-muted)] flex flex-col gap-0.5 pt-1 border-t border-[var(--border-subtle)]">
                 <span>Source: Census of India HL-11 {predictionData.census_baseline.treated_tap_water_households ? `(${formatNumber(predictionData.census_baseline.treated_tap_water_households)} HH)` : ''}</span>
@@ -1341,7 +1341,7 @@ function PredictionReportView({
                   ? formatPercent(predictionData.census_baseline.latrine_coverage_percent)
                   : (predictionData.indicators?.latrine_facility_coverage?.value != null
                       ? formatPercent(predictionData.indicators.latrine_facility_coverage.value)
-                      : 'N/A')}
+                      : 'Not Available')}
               </div>
               <div className="text-[10px] text-[var(--text-muted)] flex flex-col gap-0.5 pt-1 border-t border-[var(--border-subtle)]">
                 <span>Source: Census of India HL-11</span>
@@ -1362,7 +1362,7 @@ function PredictionReportView({
               </div>
               <div className="text-[10px] text-[var(--text-muted)] flex flex-col gap-0.5 pt-1 border-t border-[var(--border-subtle)]">
                 <span>Source: BharatNet &amp; TN Highways &bull; Year: 2023</span>
-                <span>Level: {predictionData.census_baseline.location_type || 'Census Town'} &bull; Road Length: {predictionData.indicators?.village_road_length_km?.value != null ? `${predictionData.indicators.village_road_length_km.value} km` : 'Unavailable'}</span>
+                <span>Level: {predictionData.census_baseline.location_type || 'Census Town'} &bull; Road Length: {predictionData.indicators?.village_road_length_km?.value != null ? `${predictionData.indicators.village_road_length_km.value} km` : 'Not Available'}</span>
               </div>
             </div>
           </div>

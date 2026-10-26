@@ -382,6 +382,11 @@ async def create_citizen_issue(payload: CitizenIssueCreate):
     response_model=AnalyticsResponse,
     tags=["AI Engine & Analytics"],
 )
+@app.get(
+    "/panchayat/{gp_id}/analytics",
+    response_model=AnalyticsResponse,
+    tags=["AI Engine & Analytics"],
+)
 async def get_panchayat_analytics(
     gp_id: int,
     planning_horizon_years: int = Query(5, ge=1, le=15, description="Planning forecast duration in years"),
@@ -417,7 +422,7 @@ async def get_panchayat_analytics(
         )
 
     # 1. Execute Scikit-learn Demographic & Infrastructure Deficit Model
-    current_pop = int(metrics.get("population", 5000))
+    current_pop = int(metrics.get("population") or 5000)
     predictions = calculate_infrastructure_deficits(
         current_pop=current_pop,
         pop_growth_rate=growth_rate,
@@ -440,11 +445,11 @@ async def get_panchayat_analytics(
         "planning_horizon_years": planning_horizon_years,
         "target_year": predictions["target_year"],
         "baseline_metrics": {
-            "base_year": metrics.get("record_year", datetime.now().year),
+            "base_year": metrics.get("record_year") or datetime.now().year,
             "population": current_pop,
-            "daily_water_supply_lpd": float(metrics.get("daily_water_supply_liters", 0.0)),
-            "school_classrooms": int(metrics.get("school_classrooms_count", 0)),
-            "road_coverage_km": float(metrics.get("road_coverage_km", 0.0)),
+            "daily_water_supply_lpd": float(metrics.get("daily_water_supply_liters") or 0.0),
+            "school_classrooms": int(metrics.get("school_classrooms_count") or 0),
+            "road_coverage_km": float(metrics.get("road_coverage_km") or 0.0),
         },
         "predictions": predictions,
         "priority_analysis": priority_analysis,
@@ -716,7 +721,7 @@ async def download_panchayat_gpdp_pdf(
         )
 
     # 1. Run Scikit-learn Predictive Model
-    current_pop = int(metrics.get("population", 5000))
+    current_pop = int(metrics.get("population") or 5000)
     predictions = calculate_infrastructure_deficits(
         current_pop=current_pop,
         pop_growth_rate=growth_rate,

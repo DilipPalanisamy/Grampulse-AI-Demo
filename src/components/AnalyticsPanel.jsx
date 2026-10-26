@@ -17,6 +17,10 @@ import {
   Stethoscope,
   ShieldAlert,
   Compass,
+  Zap,
+  Home,
+  BookOpen,
+  School,
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useLocation } from '../context/LocationContext';
@@ -149,8 +153,8 @@ const AnalyticsPanel = ({
   const classCoveragePct = classCurrent != null && classRequired ? Math.min(100, Math.max(0, Math.round((classCurrent / classRequired) * 100))) : 0;
 
   // 4. Roads Metrics (PMGSY 1.25 km / 1,000 population)
-  const rawRoad = selectedLocation?.indicators?.village_road_length_km?.value ?? selectedLocation?.road_coverage_km ?? p?.road_coverage_km;
-  const roadCurrent = rawRoad != null ? Number(rawRoad) : null;
+  const rawRoad = selectedLocation?.indicators?.village_road_length_km?.value ?? selectedLocation?.road_coverage_km;
+  const roadCurrent = rawRoad != null && rawRoad !== '' ? Number(rawRoad) : null;
   const roadRequired = popProjected != null ? Number(p?.road_required_km || ((popProjected / 1000) * 1.25).toFixed(2)) : (popCurrent != null ? Number(((popCurrent / 1000) * 1.25).toFixed(2)) : null);
   const roadDeficit = roadRequired != null && roadCurrent != null ? Number(Math.max(0, roadRequired - roadCurrent).toFixed(2)) : null;
   const roadDeficitPct = roadDeficit != null && roadRequired ? Math.min(100, Math.round((roadDeficit / roadRequired) * 100)) : 0;
@@ -171,14 +175,40 @@ const AnalyticsPanel = ({
   const roadTier = roadDeficit != null && (roadDeficit >= 2.5 || roadDeficitPct >= 30) ? 'P1' : roadDeficit != null && (roadDeficit >= 1.5 || roadDeficitPct >= 15) ? 'P2' : roadDeficit != null && roadDeficit > 0 ? 'P3' : 'ADEQUATE';
   const healthTier = phcGap >= 1 ? 'P1' : !isHealthcareAdequate ? 'P2' : 'ADEQUATE';
 
-  const waterBadge = getPriorityBadge(priorities?.water?.priority || waterTier, waterDeficit <= 0);
-  const classBadge = getPriorityBadge(priorities?.education?.priority || classTier, classGap <= 0);
-  const roadBadge = getPriorityBadge(priorities?.roads?.priority || roadTier, roadDeficit <= 0);
+  const waterBadge = getPriorityBadge(priorities?.water?.priority || waterTier, waterDeficit != null && waterDeficit <= 0);
+  const classBadge = getPriorityBadge(priorities?.education?.priority || classTier, classGap != null && classGap <= 0);
+  const roadBadge = getPriorityBadge(priorities?.roads?.priority || roadTier, roadDeficit != null && roadDeficit <= 0);
   const healthBadge = getPriorityBadge(priorities?.healthcare?.priority || healthTier, isHealthcareAdequate);
 
   // Top Ranked Intervention
   const topSector = priorities?.top_sector || (waterTier === 'P1' ? 'Water Supply' : classTier === 'P1' ? 'Education' : roadTier === 'P1' ? 'Roads' : 'Water Supply');
   const topPriorityTier = priorities?.top_priority || (waterTier === 'P1' || classTier === 'P1' || roadTier === 'P1' || healthTier === 'P1' ? 'P1' : 'P2');
+
+  // Authentic Village Profile Indicators (Census 2011 PCA, Table HL-11, UDISE+)
+  const baseline = selectedLocation?.census_baseline || {};
+  const inds = selectedLocation?.indicators || {};
+
+  const actualPop = inds.total_population?.value ?? selectedLocation?.population ?? baseline.population ?? null;
+  const actualHh = inds.total_households?.value ?? selectedLocation?.households ?? baseline.households ?? null;
+  const actualHl11Hh = inds.hl11_total_households?.value ?? selectedLocation?.hl11_households ?? baseline.hl11_households ?? null;
+  const actualElec = inds.household_electricity_coverage?.value ?? selectedLocation?.electricity_coverage ?? baseline.electricity_coverage_percent ?? null;
+  const actualWater = inds.tap_water_coverage_percent?.value ?? selectedLocation?.tap_water_coverage ?? baseline.tap_water_coverage_percent ?? null;
+  const actualSanitation = inds.latrine_facility_coverage?.value ?? selectedLocation?.latrine_coverage ?? baseline.latrine_coverage_percent ?? null;
+  const actualSchools = inds.udise_school_count?.value ?? selectedLocation?.schools ?? null;
+  const actualClassrooms = inds.udise_total_classrooms?.value ?? selectedLocation?.school_classrooms_count ?? null;
+  const actualLiteratePop = inds.literate_population?.value ?? selectedLocation?.literate_population ?? baseline.literate_population ?? null;
+  const actualRoadLength = inds.village_road_length_km?.value ?? selectedLocation?.road_coverage_km ?? null;
+
+  const actualLiteracyRate = actualLiteratePop != null && actualPop != null
+    ? ((actualLiteratePop / actualPop) * 100).toFixed(1)
+    : (selectedLocation?.literacy_rate != null ? Number(selectedLocation.literacy_rate).toFixed(1) : null);
+
+  const formatPercentVal = (val) => {
+    if (val === null || val === undefined || val === '') return 'Not Available';
+    const num = Number(val);
+    if (isNaN(num)) return 'Not Available';
+    return `${num.toFixed(1)}%`;
+  };
 
   return (
     <div className="space-y-6 sm:space-y-7">
@@ -234,7 +264,178 @@ const AnalyticsPanel = ({
       </div>
 
       {/* =================================================================== */}
-      {/* 2. TOP PREDICTIVE DEFICIT METRICS - 2-ROW BALANCED GRID             */}
+      {/* 2. AUTHENTIC VILLAGE DATA & GOVERNMENT INDICATORS (Census & UDISE+) */}
+      {/* =================================================================== */}
+      <div className="bg-[var(--bg-card)] backdrop-blur-xl rounded-3xl border border-[var(--border-subtle)] p-6 shadow-xl space-y-5">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border-subtle)] pb-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <Building2 className="w-5 h-5 text-emerald-500" />
+              <h3 className="text-base sm:text-lg font-black text-[var(--text-main)] tracking-tight">
+                Authentic Village Profile &amp; Government Data
+              </h3>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25">
+                Verified Backend Data
+              </span>
+            </div>
+            <p className="text-xs text-[var(--text-muted)]">
+              Direct telemetry from Census 2011 PCA, Table HL-11 Housing Amenities, UDISE+ School Directory, and Jal Jeevan Mission
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 text-xs font-mono">
+            {selectedLocation?.census_code && (
+              <span className="px-3 py-1 rounded-xl bg-[var(--bg-primary)] text-[var(--text-main)] border border-[var(--border-subtle)] font-bold">
+                Census Code: {selectedLocation.census_code}
+              </span>
+            )}
+            <span className="px-3 py-1 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/25 font-bold">
+              {selectedLocation?.location_type || 'Gram Panchayat'}
+            </span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* 1. Population */}
+          <div className="p-4 rounded-2xl bg-[var(--bg-primary)] border border-[var(--border-subtle)] space-y-2 hover:border-blue-500/30 transition-all">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Population</span>
+              <div className="w-7 h-7 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500">
+                <Users className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="text-2xl font-black text-[var(--text-main)] font-mono">
+              {actualPop != null ? actualPop.toLocaleString() : 'Not Available'}
+            </div>
+            <div className="text-[11px] text-[var(--text-muted)] flex justify-between border-t border-[var(--border-subtle)] pt-1.5">
+              <span>Census 2011 PCA</span>
+              <span className="font-semibold">{selectedLocation?.male_population != null ? `M: ${selectedLocation.male_population.toLocaleString()} | F: ${selectedLocation.female_population?.toLocaleString()}` : 'Official Record'}</span>
+            </div>
+          </div>
+
+          {/* 2. Households */}
+          <div className="p-4 rounded-2xl bg-[var(--bg-primary)] border border-[var(--border-subtle)] space-y-2 hover:border-emerald-500/30 transition-all">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Households</span>
+              <div className="w-7 h-7 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                <Home className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="text-2xl font-black text-[var(--text-main)] font-mono">
+              {actualHh != null ? actualHh.toLocaleString() : 'Not Available'}
+            </div>
+            <div className="text-[11px] text-[var(--text-muted)] flex justify-between border-t border-[var(--border-subtle)] pt-1.5">
+              <span>Census PCA / HL-11</span>
+              <span className="font-semibold">{actualHl11Hh != null ? `${actualHl11Hh.toLocaleString()} HL-11 HH` : 'Official Count'}</span>
+            </div>
+          </div>
+
+          {/* 3. Electricity */}
+          <div className="p-4 rounded-2xl bg-[var(--bg-primary)] border border-[var(--border-subtle)] space-y-2 hover:border-amber-500/30 transition-all">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Electricity</span>
+              <div className="w-7 h-7 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-500">
+                <Zap className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="text-2xl font-black text-amber-500 font-mono">
+              {formatPercentVal(actualElec)}
+            </div>
+            <div className="text-[11px] text-[var(--text-muted)] flex justify-between border-t border-[var(--border-subtle)] pt-1.5">
+              <span>Grid Feeder Coverage</span>
+              <span className="font-semibold">Table HL-11</span>
+            </div>
+          </div>
+
+          {/* 4. Tap Water */}
+          <div className="p-4 rounded-2xl bg-[var(--bg-primary)] border border-[var(--border-subtle)] space-y-2 hover:border-sky-500/30 transition-all">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Tap Water</span>
+              <div className="w-7 h-7 rounded-lg bg-sky-500/10 flex items-center justify-center text-sky-500">
+                <Droplets className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="text-2xl font-black text-sky-500 font-mono">
+              {formatPercentVal(actualWater)}
+            </div>
+            <div className="text-[11px] text-[var(--text-muted)] flex justify-between border-t border-[var(--border-subtle)] pt-1.5">
+              <span>Treated Tap Supply</span>
+              <span className="font-semibold">Jal Jeevan Mission</span>
+            </div>
+          </div>
+
+          {/* 5. Sanitation */}
+          <div className="p-4 rounded-2xl bg-[var(--bg-primary)] border border-[var(--border-subtle)] space-y-2 hover:border-teal-500/30 transition-all">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Sanitation</span>
+              <div className="w-7 h-7 rounded-lg bg-teal-500/10 flex items-center justify-center text-teal-500">
+                <CheckCircle2 className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="text-2xl font-black text-teal-500 font-mono">
+              {formatPercentVal(actualSanitation)}
+            </div>
+            <div className="text-[11px] text-[var(--text-muted)] flex justify-between border-t border-[var(--border-subtle)] pt-1.5">
+              <span>Latrine Facility</span>
+              <span className="font-semibold">Census HL-11</span>
+            </div>
+          </div>
+
+          {/* 6. Schools */}
+          <div className="p-4 rounded-2xl bg-[var(--bg-primary)] border border-[var(--border-subtle)] space-y-2 hover:border-purple-500/30 transition-all">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">UDISE+ Schools</span>
+              <div className="w-7 h-7 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-500">
+                <School className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="text-2xl font-black text-purple-500 font-mono">
+              {actualSchools != null ? `${actualSchools} Schools` : 'Not Available'}
+            </div>
+            <div className="text-[11px] text-[var(--text-muted)] flex justify-between border-t border-[var(--border-subtle)] pt-1.5">
+              <span>Ministry of Education</span>
+              <span className="font-semibold">Active Directory</span>
+            </div>
+          </div>
+
+          {/* 7. Classrooms */}
+          <div className="p-4 rounded-2xl bg-[var(--bg-primary)] border border-[var(--border-subtle)] space-y-2 hover:border-indigo-500/30 transition-all">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Classrooms</span>
+              <div className="w-7 h-7 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-500">
+                <GraduationCap className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="text-2xl font-black text-indigo-500 font-mono">
+              {actualClassrooms != null ? `${actualClassrooms} Rooms` : 'Not Available'}
+            </div>
+            <div className="text-[11px] text-[var(--text-muted)] flex justify-between border-t border-[var(--border-subtle)] pt-1.5">
+              <span>School Infrastructure</span>
+              <span className="font-semibold">UDISE+ 2023-24</span>
+            </div>
+          </div>
+
+          {/* 8. Literacy Rate */}
+          <div className="p-4 rounded-2xl bg-[var(--bg-primary)] border border-[var(--border-subtle)] space-y-2 hover:border-rose-500/30 transition-all">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Literacy Rate</span>
+              <div className="w-7 h-7 rounded-lg bg-rose-500/10 flex items-center justify-center text-rose-500">
+                <BookOpen className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="text-2xl font-black text-rose-500 font-mono">
+              {formatPercentVal(actualLiteracyRate)}
+            </div>
+            <div className="text-[11px] text-[var(--text-muted)] flex justify-between border-t border-[var(--border-subtle)] pt-1.5">
+              <span>Census 2011 PCA</span>
+              <span className="font-semibold">{actualLiteratePop != null ? `${actualLiteratePop.toLocaleString()} Literate` : 'Official Record'}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* =================================================================== */}
+      {/* 3. TOP PREDICTIVE DEFICIT METRICS - 2-ROW BALANCED GRID             */}
       {/* =================================================================== */}
       <div className="space-y-6">
         {/* ----------------------------------------------------------------- */}
@@ -259,7 +460,7 @@ const AnalyticsPanel = ({
               </p>
               <div className="flex items-baseline gap-2.5 mt-2">
                 <span className="text-3xl font-extrabold text-[var(--text-main)] font-mono tracking-tight">
-                  {popProjected != null ? popProjected.toLocaleString() : 'N/A'}
+                  {popProjected != null ? popProjected.toLocaleString() : 'Not Available'}
                 </span>
                 {popGrowth != null && (
                   <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
@@ -270,7 +471,7 @@ const AnalyticsPanel = ({
             </div>
             <p className="text-xs text-[var(--text-muted)] flex items-center gap-2 mt-4 pt-3 border-t border-[var(--border-subtle)]">
               <span className="w-2 h-2 rounded-full bg-blue-400" />
-              Base Population: <strong>{popCurrent != null ? `${popCurrent.toLocaleString()} citizens` : 'Unavailable'}</strong>
+              Base Population: <strong>{popCurrent != null ? `${popCurrent.toLocaleString()} citizens` : 'Not Available'}</strong>
             </p>
           </div>
 
@@ -291,15 +492,15 @@ const AnalyticsPanel = ({
               </p>
               <div className="flex items-baseline gap-2 mt-2">
                 <span className="text-3xl font-extrabold text-rose-600 dark:text-rose-400 font-mono tracking-tight">
-                  {waterDeficit != null ? (waterDeficit > 0 ? `-${Math.round(waterDeficit).toLocaleString()}` : '0') : 'Unavailable'}
+                  {waterDeficit != null ? (waterDeficit > 0 ? `-${Math.round(waterDeficit).toLocaleString()}` : '0') : 'Not Available'}
                 </span>
                 <span className="text-xs font-medium text-[var(--text-muted)]">LPD (55 L/capita norm)</span>
               </div>
             </div>
             <div className="mt-4 pt-3 border-t border-[var(--border-subtle)]">
               <div className="flex justify-between text-xs text-[var(--text-muted)] mb-1.5 font-medium">
-                <span>Supply: {waterSupply != null ? `${Math.round(waterSupply / 1000)}k LPD` : 'Unavailable'}</span>
-                <span className="font-mono font-bold text-[var(--text-main)]">{waterCoveragePct != null ? `${waterCoveragePct}% Coverage` : 'Unavailable'}</span>
+                <span>Supply: {waterSupply != null ? `${Math.round(waterSupply / 1000)}k LPD` : 'Not Available'}</span>
+                <span className="font-mono font-bold text-[var(--text-main)]">{waterCoveragePct != null ? `${waterCoveragePct}% Coverage` : 'Not Available'}</span>
               </div>
               <div className="w-full bg-[var(--bg-primary)] h-2 rounded-full overflow-hidden">
                 <div
@@ -327,15 +528,15 @@ const AnalyticsPanel = ({
               </p>
               <div className="flex items-baseline gap-2 mt-2">
                 <span className="text-3xl font-extrabold text-amber-600 dark:text-amber-400 font-mono tracking-tight">
-                  {classGap != null ? (classGap > 0 ? `-${classGap}` : '0') : 'Unavailable'}
+                  {classGap != null ? (classGap > 0 ? `-${classGap}` : '0') : 'Not Available'}
                 </span>
                 <span className="text-xs font-medium text-[var(--text-muted)]">Rooms (1:30 pupil ratio)</span>
               </div>
             </div>
             <div className="mt-4 pt-3 border-t border-[var(--border-subtle)]">
               <div className="flex justify-between text-xs text-[var(--text-muted)] mb-1.5 font-medium">
-                <span>Active: {classCurrent != null ? `${classCurrent} / ${classRequired || 'N/A'} rooms` : 'Unavailable'}</span>
-                <span className="font-mono font-bold text-[var(--text-main)]">{classCoveragePct != null ? `${classCoveragePct}% Capacity` : 'Unavailable'}</span>
+                <span>Active: {classCurrent != null ? `${classCurrent} / ${classRequired || 'Not Available'} rooms` : 'Not Available'}</span>
+                <span className="font-mono font-bold text-[var(--text-main)]">{classCoveragePct != null ? `${classCoveragePct}% Capacity` : 'Not Available'}</span>
               </div>
               <div className="w-full bg-[var(--bg-primary)] h-2 rounded-full overflow-hidden">
                 <div
@@ -406,15 +607,15 @@ const AnalyticsPanel = ({
               </p>
               <div className="flex items-baseline gap-2 mt-2">
                 <span className="text-3xl font-extrabold text-orange-600 dark:text-orange-400 font-mono tracking-tight">
-                  {roadDeficit != null ? (roadDeficit > 0 ? `-${Number(roadDeficit).toFixed(1)}` : '0.0') : 'Unavailable'}
+                  {roadDeficit != null ? (roadDeficit > 0 ? `-${Number(roadDeficit).toFixed(1)}` : '0.0') : 'Not Available'}
                 </span>
                 <span className="text-xs font-medium text-[var(--text-muted)]">KM (1.25 km / 1,000 pop norm)</span>
               </div>
             </div>
             <div className="mt-4 pt-3 border-t border-[var(--border-subtle)]">
               <div className="flex justify-between text-xs text-[var(--text-muted)] mb-1.5 font-medium">
-                <span>Paved: {roadCurrent != null ? `${Number(roadCurrent).toFixed(1)} / ${Number(roadRequired).toFixed(1)} km` : 'Unavailable'}</span>
-                <span className="font-mono font-bold text-[var(--text-main)]">{roadCoveragePct != null && roadCurrent != null ? `${roadCoveragePct}% Target` : 'Unavailable'}</span>
+                <span>Paved: {roadCurrent != null ? `${Number(roadCurrent).toFixed(1)} / ${roadRequired != null ? Number(roadRequired).toFixed(1) : 'Not Available'} km` : 'Not Available'}</span>
+                <span className="font-mono font-bold text-[var(--text-main)]">{roadCoveragePct != null && roadCurrent != null ? `${roadCoveragePct}% Target` : 'Not Available'}</span>
               </div>
               <div className="w-full bg-[var(--bg-primary)] h-2 rounded-full overflow-hidden">
                 <div

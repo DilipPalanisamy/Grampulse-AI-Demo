@@ -211,8 +211,9 @@ export const generateOfficialPanchayatAnalytics = (
   const years = Number(horizonYears || 5);
   const rate = Number(growthRate || 0.018);
   const targetYear = new Date().getFullYear() + years;
-  const villageName = loc?.gp_name || loc?.village_name || 'Habitation';
+  const villageName = loc?.gp_name || loc?.village_name || loc?.village || loc?.matched_location_name || 'Habitation';
   const district = loc?.district || 'District';
+  const state = loc?.state || 'Tamil Nadu';
   const rawPop = loc?.population ?? loc?.total_population ?? loc?.indicators?.total_population?.value;
   const popCurrent = rawPop != null ? Number(rawPop) : null;
   const popProjected = popCurrent != null ? Math.round(popCurrent * Math.pow(1 + rate, years)) : null;

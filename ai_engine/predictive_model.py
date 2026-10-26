@@ -102,22 +102,18 @@ def calculate_infrastructure_deficits(
     pop_growth = ml_forecast["population_growth"]
 
     # 3. Water Supply Demand & Deficit (Jal Jeevan Mission Standard: 55 LPD/capita)
-    current_water_supply = float(
-        current_metrics.get(
-            "daily_water_supply_liters",
-            current_metrics.get("daily_water_supply", 0.0),
-        )
-    )
+    raw_water = current_metrics.get("daily_water_supply_liters")
+    if raw_water is None:
+        raw_water = current_metrics.get("daily_water_supply", 0.0)
+    current_water_supply = float(raw_water or 0.0)
     projected_water_demand = round(projected_pop * BENCHMARKS["water_lpd_per_capita"], 2)
     water_deficit = max(0.0, round(projected_water_demand - current_water_supply, 2))
 
     # 4. Education & Classroom Capacity (RTE Standard: 1 Classroom per 30 students)
-    current_classrooms = int(
-        current_metrics.get(
-            "school_classrooms_count",
-            current_metrics.get("classrooms_current", 0),
-        )
-    )
+    raw_classrooms = current_metrics.get("school_classrooms_count")
+    if raw_classrooms is None:
+        raw_classrooms = current_metrics.get("classrooms_current", 0)
+    current_classrooms = int(raw_classrooms or 0)
     estimated_school_pupils = projected_pop * BENCHMARKS["school_age_pop_ratio"]
     required_classrooms = int(
         math.ceil(estimated_school_pupils / BENCHMARKS["rte_students_per_classroom"])
@@ -125,12 +121,10 @@ def calculate_infrastructure_deficits(
     classroom_gap = max(0, required_classrooms - current_classrooms)
 
     # 5. Road Connectivity (PMGSY Benchmark: 1.25 km per 1,000 population)
-    current_roads_km = float(
-        current_metrics.get(
-            "road_coverage_km",
-            current_metrics.get("road_coverage", 0.0),
-        )
-    )
+    raw_roads = current_metrics.get("road_coverage_km")
+    if raw_roads is None:
+        raw_roads = current_metrics.get("road_coverage", 0.0)
+    current_roads_km = float(raw_roads or 0.0)
     required_roads_km = round(
         (projected_pop / 1000.0) * BENCHMARKS["road_km_per_thousand_pop"], 2
     )
