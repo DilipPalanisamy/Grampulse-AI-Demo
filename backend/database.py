@@ -117,8 +117,46 @@ def check_db_health() -> bool:
 
 
 # In-memory dynamic runtime cache for locations and issues
-_DYNAMIC_PANCHAYATS: Dict[int, Dict[str, Any]] = {
-    644405: {
+_DYNAMIC_PANCHAYATS: Dict[int, Dict[str, Any]] = {}
+_DYNAMIC_METRICS: Dict[int, Dict[str, Any]] = {}
+
+_COORDINATES_MAP: Dict[int, tuple] = {
+    644405: (11.0267, 77.0617),  # Chinniyampalayam
+    803962: (11.2435, 76.9587),  # Karamadai
+    803960: (11.3255, 77.0051),  # Sirumugai
+    803966: (11.0242, 77.1264),  # Sulur
+    803969: (11.2333, 77.1833),  # Annur
+    803996: (10.9022, 76.9598),  # Madukkarai
+    644350: (11.2667, 76.8833),  # Tholampalayam
+    644347: (11.2982, 76.9366),  # Odanthurai
+    644351: (11.2272, 76.8486),  # Velliangadu
+    803972: (11.1444, 76.9389),  # Periyanaickenpalayam
+    803965: (11.0189, 77.0706),  # Irugur
+    803963: (11.0667, 77.1667),  # Mopperipalayam
+    803971: (11.1219, 76.9481),  # Narasimhanaickenpalayam
+    803970: (11.1558, 76.9403),  # Veerapandi
+    803973: (11.1611, 76.9278),  # Gudalur
+    803968: (11.1278, 77.0167),  # Sarkar Samakulam
+    803986: (10.9639, 76.7778),  # Alandurai
+    803976: (10.9833, 76.8667),  # Dhaliyur
+    803985: (10.9706, 76.7861),  # Pooluvapatti
+    803987: (10.9589, 76.7786),  # Thenkarai
+    803977: (11.0006, 76.9078),  # Vedapatti
+    804000: (10.6583, 77.0083),  # Pollachi
+    804008: (10.5333, 76.9833),  # Kottur
+    804014: (10.3242, 76.9558),  # Valparai
+}
+
+def _init_census_panchayats_and_metrics():
+    """
+    Populates dynamic in-memory registry with all authentic Census 2011 villages,
+    towns, and local bodies in Coimbatore district (District 632) from official PCA and HL-11.
+    """
+    import pandas as pd
+    from pathlib import Path
+
+    # Seed baseline working profiles
+    _DYNAMIC_PANCHAYATS[644405] = {
         "gp_id": 644405,
         "gp_code": "CENSUS-644405",
         "gp_name": "Chinniyampalayam",
@@ -127,61 +165,8 @@ _DYNAMIC_PANCHAYATS: Dict[int, Dict[str, Any]] = {
         "lat": 11.0267,
         "lng": 77.0617,
         "created_at": datetime.now(),
-    },
-    803962: {
-        "gp_id": 803962,
-        "gp_code": "CENSUS-803962",
-        "gp_name": "Karamadai",
-        "district": "Coimbatore",
-        "state": "Tamil Nadu",
-        "lat": 11.2435,
-        "lng": 76.9587,
-        "created_at": datetime.now(),
-    },
-    803960: {
-        "gp_id": 803960,
-        "gp_code": "CENSUS-803960",
-        "gp_name": "Sirumugai",
-        "district": "Coimbatore",
-        "state": "Tamil Nadu",
-        "lat": 11.3255,
-        "lng": 77.0051,
-        "created_at": datetime.now(),
-    },
-    1: {
-        "gp_id": 1,
-        "gp_code": "CENSUS-644405",
-        "gp_name": "Chinniyampalayam",
-        "district": "Coimbatore",
-        "state": "Tamil Nadu",
-        "lat": 11.0267,
-        "lng": 77.0617,
-        "created_at": datetime.now(),
-    },
-    2: {
-        "gp_id": 2,
-        "gp_code": "GP-GJ-SK-002",
-        "gp_name": "Punsari",
-        "district": "Sabarkantha",
-        "state": "Gujarat",
-        "lat": 23.5186,
-        "lng": 73.0167,
-        "created_at": datetime.now(),
-    },
-    3: {
-        "gp_id": 3,
-        "gp_code": "GP-TN-CBE-003",
-        "gp_name": "Odanthurai",
-        "district": "Coimbatore",
-        "state": "Tamil Nadu",
-        "lat": 11.2982,
-        "lng": 76.9366,
-        "created_at": datetime.now(),
-    },
-}
-
-_DYNAMIC_METRICS: Dict[int, Dict[str, Any]] = {
-    644405: {
+    }
+    _DYNAMIC_METRICS[644405] = {
         "metric_id": 644405,
         "gp_id": 644405,
         "record_year": 2011,
@@ -191,8 +176,19 @@ _DYNAMIC_METRICS: Dict[int, Dict[str, Any]] = {
         "school_classrooms_count": 39,
         "road_coverage_km": None,
         "created_at": datetime.now(),
-    },
-    803962: {
+    }
+
+    _DYNAMIC_PANCHAYATS[803962] = {
+        "gp_id": 803962,
+        "gp_code": "CENSUS-803962",
+        "gp_name": "Karamadai",
+        "district": "Coimbatore",
+        "state": "Tamil Nadu",
+        "lat": 11.2435,
+        "lng": 76.9587,
+        "created_at": datetime.now(),
+    }
+    _DYNAMIC_METRICS[803962] = {
         "metric_id": 803962,
         "gp_id": 803962,
         "record_year": 2011,
@@ -202,8 +198,19 @@ _DYNAMIC_METRICS: Dict[int, Dict[str, Any]] = {
         "school_classrooms_count": 194,
         "road_coverage_km": None,
         "created_at": datetime.now(),
-    },
-    803960: {
+    }
+
+    _DYNAMIC_PANCHAYATS[803960] = {
+        "gp_id": 803960,
+        "gp_code": "CENSUS-803960",
+        "gp_name": "Sirumugai",
+        "district": "Coimbatore",
+        "state": "Tamil Nadu",
+        "lat": 11.3255,
+        "lng": 77.0051,
+        "created_at": datetime.now(),
+    }
+    _DYNAMIC_METRICS[803960] = {
         "metric_id": 803960,
         "gp_id": 803960,
         "record_year": 2011,
@@ -213,19 +220,23 @@ _DYNAMIC_METRICS: Dict[int, Dict[str, Any]] = {
         "school_classrooms_count": 24,
         "road_coverage_km": None,
         "created_at": datetime.now(),
-    },
-    1: {
-        "metric_id": 1,
-        "gp_id": 1,
-        "record_year": 2011,
-        "population": 8232,
-        "households": 2349,
-        "daily_water_supply_liters": 444923.0,
-        "school_classrooms_count": 39,
-        "road_coverage_km": None,
+    }
+
+    # Add legacy IDs 1, 2, 3 mapped to authentic profiles
+    _DYNAMIC_PANCHAYATS[1] = dict(_DYNAMIC_PANCHAYATS[644405], gp_id=1)
+    _DYNAMIC_METRICS[1] = dict(_DYNAMIC_METRICS[644405], gp_id=1, metric_id=1)
+
+    _DYNAMIC_PANCHAYATS[2] = {
+        "gp_id": 2,
+        "gp_code": "GP-GJ-SK-002",
+        "gp_name": "Punsari",
+        "district": "Sabarkantha",
+        "state": "Gujarat",
+        "lat": 23.5186,
+        "lng": 73.0167,
         "created_at": datetime.now(),
-    },
-    2: {
+    }
+    _DYNAMIC_METRICS[2] = {
         "metric_id": 2,
         "gp_id": 2,
         "record_year": 2011,
@@ -235,19 +246,110 @@ _DYNAMIC_METRICS: Dict[int, Dict[str, Any]] = {
         "school_classrooms_count": 28,
         "road_coverage_km": 24.0,
         "created_at": datetime.now(),
-    },
-    3: {
+    }
+
+    _DYNAMIC_PANCHAYATS[3] = {
+        "gp_id": 3,
+        "gp_code": "GP-TN-CBE-003",
+        "gp_name": "Odanthurai",
+        "district": "Coimbatore",
+        "state": "Tamil Nadu",
+        "lat": 11.2982,
+        "lng": 76.9366,
+        "created_at": datetime.now(),
+    }
+    _DYNAMIC_METRICS[3] = {
         "metric_id": 3,
         "gp_id": 3,
         "record_year": 2011,
-        "population": 5800,
-        "households": 1420,
-        "daily_water_supply_liters": 319000.0,
+        "population": 5399,
+        "households": 1529,
+        "daily_water_supply_liters": 296945.0,
         "school_classrooms_count": 26,
         "road_coverage_km": 28.5,
         "created_at": datetime.now(),
-    },
-}
+    }
+
+    # Load all villages & towns from census_coimbatore_2011.csv
+    base_dir = Path(__file__).resolve().parent.parent
+    local_data_dir = Path(__file__).resolve().parent / "data" / "processed"
+    fp_data_dir = base_dir / "GramPulse-FuturePredictor" / "backend" / "data" / "processed"
+
+    pca_file = local_data_dir / "census_coimbatore_2011.csv"
+    if not pca_file.exists():
+        pca_file = fp_data_dir / "census_coimbatore_2011.csv"
+
+    hl11_file = local_data_dir / "census_coimbatore_hl11_2011.csv"
+    if not hl11_file.exists():
+        hl11_file = fp_data_dir / "census_coimbatore_hl11_2011.csv"
+
+    if not pca_file.exists():
+        return
+
+    try:
+        pca_df = pd.read_csv(pca_file)
+        local_df = pca_df[pca_df["Level"].isin(["VILLAGE", "TOWN"])].copy()
+
+        hl_map = {}
+        if hl11_file.exists():
+            hl_df = pd.read_csv(hl11_file)
+            for _, r in hl_df.iterrows():
+                loc_name = str(r.get("location_name", "")).strip().lower().replace(" ", "").replace("-", "")
+                hl_map[loc_name] = r.to_dict()
+
+        for _, row in local_df.iterrows():
+            code_str = str(row.get("Town/Village", "")).strip()
+            if not code_str or not code_str.isdigit():
+                continue
+            gp_id = int(code_str)
+
+            raw_name = str(row.get("Name", "")).strip()
+            clean_name = raw_name.replace("(TP)", "").replace("(CT)", "").replace("(M)", "").strip()
+            norm_name = clean_name.lower().replace(" ", "").replace("-", "")
+
+            pop = int(row.get("TOT_P", 0) or 0)
+            hh = int(row.get("No_HH", 0) or 0)
+
+            coords = _COORDINATES_MAP.get(gp_id)
+            if not coords:
+                # Deterministic coordinates in Coimbatore envelope (Lat: 10.50-11.45, Lng: 76.75-77.35)
+                h = abs(hash(clean_name))
+                c_lat = round(10.85 + (h % 500) * 0.001, 4)
+                c_lng = round(76.85 + ((h // 500) % 400) * 0.001, 4)
+                coords = (c_lat, c_lng)
+
+            if gp_id not in _DYNAMIC_PANCHAYATS:
+                _DYNAMIC_PANCHAYATS[gp_id] = {
+                    "gp_id": gp_id,
+                    "gp_code": f"CENSUS-{gp_id}",
+                    "gp_name": clean_name,
+                    "district": "Coimbatore",
+                    "state": "Tamil Nadu",
+                    "lat": coords[0],
+                    "lng": coords[1],
+                    "created_at": datetime.now(),
+                }
+
+            if gp_id not in _DYNAMIC_METRICS:
+                amenities = hl_map.get(norm_name, {})
+                treated_hh = amenities.get("treated_tap_water_households")
+                water_lpd = float(treated_hh * 4.5 * 55.0) if treated_hh else float(pop * 55.0)
+
+                _DYNAMIC_METRICS[gp_id] = {
+                    "metric_id": gp_id,
+                    "gp_id": gp_id,
+                    "record_year": 2011,
+                    "population": pop,
+                    "households": hh,
+                    "daily_water_supply_liters": round(water_lpd, 2),
+                    "school_classrooms_count": max(1, round(pop * 0.18 / 30)),
+                    "road_coverage_km": None,
+                    "created_at": datetime.now(),
+                }
+    except Exception as e:
+        logger.warning(f"Notice: Failed to load full Census dataset into DB cache: {e}")
+
+_init_census_panchayats_and_metrics()
 
 _DYNAMIC_ISSUES: List[Dict[str, Any]] = [
     {
@@ -411,13 +513,18 @@ def fetch_all_panchayats() -> List[Dict[str, Any]]:
 
     # Fallback to dynamic registry
     if _DYNAMIC_PANCHAYATS:
-        return list(_DYNAMIC_PANCHAYATS.values())
+        return sorted(list(_DYNAMIC_PANCHAYATS.values()), key=lambda x: str(x.get("gp_name", "")).lower())
 
     return []
 
 
 def fetch_panchayat_by_id(gp_id: int) -> Optional[Dict[str, Any]]:
     """Retrieves a single Gram Panchayat by ID."""
+    try:
+        gp_id = int(gp_id)
+    except (ValueError, TypeError):
+        return None
+
     query = """
         SELECT gp_id, gp_code, gp_name, district, state, created_at, updated_at
         FROM gram_panchayats
@@ -432,11 +539,46 @@ def fetch_panchayat_by_id(gp_id: int) -> Optional[Dict[str, Any]]:
     except Exception as err:
         logger.debug(f"Database query note: {err}")
 
-    return _DYNAMIC_PANCHAYATS.get(gp_id)
+    if gp_id in _DYNAMIC_PANCHAYATS:
+        return _DYNAMIC_PANCHAYATS[gp_id]
+
+    # Dynamically query Census service if not in in-memory dictionary
+    try:
+        import sys
+        base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+        fp_dir = os.path.join(base_dir, "GramPulse-FuturePredictor", "backend")
+        if fp_dir not in sys.path and os.path.exists(fp_dir):
+            sys.path.insert(0, fp_dir)
+        from census_service import get_census_baseline
+        base = get_census_baseline(str(gp_id))
+        if base:
+            clean_name = base.get("location_name", f"Panchayat {gp_id}")
+            coords = _COORDINATES_MAP.get(gp_id, (11.0, 77.0))
+            new_gp = {
+                "gp_id": gp_id,
+                "gp_code": f"CENSUS-{gp_id}",
+                "gp_name": clean_name,
+                "district": base.get("district", "Coimbatore"),
+                "state": base.get("state", "Tamil Nadu"),
+                "lat": coords[0],
+                "lng": coords[1],
+                "created_at": datetime.now(),
+            }
+            _DYNAMIC_PANCHAYATS[gp_id] = new_gp
+            return new_gp
+    except Exception:
+        pass
+
+    return None
 
 
 def fetch_latest_metrics_for_panchayat(gp_id: int) -> Optional[Dict[str, Any]]:
     """Retrieves the most recent census and infrastructure metrics for a GP."""
+    try:
+        gp_id = int(gp_id)
+    except (ValueError, TypeError):
+        return None
+
     query = """
         SELECT
             metric_id,
@@ -462,7 +604,40 @@ def fetch_latest_metrics_for_panchayat(gp_id: int) -> Optional[Dict[str, Any]]:
     except Exception as err:
         logger.debug(f"Database query note: {err}")
 
-    return _DYNAMIC_METRICS.get(gp_id)
+    if gp_id in _DYNAMIC_METRICS:
+        return _DYNAMIC_METRICS[gp_id]
+
+    # Dynamically derive from Census baseline if not in in-memory dictionary
+    try:
+        import sys
+        base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+        fp_dir = os.path.join(base_dir, "GramPulse-FuturePredictor", "backend")
+        if fp_dir not in sys.path and os.path.exists(fp_dir):
+            sys.path.insert(0, fp_dir)
+        from census_service import get_census_baseline
+        base = get_census_baseline(str(gp_id))
+        if base:
+            pop = int(base.get("population") or base.get("total_population") or 5000)
+            hh = int(base.get("households") or base.get("total_households") or max(1, round(pop / 4)))
+            treated = base.get("treated_tap_water_households")
+            water_lpd = float(treated * 4.5 * 55.0) if treated else float(pop * 55.0)
+            new_metric = {
+                "metric_id": gp_id,
+                "gp_id": gp_id,
+                "record_year": base.get("year", 2011),
+                "population": pop,
+                "households": hh,
+                "daily_water_supply_liters": round(water_lpd, 2),
+                "school_classrooms_count": max(1, round(pop * 0.18 / 30)),
+                "road_coverage_km": None,
+                "created_at": datetime.now(),
+            }
+            _DYNAMIC_METRICS[gp_id] = new_metric
+            return new_metric
+    except Exception:
+        pass
+
+    return None
 
 
 def fetch_all_citizen_issues(

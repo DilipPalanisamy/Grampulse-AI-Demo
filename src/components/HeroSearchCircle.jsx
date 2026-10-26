@@ -63,9 +63,11 @@ function HeroSearchCircle({ onNavigateToMap }) {
     { name: 'Chinniyampalayam', queryName: 'Chinniyampalayam', district: 'Coimbatore', id: 644405, census_code: '644405' },
     { name: 'Karamadai', queryName: 'Karamadai', district: 'Coimbatore', id: 803962, census_code: '803962' },
     { name: 'Sirumugai', queryName: 'Sirumugai', district: 'Coimbatore', id: 803960, census_code: '803960' },
-    { name: 'Odanthurai', queryName: 'Odanthurai', district: 'Coimbatore', id: 644383, census_code: '644383' },
+    { name: 'Sulur', queryName: 'Sulur', district: 'Coimbatore', id: 803966, census_code: '803966' },
     { name: 'Annur', queryName: 'Annur', district: 'Coimbatore', id: 803969, census_code: '803969' },
-    { name: 'Madukkarai', queryName: 'Madukkarai', district: 'Coimbatore', id: 803975, census_code: '803975' },
+    { name: 'Madukkarai', queryName: 'Madukkarai', district: 'Coimbatore', id: 803996, census_code: '803996' },
+    { name: 'Odanthurai', queryName: 'Odanthurai', district: 'Coimbatore', id: 644347, census_code: '644347' },
+    { name: 'Tholampalayam', queryName: 'Tholampalayam', district: 'Coimbatore', id: 644350, census_code: '644350' },
   ];
 
   const displayResults =

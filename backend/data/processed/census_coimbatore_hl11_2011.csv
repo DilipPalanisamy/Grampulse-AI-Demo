@@ -1,0 +1,77 @@
+area_name_raw,location_name,town_code,source,households,electricity_coverage_percent,latrine_coverage_percent,tap_water_coverage_percent,treated_tap_water_households,untreated_tap_water_households
+District - Coimbatore,District - Coimbatore,000000,Census of India 2011 HL-11,945943,94.75,66.69,93.76,828741,58219
+Sub-District - Mettupalayam,Sub-District - Mettupalayam,000000,Census of India 2011 HL-11,72044,92.65,50.24,92.9,63348,3580
+Sirumugai (TP),Sirumugai,803960,Census of India 2011 HL-11,5349,92.41,55.9,98.02,5190,53
+Mettupalayam (M),Mettupalayam,803961,Census of India 2011 HL-11,17948,95.89,71.18,99.41,17468,375
+Karamadai (TP),Karamadai,803962,Census of India 2011 HL-11,9787,93.77,69.27,96.77,8480,991
+Sub-District - Sulur,Sub-District - Sulur,000000,Census of India 2011 HL-11,89235,94.4,52.79,90.25,71873,8666
+Mopperipalayam (TP),Mopperipalayam,803963,Census of India 2011 HL-11,2950,90.2,32.58,90.61,2479,194
+Karumathampatti (TP),Karumathampatti,803964,Census of India 2011 HL-11,10001,95.14,69.32,93.66,9002,365
+Irugur (TP),Irugur,803965,Census of India 2011 HL-11,7005,94.79,64.27,98.06,6650,219
+Sulur (TP),Sulur,803966,Census of India 2011 HL-11,7488,95.51,74.52,93.3,6480,506
+Pallapalayam (TP),Pallapalayam,803967,Census of India 2011 HL-11,3206,96.82,73.42,99.16,3013,166
+Kannampalayam (TP),Kannampalayam,803968,Census of India 2011 HL-11,4479,95.45,68.85,96.49,3310,1012
+Kaniyur (CT),Kaniyur,644400,Census of India 2011 HL-11,3569,96.83,49.4,92.49,2393,908
+Arasur (CT),Arasur,644401,Census of India 2011 HL-11,3359,95.47,66.12,93.0,2925,199
+K.Madapur (CT),K.Madapur,644402,Census of India 2011 HL-11,1608,94.65,31.47,98.2,1486,93
+Muthugoundam Pudur (CT),Muthugoundam Pudur,644403,Census of India 2011 HL-11,2977,96.98,57.98,99.4,2830,129
+Neelambur (CT),Neelambur,644404,Census of India 2011 HL-11,2154,96.15,49.54,99.81,1734,416
+Chinniam palayam (CT),Chinniam palayam,644405,Census of India 2011 HL-11,2422,97.44,88.15,98.27,2128,252
+Pattanam (CT),Pattanam,644406,Census of India 2011 HL-11,2628,96.88,77.51,98.02,2045,531
+Sub-District - Coimbatore North,Sub-District - Coimbatore North,000000,Census of India 2011 HL-11,174209,95.62,67.69,93.29,151335,11176
+Annur (TP),Annur,803969,Census of India 2011 HL-11,5637,91.47,59.11,95.37,5085,291
+Veerapandi (TP),Veerapandi,803970,Census of India 2011 HL-11,4664,95.99,72.08,93.83,4005,371
+Gudalur (TP),Gudalur,803971,Census of India 2011 HL-11,10758,96.68,77.46,97.54,10069,424
+Periyanaicken-palayam (TP),Periyanaicken-palayam,803972,Census of India 2011 HL-11,7223,98.41,82.78,98.98,7069,80
+Idikarai (TP),Idikarai,803973,Census of India 2011 HL-11,2506,90.3,52.43,96.85,2383,44
+Sarcarsamakulam (TP),Sarcarsamakulam,803974,Census of India 2011 HL-11,3073,96.58,70.13,98.83,2558,479
+Narasimhanaicken-palayam (TP),Narasimhanaicken-palayam,803975,Census of India 2011 HL-11,4776,97.22,75.34,99.48,4726,25
+Kalapatti (TP),Kalapatti,803976,Census of India 2011 HL-11,10785,97.11,81.54,97.18,10217,264
+Saravanampatti (TP),Saravanampatti,803977,Census of India 2011 HL-11,9256,99.14,94.1,99.2,9088,94
+Vellakinar (TP),Vellakinar,803978,Census of India 2011 HL-11,4427,96.02,75.83,95.41,3999,225
+Thudiyalur (TP),Thudiyalur,803979,Census of India 2011 HL-11,8896,98.11,87.13,99.22,8324,503
+Chinnavedampatti (TP),Chinnavedampatti,803980,Census of India 2011 HL-11,5333,97.43,78.0,96.77,4650,511
+Goundampalayam (M),Goundampalayam,803981,Census of India 2011 HL-11,22036,98.33,88.23,99.55,21509,428
+Veerakeralam (TP),Veerakeralam,803982,Census of India 2011 HL-11,6521,97.79,83.22,98.22,6153,252
+Kurudampalayam (CT),Kurudampalayam,644442,Census of India 2011 HL-11,4866,98.36,81.71,97.58,4718,30
+Ashokapuram (CT),Ashokapuram,644443,Census of India 2011 HL-11,3604,98.83,88.76,99.0,3554,14
+Chinnathadagam (CT),Chinnathadagam,644444,Census of India 2011 HL-11,2477,96.85,44.61,90.11,2083,149
+Vilankurichi (CT),Vilankurichi,644445,Census of India 2011 HL-11,6083,97.67,87.8,99.23,5856,180
+Somayampalayam (CT),Somayampalayam,644446,Census of India 2011 HL-11,4273,96.58,71.78,94.24,2901,1126
+Sub-District - Coimbatore South,Sub-District - Coimbatore South,000000,Census of India 2011 HL-11,425573,96.83,79.35,96.54,395734,15123
+Vadavalli (TP),Vadavalli,803983,Census of India 2011 HL-11,10917,97.96,82.31,98.82,10299,489
+Coimbatore (M Corp.),Coimbatore (M Corp.),803984,Census of India 2011 HL-11,280560,98.32,87.81,98.09,268760,6442
+Thondamuthur (TP),Thondamuthur,803985,Census of India 2011 HL-11,3349,89.25,47.33,98.9,3213,99
+Dhaliyur (TP),Dhaliyur,803986,Census of India 2011 HL-11,3181,92.74,49.67,94.4,2958,45
+Vedapatti (TP),Vedapatti,803987,Census of India 2011 HL-11,3227,95.2,54.54,96.16,3077,26
+Vellalur (TP),Vellalur,803988,Census of India 2011 HL-11,6575,95.1,56.08,93.43,5972,171
+Kurichi (M),Kurichi,803989,Census of India 2011 HL-11,33003,96.12,83.8,96.54,30634,1228
+Kuniyamuthur (M),Kuniyamuthur,803990,Census of India 2011 HL-11,24679,97.22,76.7,97.84,22973,1174
+Perur (TP),Perur,803991,Census of India 2011 HL-11,2312,96.45,58.09,97.32,2186,64
+Thenkarai (TP),Thenkarai,803992,Census of India 2011 HL-11,2069,83.04,17.25,92.61,1869,47
+Pooluvapatti (TP),Pooluvapatti,803993,Census of India 2011 HL-11,3497,89.56,35.12,93.02,2380,873
+Alanthurai (TP),Alanthurai,803994,Census of India 2011 HL-11,1976,88.71,37.2,79.2,1427,138
+Chettipalayam (TP),Chettipalayam,803995,Census of India 2011 HL-11,2876,81.71,33.97,68.05,1535,422
+Madukkarai (TP),Madukkarai,803996,Census of India 2011 HL-11,8087,90.79,60.39,89.85,6773,493
+Ettimadai (TP),Ettimadai,803997,Census of India 2011 HL-11,2555,84.34,37.73,88.69,1747,519
+Othakalmandapam (TP),Othakalmandapam,803998,Census of India 2011 HL-11,3277,94.08,66.31,95.76,2809,329
+Thirumalayampalayam (TP),Thirumalayampalayam,803999,Census of India 2011 HL-11,3377,77.17,22.92,83.54,2580,241
+Perur Chettipalayam (CT),Perur Chettipalayam,644473,Census of India 2011 HL-11,4850,96.56,61.96,87.67,4174,78
+Malumichampatti (CT),Malumichampatti,644474,Census of India 2011 HL-11,3428,95.62,72.35,90.64,2216,891
+Sub-District - Pollachi,Sub-District - Pollachi,000000,Census of India 2011 HL-11,165338,89.4,46.08,89.13,130177,17194
+Kinathukadavu (TP),Kinathukadavu,804000,Census of India 2011 HL-11,2534,90.88,57.22,93.17,2117,244
+Periya Negamam (TP),Periya Negamam,804001,Census of India 2011 HL-11,2155,87.89,40.79,90.63,1924,29
+Pollachi (M),Pollachi,804002,Census of India 2011 HL-11,23915,96.68,85.17,95.55,21802,1048
+Zamin Uthukuli (TP),Zamin Uthukuli,804003,Census of India 2011 HL-11,4545,91.73,56.13,93.18,4106,129
+Suleeswaranpatti (TP),Suleeswaranpatti,804004,Census of India 2011 HL-11,5627,94.69,78.39,93.16,4288,954
+Samathur (TP),Samathur,804005,Census of India 2011 HL-11,1828,91.63,38.24,96.72,1017,751
+Anaimalai (TP),Anaimalai,804006,Census of India 2011 HL-11,4996,93.01,61.97,97.02,3970,877
+Odaiyakulam (TP),Odaiyakulam,804007,Census of India 2011 HL-11,3831,78.75,41.4,95.17,2811,835
+Vettaikaranpudur (TP),Vettaikaranpudur,804008,Census of India 2011 HL-11,5062,79.08,35.07,89.67,4065,474
+Kottur (TP),Kottur,804009,Census of India 2011 HL-11,7955,84.0,39.01,96.44,7397,275
+Koil palayam (CT),Koil palayam,644591,Census of India 2011 HL-11,1392,95.11,63.86,94.61,1170,147
+Achipatti (CT),Achipatti,644592,Census of India 2011 HL-11,2712,96.79,83.7,88.83,2241,168
+Chinnampalayam (CT),Chinnampalayam,644593,Census of India 2011 HL-11,2508,99.32,86.96,97.61,2177,271
+Makkinampatti (CT),Makkinampatti,644594,Census of India 2011 HL-11,2265,95.81,69.93,96.56,2035,152
+Sub-District - Valparai,Sub-District - Valparai,000000,Census of India 2011 HL-11,19544,96.65,80.32,95.96,16274,2480
+Valparai (M),Valparai,804010,Census of India 2011 HL-11,19544,96.65,80.32,95.96,16274,2480

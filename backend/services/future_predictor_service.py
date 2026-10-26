@@ -275,29 +275,47 @@ def execute_village_future_prediction(payload_data: Dict[str, Any]) -> Dict[str,
     # 1. Parse and sanitize input
     village_name = str(payload_data.get("village_name") or "Selected Village").strip()
     current_year = int(payload_data.get("current_year") or 2026)
+    # Attempt resolution from authentic Census baseline for missing fields
+    baseline = None
+    try:
+        from census_service import get_census_baseline
+        baseline = get_census_baseline(village_name)
+    except Exception:
+        pass
+
     raw_pop = payload_data.get("population")
     if raw_pop is not None and float(raw_pop) > 0:
         population = float(raw_pop)
+    elif baseline and (baseline.get("total_population") or baseline.get("population")):
+        population = float(baseline.get("total_population") or baseline.get("population"))
     else:
-        # Attempt resolution from authentic Census baseline
-        baseline = None
-        try:
-            from census_service import get_census_baseline
-            baseline = get_census_baseline(village_name)
-        except Exception:
-            pass
-        if baseline and baseline.get("total_population"):
-            population = float(baseline["total_population"])
-        else:
-            raise ValueError(
-                f"Required prediction input 'population' is missing for '{village_name}'. "
-                "Official Census records are unavailable for this query."
-            )
-    
-    households = int(payload_data.get("households") or max(1, round(population / 4)))
+        raise ValueError(
+            f"Required prediction input 'population' is missing for '{village_name}'. "
+            "Official Census records are unavailable for this query."
+        )
+
+    base_hh = (baseline.get("total_households") or baseline.get("households")) if baseline else None
+    households = int(payload_data.get("households") or base_hh or max(1, round(population / 4)))
     school_students = int(payload_data.get("school_students") or max(1, round(population * 0.16)))
     college_students = int(payload_data.get("college_students") or max(0, round(population * 0.035)))
     schools_count = int(payload_data.get("schools") or max(1, round(population / 2000)))
+
+    # Use authentic HL-11 coverage if available and not explicitly overridden
+    raw_water = payload_data.get("water_coverage")
+    if raw_water is not None:
+        water_cov = float(raw_water)
+    elif baseline and baseline.get("tap_water_coverage_percent") is not None:
+        water_cov = float(baseline["tap_water_coverage_percent"])
+    else:
+        water_cov = 70.0
+
+    raw_elec = payload_data.get("electricity_coverage")
+    if raw_elec is not None:
+        elec_cov = float(raw_elec)
+    elif baseline and baseline.get("electricity_coverage_percent") is not None:
+        elec_cov = float(baseline["electricity_coverage_percent"])
+    else:
+        elec_cov = 95.0
 
     sanitized = {
         "village_name": village_name,
@@ -316,8 +334,8 @@ def execute_village_future_prediction(payload_data: Dict[str, Any]) -> Dict[str,
         "road_built_year": int(payload_data.get("road_built_year", current_year - 10)),
         "last_repair_year": int(payload_data.get("last_repair_year", current_year - 5)),
         "road_condition": str(payload_data.get("road_condition", "Average")),
-        "water_coverage": float(payload_data.get("water_coverage", 70.0)),
-        "electricity_coverage": float(payload_data.get("electricity_coverage", 95.0)),
+        "water_coverage": water_cov,
+        "electricity_coverage": elec_cov,
         "internet_coverage": float(payload_data.get("internet_coverage", 50.0)),
         "employment_rate": float(payload_data.get("employment_rate", 65.0)),
     }

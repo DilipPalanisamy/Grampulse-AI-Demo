@@ -1,0 +1,2 @@
+location_name,location_type,year,town_code,source,households,electricity_coverage_percent,latrine_coverage_percent,tap_water_coverage_percent,treated_tap_water_households,untreated_tap_water_households
+Chinniam Palayam,Census Town,2011,644405,Census of India HL-11,2422,97.44,88.15,98.27,2128,252
