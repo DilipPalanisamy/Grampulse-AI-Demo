@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { searchSpatialLocation, reverseGeocodeLocation } from './api';
-import { searchCensusDirectory } from './censusDirectoryService';
+import { searchCensusDirectory, findCensusRecord } from './censusDirectoryService';
 
 // In-memory search cache for instant responses
 const SEARCH_RESULTS_CACHE = new Map();
@@ -64,32 +64,36 @@ export const searchRealVillages = async (query = '', districtFilter = '', stateF
 
       const formatted = sortedItems.map((item, idx) => {
         const censusCode = item.census_code || null;
-        const gpId = censusCode ? parseInt(censusCode, 10) : 1000 + idx;
+        const censusRec = findCensusRecord(censusCode || item.name, item.district);
+        const gpId = censusCode ? parseInt(censusCode, 10) : (censusRec?.gp_id || 1000 + idx);
         const isWard = item.level === 'WARD' || Boolean(item.is_ward);
-        const locType = item.level === 'TOWN' ? 'Town Panchayat' : (isWard ? 'Municipal Ward' : (item.level || 'Village'));
+        const locType = item.level === 'TOWN' ? 'Town Panchayat' : (isWard ? 'Municipal Ward' : (item.level || censusRec?.location_type || 'Village'));
+        const pop = item.population ?? censusRec?.population ?? null;
+        const hh = item.households ?? censusRec?.households ?? null;
 
         return {
+          ...censusRec,
           gp_id: gpId,
-          gp_code: censusCode ? `CENSUS-${censusCode}` : `GP-${gpId}`,
+          gp_code: censusCode ? `CENSUS-${censusCode}` : (censusRec?.gp_code || `GP-${gpId}`),
           gp_name: item.name,
           village_name: item.name,
-          raw_name: item.raw_name,
+          raw_name: item.raw_name || item.name,
           location_type: locType,
           level: item.level,
           is_ward: isWard,
-          census_code: censusCode,
-          subdistrict_code: item.subdistrict_code,
-          district: item.district || 'Tamil Nadu',
+          census_code: censusCode || censusRec?.census_code || null,
+          subdistrict_code: item.subdistrict_code || censusRec?.subdistrict_code || null,
+          district: item.district || censusRec?.district || 'Tamil Nadu',
           state: item.state || 'Tamil Nadu',
-          population: item.population ?? null,
-          households: item.households ?? null,
+          population: pop,
+          households: hh,
           reference_year: item.reference_year || 2011,
           source: item.source || 'Census of India 2011 Primary Census Abstract',
           isOfficialCensus: true,
           tagline: `${item.name} (${locType}, ${item.district || 'Tamil Nadu'})`,
-          description: `Authentic Census 2011 record: Pop ${item.population ? item.population.toLocaleString() : 'N/A'}, HH ${item.households ? item.households.toLocaleString() : 'N/A'}. Ref Year: ${item.reference_year || 2011}.`,
-          lat: 11.05 + (idx * 0.02),
-          lng: 77.05 + (idx * 0.02),
+          description: `Authentic Census 2011 record: Pop ${pop ? pop.toLocaleString() : 'N/A'}, HH ${hh ? hh.toLocaleString() : 'N/A'}. Ref Year: ${item.reference_year || 2011}.`,
+          lat: censusRec?.lat ?? (11.05 + (idx * 0.02)),
+          lng: censusRec?.lng ?? (77.05 + (idx * 0.02)),
         };
       });
 

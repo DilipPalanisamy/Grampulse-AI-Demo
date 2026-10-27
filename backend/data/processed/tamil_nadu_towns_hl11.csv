@@ -1,6 +1,6 @@
 census_code,name,raw_name,location_type,district,state,households,electricity_coverage_percent,tap_water_coverage_percent,latrine_coverage_percent,lat,lng
 803339,Chennai,Chennai (M Corp.),Town,Chennai,Tamil Nadu,1106567,99.08,79.04,95.59,13.0526,80.2277
-803984,Coimbatore,Coimbatore (M Corp.),Town,Coimbatore,Tamil Nadu,280560,98.32,95.79,87.81,11.015,77.044
+803984,Coimbatore (M Corp.),Coimbatore (M Corp.),Town,Coimbatore,Tamil Nadu,280560,98.32,95.79,87.81,11.015,77.044
 803754,Madurai,Madurai (M Corp.),Town,Madurai,Tamil Nadu,266020,98.83,86.74,91.91,9.8447,78.0048
 803463,Salem,Salem (M Corp.),Town,Salem,Tamil Nadu,215314,96.69,83.49,75.13,11.7553,78.276
 803631,Tiruchirappalli,Tiruchirappalli (M Corp.),Town,Tiruchirappalli,Tamil Nadu,215024,97.41,82.58,81.27,10.8605,78.6047
@@ -232,7 +232,7 @@ census_code,name,raw_name,location_type,district,state,households,electricity_co
 803577,Ayakudi,Ayakudi (TP),Town Panchayat,Dindigul,Tamil Nadu,7181,88.4,62.87,30.73,10.4037,77.9283
 640714,Vandiyur,Vandiyur (CT),Census Town,Madurai,Tamil Nadu,7173,88.0,26.61,71.42,9.9826,78.0378
 803409,Jolarpet,Jolarpet (M),Municipality,Tirupathur,Tamil Nadu,7149,93.12,59.39,58.06,12.4414,78.4948
-804021,Avanashi,Avanashi (TP),Town Panchayat,Tiruppur,Tamil Nadu,7147,96.52,92.85,76.89,11.0574,77.2681
+804021,Avinashi,Avanashi (TP),Town Panchayat,Tiruppur,Tamil Nadu,7147,96.52,92.85,76.89,11.0574,77.2681
 803429,Kottakuppam,Kottakuppam (TP),Town Panchayat,Viluppuram,Tamil Nadu,7115,94.77,71.76,65.12,11.9016,79.4311
 803317,Minjur,Minjur (TP),Town Panchayat,Thiruvallur,Tamil Nadu,7039,97.95,43.96,80.39,13.1838,79.9654
 803965,Irugur,Irugur (TP),Town Panchayat,Coimbatore,Tamil Nadu,7005,94.79,94.93,64.27,11.285,77.144
@@ -820,7 +820,7 @@ census_code,name,raw_name,location_type,district,state,households,electricity_co
 803408,Natrampalli,Natrampalli (TP),Town Panchayat,Tirupathur,Tamil Nadu,2444,92.02,0.94,41.82,12.5415,78.4978
 628979,Ammavarikuppam,Ammavarikuppam (CT),Census Town,Thiruvallur,Tamil Nadu,2433,95.52,92.56,40.81,13.209,80.0014
 803825,Eral,Eral (TP),Town Panchayat,Thoothukkudi,Tamil Nadu,2424,95.05,46.08,71.45,8.8426,78.2468
-644405,Chinniam palayam,Chinniam palayam (CT),Census Town,Coimbatore,Tamil Nadu,2422,97.44,87.86,88.15,11.0267,77.0617
+644405,Chinniyampalayam,Chinniam palayam (CT),Census Town,Coimbatore,Tamil Nadu,2422,97.44,87.86,88.15,11.0267,77.0617
 803840,Thiruvenkadam,Thiruvenkadam (TP),Town Panchayat,Tenkasi,Tamil Nadu,2408,92.19,59.68,27.41,8.9209,77.2611
 803775,Pannaipuram,Pannaipuram (TP),Town Panchayat,Theni,Tamil Nadu,2401,83.34,88.46,36.03,9.9467,77.3858
 803729,Pallathur,Pallathur (TP),Town Panchayat,Sivaganga,Tamil Nadu,2395,92.94,51.15,57.79,9.8048,78.4259

@@ -11,6 +11,8 @@ from pathlib import Path
 from typing import Optional, Dict, Any, List
 
 
+BASE_DIR = Path(__file__).resolve().parent
+
 # =========================================================
 # FILE PATHS
 # =========================================================
@@ -26,12 +28,14 @@ def _resolve_file(rel_name: str) -> Path:
 
 BASELINE_FILE = _resolve_file("chinniam_palayam_baseline.csv")
 COIMBATORE_PCA_FILE = _resolve_file("census_coimbatore_2011.csv")
+TIRUPPUR_PCA_FILE = _resolve_file("census_tiruppur_2011.csv")
 COIMBATORE_HL11_FILE = _resolve_file("census_coimbatore_hl11_2011.csv")
 STATEWIDE_TOWNS_FILE = _resolve_file("tamil_nadu_towns_hl11.csv")
 STATEWIDE_VILLAGES_FILE = _resolve_file("tamil_nadu_villages.csv")
 
 # In-memory caches for fast repeated queries
 _PCA_DF: Optional[pd.DataFrame] = None
+_TIRUPPUR_PCA_DF: Optional[pd.DataFrame] = None
 _HL11_DF: Optional[pd.DataFrame] = None
 _STATEWIDE_TOWNS_DF: Optional[pd.DataFrame] = None
 _STATEWIDE_VILLAGES_DF: Optional[pd.DataFrame] = None
@@ -79,6 +83,89 @@ VILLAGE_ALIASES: Dict[str, List[str]] = {
     "gudalur": ["gudalurtp"],
     "irugur": ["irugurtp"],
     "kalampalayam": ["kalampalayamct"],
+    "avinashi": ["avanashi", "avanashitp", "avinashitp"],
+    "avanashi": ["avinashi", "avanashitp", "avinashitp"],
+    "tirupur": ["tiruppur"],
+    "udumalaipet": ["udumalaipettai"],
+    "udumalpet": ["udumalaipettai"],
+    "azhakumalai": ["alagumalai"],
+    "alagumalai": ["azhakumalai"],
+    "kandiyankovil": ["kandiankoil"],
+    "kandiankoil": ["kandiyankovil"],
+    "nerupperichal": ["neripperichal"],
+    "neripperichal": ["nerupperichal"],
+    "velamapalayam": ["velampalayam"],
+    "velampalayam": ["velamapalayam"],
+    "kundadam": ["kundadam"],
+    "perumanallur": ["palangarai"],
+    "uthukuli": ["punjaiuthukuli"],
+    "kannadiputhur": ["agraharakannadiputhur", "sarkarkannadiputhur"],
+}
+
+# Tiruppur Local Government Directory (LGD) to Census 2011 code mapping
+TIRUPPUR_LGD_TO_CENSUS: Dict[str, str] = {
+    "931808": "644788",  # Agrahara Puthur -> 644788
+    "931809": "644788",  # Azhakumalai -> 644788
+    "931810": "644797",  # Iduvai -> 644797
+    "931811": "644788",  # Kandiyankovil -> 644788
+    "931813": "644799",  # Muthanampalayam -> 644799
+    "931814": "644798",  # Muruganpalayam -> 644798
+    "931815": "804025",  # Nallur -> 804025
+    "931817": "644786",  # Perumthozhuvu -> 644786
+    "931820": "804026",  # Tiruppur -> 804026
+    "931821": "644784",  # Ugayanur -> 644784
+    "931822": "644800",  # Veerapandi -> 644800
+    "931826": "644800",  # Veerapandi -> 644800
+    "931827": "804027",  # Samalapuram -> 804027
+    "931830": "644792",  # Chettipalayam -> 644792
+    "931833": "644795",  # Mannarai -> 644795
+    "931834": "644791",  # Neripperichal -> 644791
+    "931835": "804011",  # Chinna Muthur -> 804011
+    "931836": "644793",  # Thottipalayam -> 644793
+    "931837": "804024",  # Velampalayam -> 804024
+    "931838": "644791",  # Nerupperichal -> 644791
+    "931842": "804012",  # Kangeyam -> 804012
+    "931844": "644793",  # Thottipalayam -> 644793
+    "931846": "804024",  # Velamapalayam -> 804024
+    "931849": "804011",  # Muthur -> 804011
+    "931853": "804013",  # Vellakoil -> 804013
+    "931856": "644618",  # Udaiam -> 644618
+    "931858": "804013",  # Vellakoil -> 804013
+    "931868": "644862",  # Alampalayam -> 644862
+    "931870": "644682",  # Chelampalayam -> 644682
+    "931871": "804019",  # Chinnakkampalayam -> 804019
+    "931873": "644617",  # Kangayampalayam -> 644617
+    "931874": "804015",  # Kannivadi -> 804015
+    "931875": "804017",  # Kolathupalayam -> 804017
+    "931876": "644636",  # Kundadam -> 644636
+    "931877": "804016",  # Mulanur -> 804016
+    "931878": "644641",  # Vellavavipudur -> 644641
+    "931879": "804014",  # Rudravathi -> 804014
+    "931902": "804030",  # Dhali -> 804030
+    "931907": "804029",  # Udumalaipettai -> 804029
+    "931908": "644841",  # Andigoundanur -> 644841
+    "931913": "644883",  # Periakottai -> 644883
+    "931914": "644882",  # Samathur -> 644882
+    "931918": "644837",  # Agraharakannadiputhur -> 644837
+    "931920": "804031",  # Kaniyur -> 804031
+    "931921": "804033",  # Komaralingam East -> 804033
+    "931922": "804033",  # Komaralingam West -> 804033
+    "931923": "804034",  # Sankaramanallur North -> 804034
+    "931924": "804034",  # Sankaramanallur South -> 804034
+    "931925": "644837",  # Sarkarkannadiputhur -> 644837
+    "931930": "804020",  # Kunnathur -> 804020
+    "931932": "644881",  # Poolankulam -> 644881
+    "931933": "804023",  # Punjai Uthukuli -> 804023
+    "931934": "644785",  # Rackiyapalayam -> 644785
+    "931950": "804021",  # Avinashi -> 804021
+    "931952": "804020",  # Kunnathur -> 804020
+    "931955": "644774",  # Palangarai -> 644774
+    "931956": "644773",  # Perumanallur -> 644773
+    "931957": "644785",  # Rakkiyampalayam -> 644785
+    "931959": "644775",  # Sembianallur -> 644775
+    "931962": "804022",  # Thirumuruganpoondi -> 804022
+    "931963": "804023",  # Uthukuli -> 804023
+    "931964": "644776",  # Velayudampalayam -> 644776
 }
 
 
@@ -122,6 +209,25 @@ def get_pca_dataframe() -> Optional[pd.DataFrame]:
         return _PCA_DF
     except Exception as e:
         print(f"Error loading Census PCA dataset: {e}")
+        return None
+
+
+def get_tiruppur_pca_dataframe() -> Optional[pd.DataFrame]:
+    """Loads and caches the official Census 2011 Tiruppur PCA dataset (346 locations)."""
+    global _TIRUPPUR_PCA_DF
+    if _TIRUPPUR_PCA_DF is not None:
+        return _TIRUPPUR_PCA_DF
+
+    if not TIRUPPUR_PCA_FILE.exists():
+        return None
+
+    try:
+        df = pd.read_csv(TIRUPPUR_PCA_FILE)
+        df["_norm_name"] = df["Name"].apply(normalize_village_name)
+        _TIRUPPUR_PCA_DF = df
+        return _TIRUPPUR_PCA_DF
+    except Exception as e:
+        print(f"Error loading Tiruppur Census PCA dataset: {e}")
         return None
 
 
@@ -225,7 +331,32 @@ def get_census_baseline(village_name: str, district_name: Optional[str] = None) 
 
             if not m.empty:
                 row = m.iloc[0]
-                return _format_pca_row_to_baseline(row, requested_norm)
+                return _format_pca_row_to_baseline(row, requested_norm, default_district="Coimbatore")
+
+    # -----------------------------------------------------
+    # 1B. Check Tiruppur PCA if district is Tiruppur or not specified
+    # -----------------------------------------------------
+    if dist_norm is None or dist_norm == "tiruppur":
+        t_pca_df = get_tiruppur_pca_dataframe()
+        if t_pca_df is not None and not t_pca_df.empty:
+            local_df = t_pca_df[t_pca_df["Level"].isin(["VILLAGE", "TOWN"])].copy()
+            m = pd.DataFrame()
+            effective_numeric = TIRUPPUR_LGD_TO_CENSUS.get(v_clean, v_clean)
+            if is_numeric:
+                m = local_df[local_df["Town/Village"].astype(str) == effective_numeric]
+                if m.empty:
+                    m = t_pca_df[t_pca_df["Town/Village"].astype(str) == effective_numeric]
+            else:
+                m = local_df[local_df["_norm_name"] == requested_norm]
+                if m.empty:
+                    for alias in VILLAGE_ALIASES.get(requested_norm, []):
+                        m = local_df[local_df["_norm_name"] == alias]
+                        if not m.empty:
+                            break
+
+            if not m.empty:
+                row = m.iloc[0]
+                return _format_pca_row_to_baseline(row, requested_norm, default_district="Tiruppur")
 
     # -----------------------------------------------------
     # 2. Check Statewide Towns (1,097 ULBs across 38 districts with authentic HL-11 metrics)
@@ -347,17 +478,19 @@ def get_census_baseline(village_name: str, district_name: Optional[str] = None) 
     return None
 
 
-def _format_pca_row_to_baseline(row: pd.Series, requested_norm: str) -> Dict[str, Any]:
+def _format_pca_row_to_baseline(row: pd.Series, requested_norm: str, default_district: str = "Coimbatore") -> Dict[str, Any]:
     """Helper to convert PCA row to rich baseline format."""
     level_val = str(row.get("Level", "")).upper()
     if level_val == "VILLAGE":
-        loc_type = "Rural Village"
+        loc_type = "Gram Panchayat"
     elif level_val == "TOWN":
         name_str = str(row.get("Name", ""))
         if "(CT)" in name_str:
             loc_type = "Census Town"
         elif "(TP)" in name_str:
             loc_type = "Town Panchayat"
+        elif "(M.CORP)" in name_str.upper() or "(M CORP)" in name_str.upper():
+            loc_type = "Municipal Corporation"
         elif "(M)" in name_str:
             loc_type = "Municipality"
         else:
@@ -369,7 +502,9 @@ def _format_pca_row_to_baseline(row: pd.Series, requested_norm: str) -> Dict[str
     else:
         loc_type = level_val.title()
 
-    clean_name = str(row.get("Name", "")).replace("(TP)", "").replace("(CT)", "").replace("(M)", "").strip()
+    clean_name = str(row.get("Name", "")).replace("(TP)", "").replace("(CT)", "").replace("(M)", "").replace("(M.Corp)", "").strip()
+    if clean_name.lower().startswith("avanashi"):
+        clean_name = "Avinashi"
 
     baseline_result: Dict[str, Any] = {
         "location_name": clean_name or str(row.get("Name", "")).strip(),
@@ -387,8 +522,11 @@ def _format_pca_row_to_baseline(row: pd.Series, requested_norm: str) -> Dict[str
         "total_workers": _safe_int(row.get("TOT_WORK_P")),
         "census_code": str(row.get("Town/Village", "")).strip() or None,
         "subdistrict_code": str(row.get("Subdistt", "")).strip() or None,
-        "district": "Coimbatore",
+        "district": default_district,
         "state": "Tamil Nadu",
+        "electricity_coverage_percent": None,
+        "tap_water_coverage_percent": None,
+        "latrine_coverage_percent": None,
         "sc_population": _safe_int(row.get("P_SC")),
         "st_population": _safe_int(row.get("P_ST")),
         "main_workers": _safe_int(row.get("MAINWORK_P")),
@@ -400,11 +538,11 @@ def _format_pca_row_to_baseline(row: pd.Series, requested_norm: str) -> Dict[str
         "other_workers": _safe_int(row.get("MAIN_OT_P")),
     }
 
-    amenities = get_location_amenities(requested_norm)
+    amenities = get_location_amenities(requested_norm, district=default_district)
     if not amenities and clean_name:
-        amenities = get_location_amenities(normalize_village_name(clean_name))
+        amenities = get_location_amenities(normalize_village_name(clean_name), district=default_district)
     if not amenities:
-        amenities = get_location_amenities(normalize_village_name(str(row.get("Name", ""))))
+        amenities = get_location_amenities(normalize_village_name(str(row.get("Name", ""))), district=default_district)
     if amenities:
         baseline_result.update(amenities)
 
@@ -415,40 +553,60 @@ def _format_pca_row_to_baseline(row: pd.Series, requested_norm: str) -> Dict[str
 # HOUSEHOLD AMENITIES LOOKUP (HL-11)
 # =========================================================
 
-def get_location_amenities(norm_name: str) -> Optional[Dict[str, Any]]:
+def get_location_amenities(norm_name: str, district: Optional[str] = None) -> Optional[Dict[str, Any]]:
     """
     Fetches real Census 2011 HL-11 amenities (water, electricity, latrine).
+    Guarantees strict geographic matching and never assigns unrelated town amenities to rural villages.
     """
-    hl_df = get_hl11_dataframe()
-    if hl_df is None or hl_df.empty:
-        return None
+    dist_norm = str(district).strip().lower() if district and district.strip().lower() not in ["all districts", "tamil nadu", ""] else None
 
-    match = hl_df[hl_df["_norm_name"] == norm_name]
+    # Check Coimbatore HL-11 if district is Coimbatore or not specified
+    if dist_norm is None or dist_norm == "coimbatore":
+        hl_df = get_hl11_dataframe()
+        if hl_df is not None and not hl_df.empty:
+            match = hl_df[hl_df["_norm_name"] == norm_name]
+            if match.empty:
+                for alias in VILLAGE_ALIASES.get(norm_name, []):
+                    match = hl_df[hl_df["_norm_name"] == alias]
+                    if not match.empty:
+                        break
 
-    if match.empty:
-        aliases = VILLAGE_ALIASES.get(norm_name, [])
-        for alias in aliases:
-            match = hl_df[hl_df["_norm_name"] == alias]
             if not match.empty:
-                break
+                r = match.iloc[0]
+                return {
+                    "hl11_households": _safe_int(r.get("households")),
+                    "electricity_coverage_percent": _safe_float(r.get("electricity_coverage_percent")),
+                    "latrine_coverage_percent": _safe_float(r.get("latrine_coverage_percent")),
+                    "tap_water_coverage_percent": _safe_float(r.get("tap_water_coverage_percent")),
+                    "treated_tap_water_households": _safe_int(r.get("treated_tap_water_households")),
+                    "untreated_tap_water_households": _safe_int(r.get("untreated_tap_water_households")),
+                    "amenities_source": "Census of India 2011 HL-11",
+                    "amenities_reference_year": 2011,
+                }
 
-    if match.empty and len(norm_name) >= 4:
-        match = hl_df[hl_df["_norm_name"].str.contains(norm_name, na=False)]
+    # Check Statewide Towns (scoped to district if provided)
+    towns_df = get_statewide_towns_dataframe()
+    if towns_df is not None and not towns_df.empty:
+        scoped = towns_df[towns_df["_norm_dist"] == dist_norm] if dist_norm else towns_df
+        match = scoped[scoped["_norm_name"] == norm_name]
+        if match.empty:
+            for alias in VILLAGE_ALIASES.get(norm_name, []):
+                match = scoped[scoped["_norm_name"] == alias]
+                if not match.empty:
+                    break
 
-    if match.empty:
-        return None
+        if not match.empty:
+            r = match.iloc[0]
+            return {
+                "hl11_households": _safe_int(r.get("households")),
+                "electricity_coverage_percent": _safe_float(r.get("electricity_coverage_percent")),
+                "latrine_coverage_percent": _safe_float(r.get("latrine_coverage_percent")),
+                "tap_water_coverage_percent": _safe_float(r.get("tap_water_coverage_percent")),
+                "amenities_source": "Census of India 2011 Table HL-11",
+                "amenities_reference_year": 2011,
+            }
 
-    r = match.iloc[0]
-    return {
-        "hl11_households": _safe_int(r.get("households")),
-        "electricity_coverage_percent": _safe_float(r.get("electricity_coverage_percent")),
-        "latrine_coverage_percent": _safe_float(r.get("latrine_coverage_percent")),
-        "tap_water_coverage_percent": _safe_float(r.get("tap_water_coverage_percent")),
-        "treated_tap_water_households": _safe_int(r.get("treated_tap_water_households")),
-        "untreated_tap_water_households": _safe_int(r.get("untreated_tap_water_households")),
-        "amenities_source": "Census of India 2011 HL-11",
-        "amenities_reference_year": 2011,
-    }
+    return None
 
 
 # =========================================================
@@ -523,7 +681,31 @@ def search_census_locations(query: str, district: Optional[str] = None, limit: i
                 code = str(r.get("Town/Village", "")).strip()
                 if code and code not in seen_codes:
                     seen_codes.add(code)
-                    results.append(_format_census_search_item(r))
+                    results.append(_format_census_search_item(r, default_district="Coimbatore"))
+
+    # 2B. Search Tiruppur PCA if within scope
+    if len(results) < limit and (dist_norm is None or dist_norm == "tiruppur"):
+        t_pca_df = get_tiruppur_pca_dataframe()
+        if t_pca_df is not None and not t_pca_df.empty:
+            local_df = t_pca_df[t_pca_df["Level"].isin(["VILLAGE", "TOWN"])].copy()
+            if is_numeric:
+                effective_q = TIRUPPUR_LGD_TO_CENSUS.get(q_clean, q_clean)
+                p_matches = local_df[local_df["Town/Village"].astype(str).str.contains(effective_q, na=False)]
+            elif q_clean:
+                search_norms = [q_norm] + VILLAGE_ALIASES.get(q_norm, [])
+                cond = local_df["Name"].str.contains(q_clean, case=False, na=False) | local_df["_norm_name"].str.contains(q_norm, na=False)
+                for sn in search_norms:
+                    if sn:
+                        cond = cond | local_df["_norm_name"].str.contains(sn, na=False)
+                p_matches = local_df[cond]
+            else:
+                p_matches = local_df.head(limit)
+
+            for _, r in p_matches.head(limit - len(results)).iterrows():
+                code = str(r.get("Town/Village", "")).strip()
+                if code and code not in seen_codes:
+                    seen_codes.add(code)
+                    results.append(_format_census_search_item(r, default_district="Tiruppur"))
 
     # 3. Search Statewide Rural Villages (18,710 villages)
     if len(results) < limit:
@@ -543,39 +725,74 @@ def search_census_locations(query: str, district: Optional[str] = None, limit: i
 
             for _, vr in v_matches.head(limit - len(results)).iterrows():
                 v_code = str(vr.get("Village Code", "")).strip()
+                v_name = str(vr.get("Village", "")).strip()
+                if v_code == "931950" and "804021" in seen_codes:
+                    continue
                 if v_code and v_code not in seen_codes:
                     seen_codes.add(v_code)
+                    pop_val = None
+                    hh_val = None
+                    t_pca = get_tiruppur_pca_dataframe()
+                    if t_pca is not None:
+                        m_row = t_pca[t_pca["Town/Village"].astype(str) == v_code]
+                        if not m_row.empty:
+                            pop_val = _safe_int(m_row.iloc[0].get("TOT_P"))
+                            hh_val = _safe_int(m_row.iloc[0].get("No_HH"))
+                    if pop_val is None:
+                        c_pca = get_pca_dataframe()
+                        if c_pca is not None:
+                            m_row = c_pca[c_pca["Town/Village"].astype(str) == v_code]
+                            if not m_row.empty:
+                                pop_val = _safe_int(m_row.iloc[0].get("TOT_P"))
+                                hh_val = _safe_int(m_row.iloc[0].get("No_HH"))
+
                     results.append({
-                        "name": str(vr.get("Village", "")).strip(),
-                        "raw_name": str(vr.get("Village", "")).strip(),
+                        "name": v_name,
+                        "raw_name": v_name,
                         "native_name": str(vr.get("Village (Native)", "")).strip() or None,
-                        "level": "Village",
+                        "level": "Gram Panchayat",
                         "is_ward": False,
                         "census_code": v_code or None,
                         "subdistrict_name": str(vr.get("Mandal", "")).strip() or None,
                         "district": str(vr.get("District", "Tamil Nadu")),
                         "pincode": str(vr.get("Pincode", "")).strip() or None,
                         "state": "Tamil Nadu",
-                        "population": None,
-                        "households": None,
+                        "population": pop_val,
+                        "households": hh_val,
                         "reference_year": 2011,
-                        "source": "Tamil Nadu Local Government Directory",
+                        "source": "Census of India 2011 Primary Census Abstract" if pop_val else "Tamil Nadu Local Government Directory",
                     })
 
     return results[:limit]
 
 
-def _format_census_search_item(row: pd.Series) -> Dict[str, Any]:
-    name_clean = str(row.get("Name", "")).replace("(TP)", "").replace("(CT)", "").replace("(M)", "").strip()
+def _format_census_search_item(row: pd.Series, default_district: str = "Coimbatore") -> Dict[str, Any]:
+    name_clean = str(row.get("Name", "")).replace("(TP)", "").replace("(CT)", "").replace("(M)", "").replace("(M.Corp)", "").strip()
+    if name_clean.lower().startswith("avanashi"):
+        name_clean = "Avinashi"
     lvl = str(row.get("Level", "")).upper()
+    name_raw = str(row.get("Name", "")).strip()
+    if "(CT)" in name_raw:
+        level_name = "Census Town"
+    elif "(TP)" in name_raw:
+        level_name = "Town Panchayat"
+    elif "(M.CORP)" in name_raw.upper() or "(M CORP)" in name_raw.upper():
+        level_name = "Municipal Corporation"
+    elif "(M)" in name_raw:
+        level_name = "Municipality"
+    elif lvl == "VILLAGE":
+        level_name = "Gram Panchayat"
+    else:
+        level_name = lvl
+
     return {
         "name": name_clean,
-        "raw_name": str(row.get("Name", "")).strip(),
-        "level": "Town Panchayat" if lvl == "TOWN" else ("Rural Village" if lvl == "VILLAGE" else lvl),
+        "raw_name": name_raw,
+        "level": level_name,
         "is_ward": lvl == "WARD",
         "census_code": str(row.get("Town/Village", "")).strip() or None,
         "subdistrict_code": str(row.get("Subdistt", "")).strip() or None,
-        "district": "Coimbatore",
+        "district": default_district,
         "state": "Tamil Nadu",
         "population": _safe_int(row.get("TOT_P")),
         "households": _safe_int(row.get("No_HH")),

@@ -122,13 +122,21 @@ def main():
     wb = xlrd.open_workbook(HL11_SRC, on_demand=True)
     sheet = wb.sheet_by_index(0)
 
-    # Load existing Coimbatore data to preserve exact PCA and coordinates
+    # Load existing Coimbatore and Tiruppur data to preserve exact PCA and coordinates
     coimbatore_cache = {}
     if os.path.exists(COIMBATORE_DIR_PATH):
         with open(COIMBATORE_DIR_PATH, 'r', encoding='utf-8') as f:
             c_data = json.load(f)
             for item in c_data:
                 coimbatore_cache[str(item.get('id'))] = item
+
+    tiruppur_cache = {}
+    TIRUPPUR_DIR_PATH = os.path.join(ROOT_DIR, "src", "data", "tiruppurCensusDirectory.json")
+    if os.path.exists(TIRUPPUR_DIR_PATH):
+        with open(TIRUPPUR_DIR_PATH, 'r', encoding='utf-8') as f:
+            t_data = json.load(f)
+            for item in t_data:
+                tiruppur_cache[str(item.get('id'))] = item
 
     # Load coordinates map
     coords_map = {}
@@ -193,8 +201,15 @@ def main():
         district = t['district']
         dist_counts[district] = dist_counts.get(district, 0) + 1
         
-        c_item = coimbatore_cache.get(code)
+        c_item = coimbatore_cache.get(code) or tiruppur_cache.get(code)
         
+        # Standardize town name if in Tiruppur cache (e.g. Avanashi -> Avinashi)
+        town_name = t['name']
+        if code == '804021' or town_name.lower().startswith('avanashi'):
+            town_name = 'Avinashi'
+        elif c_item and c_item.get('name'):
+            town_name = c_item.get('name')
+
         # Coordinates resolution
         lat, lng = None, None
         if c_item and c_item.get('lat') and c_item.get('lng'):
@@ -218,7 +233,7 @@ def main():
         record = {
             'id': int(code) if code.isdigit() else code,
             'census_code': str(code),
-            'name': t['name'],
+            'name': town_name,
             'raw_name': t['raw_name'],
             'type': t['type'],
             'district': district,
@@ -315,7 +330,10 @@ def main():
                 if not v_name or not v_code:
                     continue
 
-                c_item = coimbatore_cache.get(v_code)
+                c_item = coimbatore_cache.get(v_code) or tiruppur_cache.get(v_code)
+                if not c_item and (v_code == '931950' or v_name.lower() == 'avinashi'):
+                    c_item = tiruppur_cache.get('804021')
+
                 pop = c_item.get('pop') if c_item else None
                 hh = c_item.get('hh') if c_item else None
 
@@ -323,6 +341,9 @@ def main():
                 coords = coords_map.get(v_code)
                 lat = coords[0] if coords else (c_item.get('lat') if c_item else None)
                 lng = coords[1] if coords else (c_item.get('lng') if c_item else None)
+
+                # Determine accurate location type
+                loc_type = c_item.get('type') if c_item else 'Village'
 
                 villages_list.append({
                     'id': int(v_code) if v_code.isdigit() else v_code,
@@ -332,7 +353,7 @@ def main():
                     'taluk': mandal,
                     'district': dist,
                     'pincode': pincode if pincode else None,
-                    'type': 'Village',
+                    'type': loc_type,
                     'pop': pop,
                     'hh': hh,
                     'lat': lat,

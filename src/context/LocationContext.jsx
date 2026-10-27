@@ -119,6 +119,33 @@ const getSavedUserVillageObject = () => {
   return null;
 };
 
+const hasRealIndicatorValues = (inds) => {
+  if (!inds || typeof inds !== 'object') return false;
+  return Object.values(inds).some((item) => {
+    if (item == null) return false;
+    if (typeof item === 'object') {
+      return item.value != null;
+    }
+    return typeof item === 'number' || typeof item === 'string';
+  });
+};
+
+const mergeIndicatorsSafely = (primary, fallback) => {
+  const result = { ...(fallback || {}) };
+  if (!primary || typeof primary !== 'object') return result;
+
+  for (const [key, val] of Object.entries(primary)) {
+    if (val != null) {
+      if (typeof val === 'object' && val.value != null) {
+        result[key] = val;
+      } else if (typeof val !== 'object') {
+        result[key] = val;
+      }
+    }
+  }
+  return result;
+};
+
 const buildInitialVillage = (villageInput = null) => {
   try {
     if (typeof villageInput === 'object' && villageInput !== null) {
@@ -652,8 +679,8 @@ export const LocationProvider = ({ children }) => {
           String(v.gp_name || '').toLowerCase() === String(rawName).toLowerCase()
       );
 
-      const existingInds = (targetLocation.indicators && Object.keys(targetLocation.indicators).length > 0)
-        ? targetLocation.indicators
+      const existingInds = hasRealIndicatorValues(targetLocation.indicators)
+        ? mergeIndicatorsSafely(targetLocation.indicators, knownPreload?.indicators)
         : (knownPreload?.indicators || {});
 
       const existingBaseline = targetLocation.census_baseline || knownPreload?.census_baseline || null;
@@ -754,7 +781,9 @@ export const LocationProvider = ({ children }) => {
           health_centre: inds.public_health_centre?.value ?? null,
           hospital_beds: inds.hospital_beds_count?.value ?? null,
 
-          indicators: Object.keys(inds).length > 0 ? inds : (knownPreload?.indicators || {}),
+          indicators: hasRealIndicatorValues(inds)
+            ? mergeIndicatorsSafely(inds, knownPreload?.indicators)
+            : (knownPreload?.indicators || inds),
           categories: govData.categories || {},
           census_baseline: govData.census_baseline || knownPreload?.census_baseline || null,
           sources_used: govData.sources_used || [],
@@ -770,8 +799,8 @@ export const LocationProvider = ({ children }) => {
         // Fallback to authentic Census 2011 & UDISE+ directory if Render backend query fails
         const censusFallback = findCensusRecord(locationOrId.census_code || immediateGpId || queryParam || rawName, district);
         const activeBaseline = censusFallback || knownPreload;
-        const fallbackInds = (locationOrId.indicators && Object.keys(locationOrId.indicators).length > 0)
-          ? locationOrId.indicators
+        const fallbackInds = hasRealIndicatorValues(locationOrId.indicators)
+          ? mergeIndicatorsSafely(locationOrId.indicators, activeBaseline?.indicators)
           : (activeBaseline?.indicators || {});
         const fallbackBaseline = locationOrId.census_baseline || activeBaseline?.census_baseline || null;
 
@@ -789,9 +818,9 @@ export const LocationProvider = ({ children }) => {
           census_code: activeBaseline?.census_code || locationOrId.census_code || null,
           population: locationOrId.population ?? activeBaseline?.population ?? fallbackBaseline?.population ?? null,
           total_population: locationOrId.total_population ?? locationOrId.population ?? activeBaseline?.total_population ?? fallbackBaseline?.population ?? null,
-          male_population: activeBaseline?.male_population ?? fallbackBaseline?.male_population ?? null,
-          female_population: activeBaseline?.female_population ?? fallbackBaseline?.female_population ?? null,
-          children_0_6: activeBaseline?.children_0_6 ?? fallbackBaseline?.children_0_6 ?? null,
+          male_population: locationOrId.male_population ?? activeBaseline?.male_population ?? fallbackBaseline?.male_population ?? null,
+          female_population: locationOrId.female_population ?? activeBaseline?.female_population ?? fallbackBaseline?.female_population ?? null,
+          children_0_6: locationOrId.children_0_6 ?? activeBaseline?.children_0_6 ?? fallbackBaseline?.children_0_6 ?? null,
           households: locationOrId.households ?? activeBaseline?.households ?? fallbackBaseline?.households ?? null,
           hl11_households: locationOrId.hl11_households ?? activeBaseline?.hl11_households ?? fallbackBaseline?.hl11_households ?? null,
           electricity_coverage: locationOrId.electricity_coverage ?? activeBaseline?.electricity_coverage ?? fallbackBaseline?.electricity_coverage_percent ?? null,
@@ -799,7 +828,9 @@ export const LocationProvider = ({ children }) => {
           latrine_coverage: locationOrId.latrine_coverage ?? activeBaseline?.latrine_coverage ?? fallbackBaseline?.latrine_coverage_percent ?? null,
           schools: locationOrId.schools ?? activeBaseline?.schools ?? fallbackInds?.udise_school_count?.value ?? null,
           school_classrooms_count: locationOrId.school_classrooms_count ?? activeBaseline?.school_classrooms_count ?? fallbackInds?.udise_total_classrooms?.value ?? null,
-          literate_population: activeBaseline?.literate_population ?? fallbackBaseline?.literate_population ?? null,
+          literate_population: locationOrId.literate_population ?? activeBaseline?.literate_population ?? fallbackBaseline?.literate_population ?? null,
+          illiterate_population: locationOrId.illiterate_population ?? activeBaseline?.illiterate_population ?? fallbackBaseline?.illiterate_population ?? null,
+          total_workers: locationOrId.total_workers ?? activeBaseline?.total_workers ?? fallbackBaseline?.total_workers ?? null,
           road_coverage_km: locationOrId.road_coverage_km ?? activeBaseline?.road_coverage_km ?? null,
           indicators: fallbackInds,
           census_baseline: fallbackBaseline,

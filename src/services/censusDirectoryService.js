@@ -15,6 +15,7 @@
  */
 
 import COIMBATORE_RECORDS from '../data/coimbatoreCensusDirectory.json';
+import TIRUPPUR_RECORDS from '../data/tiruppurCensusDirectory.json';
 import TOWNS_RECORDS from '../data/tamilNaduTownsDirectory.json';
 import DISTRICTS_DATA from '../data/tamilNaduDistricts.json';
 
@@ -201,7 +202,7 @@ function expandRecord(r) {
   };
 }
 
-// 1. Build synchronous index of Towns across all 38 districts + Coimbatore PCA records
+// 1. Build synchronous index of Towns across all 38 districts + Coimbatore & Tiruppur PCA records
 const PRIMARY_RECORDS = [];
 const seenPrimaryCodes = new Set();
 
@@ -222,6 +223,30 @@ for (const r of COIMBATORE_RECORDS) {
   if (rawNorm && !NAME_INDEX.has(rawNorm)) NAME_INDEX.set(rawNorm, rec);
 
   const dKey = 'coimbatore';
+  if (!DISTRICT_INDEX.has(dKey)) DISTRICT_INDEX.set(dKey, []);
+  DISTRICT_INDEX.get(dKey).push(rec);
+}
+
+// Add Tiruppur PCA records (rich demographics, ULBs + 297 rural Panchayats)
+for (const r of TIRUPPUR_RECORDS) {
+  const code = String(r.id);
+  seenPrimaryCodes.add(code);
+  const rec = { ...r, district: 'Tiruppur' };
+  PRIMARY_RECORDS.push(rec);
+  CODE_INDEX.set(code, rec);
+  CODE_INDEX.set(Number(code), rec);
+
+  const norm = normalize(r.name);
+  NAME_INDEX.set(`tiruppur:${norm}`, rec);
+  if (!NAME_INDEX.has(norm)) NAME_INDEX.set(norm, rec);
+
+  const rawNorm = normalize(r.raw_name);
+  if (rawNorm) {
+    NAME_INDEX.set(`tiruppur:${rawNorm}`, rec);
+    if (!NAME_INDEX.has(rawNorm)) NAME_INDEX.set(rawNorm, rec);
+  }
+
+  const dKey = 'tiruppur';
   if (!DISTRICT_INDEX.has(dKey)) DISTRICT_INDEX.set(dKey, []);
   DISTRICT_INDEX.get(dKey).push(rec);
 }
@@ -255,6 +280,84 @@ const ALIASES = {
   sulurtp: 'sulur',
   annurtp: 'annur',
   madukkaraitp: 'madukkarai',
+  avinashi: 'avanashi',
+  avinashitp: 'avanashi',
+  avanashitp: 'avanashi',
+  avanashi: 'avinashi',
+  tirupur: 'tiruppur',
+  udumalaipet: 'udumalaipettai',
+  udumalpet: 'udumalaipettai',
+  azhakumalai: 'alagumalai',
+  kandiyankovil: 'kandiankoil',
+  nerupperichal: 'neripperichal',
+  velamapalayam: 'velampalayam',
+  kundadam: 'kundadam',
+  pappankulam: 'papankulam',
+  kannadiputhur: 'agraharakannadiputhur',
+
+  // Local Government Directory (LGD) to Census identifiers mapping
+  '931808': '644796', // Andipalayam -> Census Town 644796
+  '931809': '644787', // Azhakumalai -> Alagumalai Gram Panchayat 644787
+  '931810': '644797', // Iduvai -> Census Town 644797
+  '931811': '644788', // Kandiyankovil -> Kandiankoil Gram Panchayat 644788
+  '931813': '644799', // Muthanampalayam -> Census Town 644799
+  '931814': '644798', // Muruganpalayam -> Census Town 644798
+  '931815': '804025', // Nallur -> S.Nallur Municipality 804025
+  '931817': '644786', // Perumthozhuvu -> North Avanashipalayam Gram Panchayat 644786
+  '931820': '804026', // Tiruppur -> Municipal Corporation 804026
+  '931821': '644784', // Ugayanur -> Gram Panchayat 644784
+  '931822': '644800', // Veerapandi -> Census Town 644800
+  '931826': '644800', // Veerapandi -> Census Town 644800
+  '931827': '804027', // Samalapuram -> Town Panchayat 804027
+  '931830': '644792', // Chettipalayam -> Census Town 644792
+  '931833': '644795', // Mannarai -> Census Town 644795
+  '931834': '644791', // Neripperichal -> Census Town 644791
+  '931835': '804011', // Chinna Muthur -> Muthur Town Panchayat 804011
+  '931836': '644793', // Thottipalayam -> Census Town 644793
+  '931837': '804024', // Velampalayam -> Municipality 804024
+  '931838': '644791', // Nerupperichal -> Neripperichal Census Town 644791
+  '931842': '804012', // Kangeyam -> Town Panchayat 804012
+  '931844': '644793', // Thottipalayam -> Census Town 644793
+  '931846': '804024', // Velamapalayam -> Velampalayam Municipality 804024
+  '931849': '804011', // Muthur -> Town Panchayat 804011
+  '931853': '804013', // Vellakoil -> Municipality 804013
+  '931856': '644618', // Udaiam -> Vadasinnaripalayam Gram Panchayat 644618
+  '931858': '804013', // Vellakoil -> Municipality 804013
+  '931868': '644862', // Alampalayam -> Gram Panchayat 644862
+  '931870': '644682', // Chelampalayam -> Chitravathanpalayam Gram Panchayat 644682
+  '931871': '804019', // Chinnakkampalayam -> Town Panchayat 804019
+  '931873': '644617', // Kangayampalayam -> Gram Panchayat 644617
+  '931874': '804015', // Kannivadi -> Town Panchayat 804015
+  '931875': '804017', // Kolathupalayam -> Town Panchayat 804017
+  '931876': '931876', // Kundadam -> Kundadam Gram Panchayat 931876
+  '931877': '804016', // Mulanur -> Town Panchayat 804016
+  '931878': '644641', // Vellavavipudur -> Thurambadi Gram Panchayat 644641
+  '931879': '804014', // Rudravathi -> Town Panchayat 804014
+  '931902': '804030', // Dhali -> Town Panchayat 804030
+  '931907': '804029', // Udumalaipettai -> Municipality 804029
+  '931908': '644841', // Andigoundanur 2 -> Andigoundanur Gram Panchayat 644841
+  '931913': '644883', // Periakottai -> Census Town 644883
+  '931914': '644882', // Samathur -> Census Town / GP 644882
+  '931918': '644837', // Agraharakannadiputhur -> Kannadiputhur Gram Panchayat 644837
+  '931920': '804031', // Kaniyur -> Town Panchayat 804031
+  '931921': '804033', // Komaralingam East -> Komaralingam Town Panchayat 804033
+  '931922': '804033', // Komaralingam West -> Komaralingam Town Panchayat 804033
+  '931923': '804034', // Sankaramanallur North -> Town Panchayat 804034
+  '931924': '804034', // Sankaramanallur South -> Town Panchayat 804034
+  '931925': '644837', // Sarkarkannadiputhur -> Kannadiputhur Gram Panchayat 644837
+  '931930': '804020', // Kunnathur -> Town Panchayat 804020
+  '931932': '644881', // Poolankulam -> Poolankinar CT 644881
+  '931933': '804023', // Punjai Uthukuli -> Uthukuli Town Panchayat 804023
+  '931934': '644785', // Rackiyapalayam -> Rakkiyapalayam Gram Panchayat 644785
+  '931950': '804021', // Avinashi -> Town Panchayat 804021
+  '931952': '804020', // Kunnathur -> Town Panchayat 804020
+  '931955': '644774', // Palangarai -> Census Town 644774
+  '931956': '644773', // Perumanallur -> Census Town 644773
+  '931957': '644785', // Rakkiyampalayam -> Rakkiyapalayam Gram Panchayat 644785
+  '931959': '644775', // Sembianallur -> Census Town 644775
+  '931962': '804022', // Thirumuruganpoondi -> Town Panchayat 804022
+  '931963': '804023', // Uthukuli -> Town Panchayat 804023
+  '931964': '644776', // Velayudampalayam -> Census Town 644776
 };
 
 // 2. Dynamic on-demand loader for 18,710 rural villages
@@ -293,6 +396,9 @@ export async function ensureVillagesLoaded() {
   return _loadingVillagesPromise;
 }
 
+// Immediately start loading statewide rural villages in the background
+ensureVillagesLoaded();
+
 /**
  * Returns list of all 38 official districts in Tamil Nadu
  */
@@ -314,8 +420,9 @@ export function findCensusRecord(queryOrCode, districtFilter = null) {
   const numericCode = cleanStr.replace(/^CENSUS-/i, '').trim();
 
   if (/^\d+$/.test(numericCode)) {
-    if (CODE_INDEX.has(numericCode)) {
-      const rec = CODE_INDEX.get(numericCode);
+    const targetCode = ALIASES[numericCode] || numericCode;
+    if (CODE_INDEX.has(targetCode)) {
+      const rec = CODE_INDEX.get(targetCode);
       if (isAllDistricts || normalize(rec.district) === dKey) {
         return expandRecord(rec);
       }
@@ -327,13 +434,22 @@ export function findCensusRecord(queryOrCode, districtFilter = null) {
   if (!isAllDistricts) {
     const distScopedKey = `${dKey}:${norm}`;
     if (NAME_INDEX.has(distScopedKey)) {
-      return expandRecord(NAME_INDEX.get(distScopedKey));
+      const candidate = NAME_INDEX.get(distScopedKey);
+      const candCode = String(candidate.id || candidate.code);
+      if (ALIASES[candCode] && CODE_INDEX.has(ALIASES[candCode])) {
+        return expandRecord(CODE_INDEX.get(ALIASES[candCode]));
+      }
+      return expandRecord(candidate);
     }
   }
 
   if (NAME_INDEX.has(norm)) {
     const candidate = NAME_INDEX.get(norm);
     if (isAllDistricts || normalize(candidate.district) === dKey) {
+      const candCode = String(candidate.id || candidate.code);
+      if (ALIASES[candCode] && CODE_INDEX.has(ALIASES[candCode])) {
+        return expandRecord(CODE_INDEX.get(ALIASES[candCode]));
+      }
       return expandRecord(candidate);
     }
   }
@@ -354,12 +470,21 @@ export function findCensusRecord(queryOrCode, districtFilter = null) {
     ? DISTRICT_INDEX.get(dKey)
     : PRIMARY_RECORDS;
 
+  let bestSubMatch = null;
   for (const r of pool) {
     const rNorm = normalize(r.name);
     const rawNorm = normalize(r.raw_name);
-    if (rNorm === norm || rawNorm === norm || (norm.length >= 4 && (rNorm.includes(norm) || norm.includes(rNorm)))) {
+    if (rNorm === norm || rawNorm === norm) {
       return expandRecord(r);
     }
+    if (norm.length >= 4 && (rNorm.includes(norm) || norm.includes(rNorm))) {
+      if (!bestSubMatch || (r.pop != null && bestSubMatch.pop == null)) {
+        bestSubMatch = r;
+      }
+    }
+  }
+  if (bestSubMatch) {
+    return expandRecord(bestSubMatch);
   }
 
   // 5. Check villages cache if already loaded
@@ -368,6 +493,10 @@ export function findCensusRecord(queryOrCode, districtFilter = null) {
       if (!isAllDistricts && normalize(v.district) !== dKey) continue;
       const vNorm = normalize(v.name);
       if (vNorm === norm || (norm.length >= 4 && vNorm.includes(norm))) {
+        const vCode = String(v.code || v.id);
+        if (ALIASES[vCode] && CODE_INDEX.has(ALIASES[vCode])) {
+          return expandRecord(CODE_INDEX.get(ALIASES[vCode]));
+        }
         return expandRecord(v);
       }
     }
@@ -378,8 +507,11 @@ export function findCensusRecord(queryOrCode, districtFilter = null) {
 
 /**
  * Returns key official local bodies across the specified district (or statewide)
+ * When a specific district is requested, provides a balanced representation of both
+ * key administrative Urban Local Bodies (Municipalities, Town Panchayats) AND prominent
+ * rural Gram Panchayats across the taluks of that district.
  */
-export function getTopCensusRecords(limit = 20, district = null) {
+export function getTopCensusRecords(limit = 25, district = null) {
   const dKey = district ? normalize(district) : null;
   const isAllDistricts = !dKey || dKey === 'all' || dKey === 'alldistricts' || dKey === 'tamilnadu';
 
@@ -389,6 +521,21 @@ export function getTopCensusRecords(limit = 20, district = null) {
 
   if (!pool || pool.length === 0) {
     pool = PRIMARY_RECORDS;
+  }
+
+  // If a specific district is selected (like Tiruppur or Coimbatore), provide a balanced representation
+  // ensuring both Urban Local Bodies and rural Gram Panchayats are visible
+  if (!isAllDistricts && (dKey === 'tiruppur' || dKey === 'coimbatore')) {
+    const towns = pool.filter((r) => r.type && r.type !== 'Gram Panchayat' && r.type !== 'Village')
+      .sort((a, b) => ((b.pop || b.hh || 0) - (a.pop || a.hh || 0)));
+    const panchayats = pool.filter((r) => r.type === 'Gram Panchayat' || r.type === 'Village')
+      .sort((a, b) => ((b.pop || b.hh || 0) - (a.pop || a.hh || 0)));
+
+    const combined = [];
+    const maxTowns = Math.min(10, Math.floor(limit / 2));
+    combined.push(...towns.slice(0, maxTowns));
+    combined.push(...panchayats.slice(0, limit - combined.length));
+    return combined.map(expandRecord);
   }
 
   const sorted = [...pool].sort((a, b) => ((b.pop || b.hh || 0) - (a.pop || a.hh || 0)));
@@ -445,11 +592,22 @@ export function searchCensusDirectory(query, districtFilter = null, limit = 15) 
         !seen.has(v.id || v.code)
       ) {
         seen.add(v.id || v.code);
-        results.push(expandRecord(v));
+        const resolved = (ALIASES[codeStr] && CODE_INDEX.has(ALIASES[codeStr]))
+          ? CODE_INDEX.get(ALIASES[codeStr])
+          : v;
+        results.push(expandRecord(resolved));
         if (results.length >= limit) break;
       }
     }
   }
+
+  // Sort results to prioritize locations with authentic population count
+  results.sort((a, b) => {
+    const aHasPop = a.population != null ? 1 : 0;
+    const bHasPop = b.population != null ? 1 : 0;
+    if (aHasPop !== bHasPop) return bHasPop - aHasPop;
+    return (b.population || 0) - (a.population || 0);
+  });
 
   return results;
 }
@@ -457,3 +615,4 @@ export function searchCensusDirectory(query, districtFilter = null, limit = 15) 
 export function getAllCensusRecords(district = null) {
   return getTopCensusRecords(100, district);
 }
+
