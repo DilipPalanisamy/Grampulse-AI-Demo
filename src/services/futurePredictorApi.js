@@ -114,11 +114,31 @@ export async function fetchVillageValidation(villageName, district = 'Coimbatore
 
 /**
  * Robust client-side fallback prediction if server is temporarily unreachable.
+ * Distinguishes Census 2011 historical baseline, 2026 estimated baseline, and 2027-2031 forecast.
  */
 function generateClientFallbackPrediction(payload) {
   const villageName = payload.village_name || 'Selected Village';
-  const currentYear = payload.current_year || 2026;
-  const currentPop = Number(payload.population) || 5800;
+  const currentYear = Number(payload.current_year) || 2026;
+
+  // If population is unavailable, do NOT invent fake data
+  if (payload.is_unavailable || payload.population == null || isNaN(Number(payload.population))) {
+    return {
+      status: false,
+      is_unavailable: true,
+      village: villageName,
+      error: 'UNAVAILABLE',
+      message: `Official Census demographic records are unavailable for '${villageName}'. A 5-year forecast cannot be fabricated without an authentic baseline.`,
+      data_provenance: {
+        historical_baseline: null,
+        current_baseline: null,
+        forecast_horizon: null,
+      },
+    };
+  }
+
+  const currentPop = Number(payload.population);
+  const historicalPop = payload.historical_population != null ? Number(payload.historical_population) : currentPop;
+  const historicalHh = payload.historical_households != null ? Number(payload.historical_households) : Math.round(historicalPop / 4);
   const growthRate = ((Number(payload.birth_rate) || 18) - (Number(payload.death_rate) || 7) + (Number(payload.migration_rate) || 1)) / 1000;
 
   const years = [];
@@ -139,11 +159,11 @@ function generateClientFallbackPrediction(payload) {
       population: pop,
       households: hh,
       water: {
-        daily_demand_liters: Math.round(pop * 55),
-        projected_supply_liters: Math.round(pop * 50),
-        deficit_liters: Math.max(0, Math.round(pop * 5)),
-        coverage_percent: 90.9,
-        coverage_gap_percent: 9.1,
+        daily_demand_liters: Math.round(pop * 70), // Standard 70 LPD norm
+        projected_supply_liters: Math.round(pop * 62),
+        deficit_liters: Math.max(0, Math.round(pop * 8)),
+        coverage_percent: Number(waterCov.toFixed(1)),
+        coverage_gap_percent: Number((100 - waterCov).toFixed(1)),
       },
       education: {
         school_students: Math.round(pop * 0.16),
@@ -226,28 +246,74 @@ function generateClientFallbackPrediction(payload) {
     });
   }
 
+  const schoolCount = Number(payload.schools) || 2;
+
+  const dataProvenance = {
+    historical_baseline: {
+      year: 2011,
+      reference_year: 2011,
+      source: 'Census of India 2011 Primary Census Abstract (PCA)',
+      status: 'HISTORICAL_OFFICIAL',
+      data_status: 'HISTORICAL_OFFICIAL',
+      status_label: 'Historical official data',
+      census_code: payload.census_code || null,
+      population: Math.round(historicalPop),
+      households: Math.round(historicalHh),
+    },
+    current_baseline: {
+      year: currentYear,
+      reference_year: currentYear,
+      source: `Demographic Growth Model (${currentYear} Baseline from Census 2011)`,
+      status: 'MODEL_PROJECTION',
+      data_status: 'MODEL_PROJECTION',
+      status_label: 'Model projection (Estimated Baseline)',
+      population: Math.round(currentPop),
+      households: Math.round(Number(payload.households) || (currentPop / 4)),
+      schools: schoolCount,
+      schools_source: payload.has_authentic_schools ? 'Ministry of Education UDISE+ Directory' : 'Unavailable',
+      schools_status: payload.has_authentic_schools ? 'CURRENT_OFFICIAL' : 'UNAVAILABLE',
+      schools_status_label: payload.has_authentic_schools ? 'Current official data' : 'Unavailable',
+    },
+    forecast_horizon: {
+      base_year: currentYear,
+      start_year: currentYear + 1,
+      end_year: currentYear + 5,
+      years: [currentYear + 1, currentYear + 2, currentYear + 3, currentYear + 4, currentYear + 5],
+      status: 'MODEL_PROJECTION',
+      data_status: 'MODEL_PROJECTION',
+      status_label: 'Model projection (5-Year Forecast)',
+    },
+    assumptions_and_limitations: [
+      'Census 2011 observations represent authoritative decennial historical enumeration.',
+      `The ${currentYear} baseline is a demographic projection calibrated against natural population growth.`,
+      `The 5-year forecast (${currentYear + 1}–${currentYear + 5}) applies the unchanged mathematical and demographic model from predictor.py.`,
+      'Projections serve as advisory estimates for GPDP planning and are subject to policy, infrastructure, and migration dynamics.',
+    ],
+  };
+
   return {
     status: true,
     village: villageName,
     current_year: currentYear,
     prediction_horizon: 5,
+    data_provenance: dataProvenance,
     data_quality: {
       udise_available: true,
-      udise_school_count: Number(payload.schools) || 2,
-      udise_source: 'UDISE+ Verified Benchmark',
-      forecast_source: 'Mathematical Demographic & ML Projection',
+      udise_school_count: schoolCount,
+      udise_source: payload.has_authentic_schools ? 'UDISE+ Verified Directory' : 'Unavailable',
+      forecast_source: 'Mathematical Demographic & ML Projection (predictor.py)',
     },
     current_udise: {
-      school_count: Number(payload.schools) || 2,
+      school_count: schoolCount,
       infrastructure: {
-        total_schools: Number(payload.schools) || 2,
-        total_classrooms: Math.max(12, (Number(payload.schools) || 2) * 8),
+        total_schools: schoolCount,
+        total_classrooms: Math.max(12, schoolCount * 8),
         student_furniture: Math.round(currentPop * 0.15),
         infrastructure_score: 84.5,
       },
       education_impact: {
-        total_schools: Number(payload.schools) || 2,
-        total_classrooms: Math.max(12, (Number(payload.schools) || 2) * 8),
+        total_schools: schoolCount,
+        total_classrooms: Math.max(12, schoolCount * 8),
         infrastructure_score: 84.5,
       },
       schools: [
@@ -277,8 +343,8 @@ function generateClientFallbackPrediction(payload) {
       location_name: villageName,
       location_type: payload.selectedLocation?.location_type || 'Local Body',
       year: 2011,
-      population: Math.round(currentPop),
-      households: Math.round(currentPop / 4),
+      population: Math.round(historicalPop),
+      households: Math.round(historicalHh),
       electricity_coverage_percent: Number(payload.electricity_coverage) || null,
       tap_water_coverage_percent: Number(payload.water_coverage) || null,
       latrine_coverage_percent: Number(payload.selectedLocation?.latrine_coverage) || null,
@@ -336,21 +402,9 @@ export function buildPredictionPayload({
   analytics,
   infrastructure,
 }) {
-
-  const location =
-    selectedLocation || {};
-
-  const analyticData =
-    analytics || {};
-
-  const infra =
-    infrastructure || {};
-
-  /*
-  ----------------------------------------------------------
-  VILLAGE NAME
-  ----------------------------------------------------------
-  */
+  const location = selectedLocation || {};
+  const analyticData = analytics || {};
+  const infra = infrastructure || {};
 
   const villageName =
     location.village_name ||
@@ -359,292 +413,89 @@ export function buildPredictionPayload({
     location.gp_name ||
     'Selected Village';
 
-  /*
-  ----------------------------------------------------------
-  POPULATION (Authentic Census Baseline)
-  ----------------------------------------------------------
-  */
+  // 1. Authentic Historical Census Population (2011)
+  const historicalPop =
+    location.indicators?.total_population?.value != null
+      ? Number(location.indicators.total_population.value)
+      : (location.population != null
+          ? Number(location.population)
+          : (location.total_population != null
+              ? Number(location.total_population)
+              : (analyticData.population != null ? Number(analyticData.population) : null)));
 
-  const population =
-    numberOrDefault(
-      location.indicators?.total_population?.value ??
-      location.population ??
-      location.total_population ??
-      analyticData.population,
-      5000
-    );
+  const censusCode = location.census_code || location.id || null;
+  const isOfficial = Boolean(location.isOfficialData || location.isOfficialCensus || location.census_baseline);
 
-  /*
-  ----------------------------------------------------------
-  HOUSEHOLDS (Authentic Census PCA / HL-11)
-  ----------------------------------------------------------
-  */
+  // If population is unavailable, do NOT inject fake 5000!
+  if (historicalPop == null || isNaN(historicalPop) || historicalPop <= 0) {
+    return {
+      village_name: villageName,
+      district: location.district || 'Coimbatore',
+      census_code: censusCode,
+      current_year: 2026,
+      population: null,
+      is_unavailable: true,
+      selectedLocation: location,
+    };
+  }
 
-  const households =
-    integerOrDefault(
-      location.indicators?.total_households?.value ??
-      location.households ??
-      analyticData.households,
-      Math.max(1, Math.round(population / 4))
-    );
+  // 2. Demographic Growth Projection from 2011 to 2026:
+  // Using standard annual natural growth rate r = (18 - 7 + 1) / 1000 = 0.012 (1.2% per year)
+  // Over 15 years (2011 to 2026): (1 + 0.012)^15 ~ 1.196 (+19.6%)
+  const growthRateYearly = 0.012;
+  const estimated2026Pop = Math.round(historicalPop * Math.pow(1 + growthRateYearly, 15));
 
-  /*
-  ----------------------------------------------------------
-  SCHOOLS (Authentic UDISE+ School Directory)
-  ----------------------------------------------------------
-  */
+  // Authentic households from Census 2011 PCA / HL-11
+  const historicalHh =
+    location.indicators?.total_households?.value != null
+      ? Number(location.indicators.total_households.value)
+      : (location.households != null
+          ? Number(location.households)
+          : (analyticData.households != null ? Number(analyticData.households) : Math.max(1, Math.round(historicalPop / 4))));
 
+  const estimated2026Hh = Math.round(estimated2026Pop / (historicalPop / Math.max(1, historicalHh)));
+
+  // Authentic schools from UDISE+
   const schools =
-    integerOrDefault(
-      location.indicators?.udise_school_count?.value ??
-      location.schools ??
-      analyticData.schools,
-      1
-    );
-
-  /*
-  ----------------------------------------------------------
-  COLLEGES
-  ----------------------------------------------------------
-  */
-
-  const colleges =
-    integerOrDefault(
-      location.colleges ??
-      analyticData.colleges ??
-      infra.colleges,
-      0
-    );
-
-  /*
-  ----------------------------------------------------------
-  STUDENTS
-  ----------------------------------------------------------
-  */
-
-  const schoolStudents =
-    integerOrDefault(
-      location.school_students ??
-      analyticData.school_students ??
-      infra.school_students,
-      Math.round(
-        population * 0.16
-      )
-    );
-
-  const collegeStudents =
-    integerOrDefault(
-      location.college_students ??
-      analyticData.college_students ??
-      infra.college_students,
-      Math.round(
-        population * 0.035
-      )
-    );
-
-  /*
-  ----------------------------------------------------------
-  HOSPITALS
-  ----------------------------------------------------------
-  */
-
-  const hospitals =
-    integerOrDefault(
-      location.hospitals ??
-      analyticData.hospitals ??
-      infra.hospitals,
-      1
-    );
-
-  /*
-  ----------------------------------------------------------
-  SERVICE COVERAGE
-  ----------------------------------------------------------
-  */
-
-  const calculatedWaterCoverage =
-    location.daily_water_supply_liters && population
-      ? Math.min(100, Math.round((location.daily_water_supply_liters / (population * 55)) * 100))
-      : 74;
-
-  const waterCoverage =
-    numberOrDefault(
-      location.indicators?.tap_water_coverage_percent?.value ??
-      location.tap_water_coverage ??
-      location.water_coverage ??
-      analyticData.water_coverage,
-      calculatedWaterCoverage
-    );
-
-  const electricityCoverage =
-    numberOrDefault(
-      location.indicators?.household_electricity_coverage?.value ??
-      location.electricity_coverage ??
-      analyticData.electricity_coverage,
-      95
-    );
-
-  const internetCoverage =
-    numberOrDefault(
-      location.internet_coverage ??
-      analyticData.internet_coverage ??
-      infra.internet_coverage,
-      50
-    );
-
-  const employmentRate =
-    numberOrDefault(
-      location.employment_rate ??
-      analyticData.employment_rate ??
-      infra.employment_rate,
-      65
-    );
-
-  /*
-  ----------------------------------------------------------
-  DEMOGRAPHIC VALUES
-  ----------------------------------------------------------
-  */
-
-  const birthRate =
-    numberOrDefault(
-      location.birth_rate ??
-      analyticData.birth_rate,
-      18
-    );
-
-  const deathRate =
-    numberOrDefault(
-      location.death_rate ??
-      analyticData.death_rate,
-      7
-    );
-
-  const migrationRate =
-    numberOrDefault(
-      location.migration_rate ??
-      analyticData.migration_rate,
-      1
-    );
-
-  /*
-  ----------------------------------------------------------
-  ROAD
-  ----------------------------------------------------------
-  */
-
-  const currentYear =
-    new Date().getFullYear();
-
-  const roadBuiltYear =
-    integerOrDefault(
-      location.road_built_year ??
-      analyticData.road_built_year,
-      currentYear - 10
-    );
-
-  const lastRepairYear =
-    integerOrDefault(
-      location.last_repair_year ??
-      analyticData.last_repair_year,
-      currentYear - 5
-    );
-
-  const roadLength =
-    numberOrDefault(
-      location.road_length_km ??
-      location.road_coverage_km ??
-      analyticData.road_length_km ??
-      infra.road_length_km,
-      25
-    );
-
-  const roadCondition =
-    location.road_condition ||
-    analyticData.road_condition ||
-    'Average';
-
-  /*
-  ----------------------------------------------------------
-  FINAL PAYLOAD
-  ----------------------------------------------------------
-  */
+    location.indicators?.udise_school_count?.value != null
+      ? Number(location.indicators.udise_school_count.value)
+      : (location.schools != null
+          ? Number(location.schools)
+          : (analyticData.schools != null ? Number(analyticData.schools) : null));
 
   return {
-
-    village_name:
-      villageName,
-
-    district:
-      location.district || 'District',
-
-    state:
-      location.state || 'Tamil Nadu',
-
-    current_year:
-      currentYear,
-
-    population:
-      population,
-
-    birth_rate:
-      birthRate,
-
-    death_rate:
-      deathRate,
-
-    migration_rate:
-      migrationRate,
-
-    households:
-      households,
-
-    schools:
-      schools,
-
-    colleges:
-      colleges,
-
-    school_students:
-      schoolStudents,
-
-    college_students:
-      collegeStudents,
-
-    hospitals:
-      hospitals,
-
-    road_length_km:
-      roadLength,
-
-    road_built_year:
-      roadBuiltYear,
-
-    last_repair_year:
-      lastRepairYear,
-
-    road_condition:
-      roadCondition,
-
-    water_coverage:
-      waterCoverage,
-
-    electricity_coverage:
-      electricityCoverage,
-
-    internet_coverage:
-      internetCoverage,
-
-    employment_rate:
-      employmentRate,
-
-    census_baseline:
-      location.census_baseline || null,
-
-    indicators:
-      location.indicators || {},
-
-    selectedLocation:
-      location,
+    village_name: villageName,
+    district: location.district || 'Coimbatore',
+    state: location.state || 'Tamil Nadu',
+    census_code: censusCode,
+    current_year: 2026,
+    population: estimated2026Pop,
+    historical_population: historicalPop,
+    historical_households: historicalHh,
+    households: estimated2026Hh,
+    birth_rate: 18.0,
+    death_rate: 7.0,
+    migration_rate: 1.0,
+    schools: schools != null ? schools : Math.max(1, Math.round(estimated2026Pop / 2000)),
+    has_authentic_schools: schools != null,
+    colleges: location.colleges ?? 0,
+    school_students: Math.round(estimated2026Pop * 0.16),
+    college_students: Math.round(estimated2026Pop * 0.035),
+    hospitals: location.hospitals ?? 1,
+    road_length_km: location.road_coverage_km != null ? Number(location.road_coverage_km) : 25.0,
+    road_built_year: 2016,
+    last_repair_year: 2021,
+    road_condition: 'Average',
+    water_coverage: location.indicators?.tap_water_coverage_percent?.value != null
+      ? Number(location.indicators.tap_water_coverage_percent.value)
+      : (location.tap_water_coverage != null ? Number(location.tap_water_coverage) : 70.0),
+    electricity_coverage: location.indicators?.household_electricity_coverage?.value != null
+      ? Number(location.indicators.household_electricity_coverage.value)
+      : (location.electricity_coverage != null ? Number(location.electricity_coverage) : 95.0),
+    internet_coverage: 50.0,
+    employment_rate: 65.0,
+    is_unavailable: false,
+    isOfficialData: isOfficial,
+    selectedLocation: location,
   };
 }

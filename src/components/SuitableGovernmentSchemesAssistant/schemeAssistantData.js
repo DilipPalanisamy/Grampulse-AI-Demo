@@ -80,6 +80,30 @@ export const QUICK_QUESTIONS = [
     bg: 'bg-blue-500/10 text-blue-400 border-blue-500/30 hover:bg-blue-500/20',
     query: 'Which scheme can help unemployed rural people and provide guaranteed wage employment?',
   },
+  {
+    id: 'women',
+    label: 'Women Welfare',
+    icon: 'Award',
+    color: '#f43f5e',
+    bg: 'bg-rose-500/10 text-rose-400 border-rose-500/30 hover:bg-rose-500/20',
+    query: 'What schemes support women heads of households, including Kalaignar Magalir Urimai Thogai?',
+  },
+  {
+    id: 'students',
+    label: 'College Students',
+    icon: 'GraduationCap',
+    color: '#a855f7',
+    bg: 'bg-purple-500/10 text-purple-400 border-purple-500/30 hover:bg-purple-500/20',
+    query: 'What higher education grants exist for government school students like Pudhumai Penn or Tamil Pudhalvan?',
+  },
+  {
+    id: 'pension',
+    label: 'Senior Pension',
+    icon: 'ShieldCheck',
+    color: '#0ea5e9',
+    bg: 'bg-sky-500/10 text-sky-400 border-sky-500/30 hover:bg-sky-500/20',
+    query: 'Which schemes provide monthly pensions for senior citizens, destitute widows, and persons with disabilities?',
+  },
 ];
 
 export const INITIAL_GREETING = {
@@ -111,6 +135,8 @@ export const SCHEMES_STATIC_DIRECTORY = [
     scheme_name: 'Jal Jeevan Mission (JJM) - Har Ghar Jal',
     ministry: 'Ministry of Jal Shakti',
     category: 'Water Supply',
+    government_level: 'CENTRAL',
+    scheme_scope: 'VILLAGE_INFRASTRUCTURE',
     official_portal_url: 'https://jaljeevanmission.gov.in/',
     purpose: 'Provides universal rural drinking-water supply with functional household tap connections (55 LPD norm).',
     why_relevant: 'Provides piped drinking water infrastructure and overhead storage reservoirs for rural habitations.',
@@ -127,6 +153,8 @@ export const SCHEMES_STATIC_DIRECTORY = [
     scheme_name: 'Pradhan Mantri Awaas Yojana - Gramin (PMAY-G)',
     ministry: 'Ministry of Rural Development',
     category: 'Housing & Infrastructure',
+    government_level: 'CENTRAL',
+    scheme_scope: 'INDIVIDUAL_BENEFICIARY',
     official_portal_url: 'https://www.myscheme.gov.in/schemes/pmay-g',
     purpose: 'Provides pucca concrete disaster-resilient houses with basic amenities to houseless rural families.',
     why_relevant: 'Direct financial assistance for rural families living in kutcha dwellings.',
@@ -143,6 +171,8 @@ export const SCHEMES_STATIC_DIRECTORY = [
     scheme_name: 'Pradhan Mantri Gram Sadak Yojana (PMGSY - Phase III)',
     ministry: 'Ministry of Rural Development',
     category: 'Roads & Infrastructure',
+    government_level: 'CENTRAL',
+    scheme_scope: 'VILLAGE_INFRASTRUCTURE',
     official_portal_url: 'https://www.myscheme.gov.in/schemes/pmgsy',
     purpose: 'Provides all-weather blacktopped paved road connectivity to unconnected rural habitations.',
     why_relevant: 'Constructs durable bitumen roads connecting villages to highways, markets, and hospitals.',
@@ -159,6 +189,8 @@ export const SCHEMES_STATIC_DIRECTORY = [
     scheme_name: 'PM-KUSUM (Solar Agricultural Pumps)',
     ministry: 'Ministry of New and Renewable Energy',
     category: 'Renewable Energy & Agriculture',
+    government_level: 'CENTRAL',
+    scheme_scope: 'INDIVIDUAL_BENEFICIARY',
     official_portal_url: 'https://www.myscheme.gov.in/schemes/pm-kusum',
     purpose: 'Promotes standalone solar agriculture pumps and solarization of grid-connected irrigation feeders.',
     why_relevant: 'Provides daytime solar irrigation without expensive diesel fuels or power cuts.',
@@ -175,6 +207,8 @@ export const SCHEMES_STATIC_DIRECTORY = [
     scheme_name: 'Ayushman Bharat - Health & Wellness Centres (NHM)',
     ministry: 'Ministry of Health and Family Welfare',
     category: 'Healthcare',
+    government_level: 'CENTRAL',
+    scheme_scope: 'VILLAGE_INFRASTRUCTURE',
     official_portal_url: 'https://www.myscheme.gov.in/schemes/ab-pmjay',
     purpose: 'Comprehensive primary healthcare with free diagnostics, medicines, and tele-consultations.',
     why_relevant: 'Ensures quality healthcare, maternal care, and emergency diagnostics in village centres.',
@@ -191,6 +225,8 @@ export const SCHEMES_STATIC_DIRECTORY = [
     scheme_name: 'PM SHRI & Samagra Shiksha Abhiyan',
     ministry: 'Ministry of Education',
     category: 'Education',
+    government_level: 'CENTRAL',
+    scheme_scope: 'VILLAGE_INFRASTRUCTURE',
     official_portal_url: 'https://pmshrischools.education.gov.in/',
     purpose: 'Upgrades government schools with smart digital classrooms, STEM labs, and RTE compliance.',
     why_relevant: 'Solves pupil-to-classroom shortage and equips village schools with digital learning kits.',
@@ -207,6 +243,8 @@ export const SCHEMES_STATIC_DIRECTORY = [
     scheme_name: 'Swachh Bharat Mission - Gramin (SBM-G Phase II)',
     ministry: 'Ministry of Jal Shakti (DDWS)',
     category: 'Sanitation',
+    government_level: 'CENTRAL',
+    scheme_scope: 'VILLAGE_INFRASTRUCTURE',
     official_portal_url: 'https://www.myscheme.gov.in/schemes/sbm-g',
     purpose: 'Sustains ODF status and executes village Solid & Liquid Waste Management (SLWM).',
     why_relevant: 'Constructs individual household latrines, community sanitary complexes, and drainage soak pits.',
@@ -223,6 +261,8 @@ export const SCHEMES_STATIC_DIRECTORY = [
     scheme_name: 'Mahatma Gandhi NREGA (Guaranteed Rural Wage Employment)',
     ministry: 'Ministry of Rural Development',
     category: 'Rural Employment & Assets',
+    government_level: 'CENTRAL',
+    scheme_scope: 'VILLAGE_INFRASTRUCTURE',
     official_portal_url: 'https://nrega.nic.in/',
     purpose: 'Guarantees at least 100 days of wage employment per financial year for unskilled manual labor.',
     why_relevant: 'Provides guaranteed wage security and builds durable village water bodies and farm assets.',
@@ -233,5 +273,195 @@ export const SCHEMES_STATIC_DIRECTORY = [
       'Asset creation: farm ponds, check dams, and tree plantations'
     ],
     required_documents: ['Aadhaar Card', 'Passport size photo', 'Bank / Post Office Passbook', 'Job Card application'],
+  },
+  {
+    scheme_id: 'CSS-PMKISAN-010',
+    scheme_name: 'PM-KISAN (Pradhan Mantri Kisan Samman Nidhi)',
+    ministry: 'Ministry of Agriculture and Farmers Welfare',
+    category: 'Agriculture & Farmers',
+    government_level: 'CENTRAL',
+    scheme_scope: 'INDIVIDUAL_BENEFICIARY',
+    official_portal_url: 'https://pmkisan.gov.in/',
+    purpose: 'Provides direct income support of ₹6,000 per year to small and marginal farmer families.',
+    why_relevant: 'Provides cash flow for purchasing certified seeds, organic fertilizers, and preparing land.',
+    eligibility_criteria: 'All landholding farmer families with cultivable land in their names (subject to exclusion criteria).',
+    key_benefits: [
+      '₹6,000 annual income support in 3 equal installments of ₹2,000',
+      '100% centrally funded Direct Benefit Transfer (DBT)',
+      'Direct link with Kisan Credit Card (KCC) for 4% crop loans'
+    ],
+    required_documents: ['Aadhaar Card with e-KYC', 'Land Patta / Chitta', 'Aadhaar-seeded bank account'],
+    application_process: 'Apply online on pmkisan.gov.in or visit Village Common Services Center (CSC).'
+  },
+  {
+    scheme_id: 'TN-KMUT-012',
+    scheme_name: 'Kalaignar Magalir Urimai Thogai Thittam (KMUT)',
+    ministry: 'Special Programme Implementation Department, Government of Tamil Nadu',
+    category: 'Women Welfare & Basic Income',
+    government_level: 'STATE_TN',
+    scheme_scope: 'INDIVIDUAL_BENEFICIARY',
+    official_portal_url: 'https://tnesevai.tn.gov.in/',
+    purpose: 'Universal basic income rights grant of ₹1,000/month for women heads of families in Tamil Nadu.',
+    why_relevant: 'Recognizes domestic care labor and provides guaranteed monthly economic support for rural women.',
+    eligibility_criteria: 'Women heads of households aged 21+, annual family income < ₹2.5 Lakhs, wetland < 5 acres / dryland < 10 acres, electricity < 3,600 units/yr.',
+    key_benefits: [
+      '₹1,000 per month (₹12,000/year) directly credited via DBT on 15th of each month',
+      'SMS alerts on phone upon monthly credit',
+      'Special grievance camps at Taluk offices for excluded applicants'
+    ],
+    required_documents: ['Smart Family Ration Card', 'Aadhaar Card', 'Electricity Consumer Card', 'Bank Passbook'],
+    application_process: 'Enroll at special village ration shop camps or Taluk e-Sevai centres.'
+  },
+  {
+    scheme_id: 'TN-PP-013',
+    scheme_name: 'Pudhumai Penn Thittam (Higher Education Assurance)',
+    ministry: 'Social Welfare Department, Government of Tamil Nadu',
+    category: 'Education & Women Empowerment',
+    government_level: 'STATE_TN',
+    scheme_scope: 'INDIVIDUAL_BENEFICIARY',
+    official_portal_url: 'https://pudhumaipenn.tn.gov.in/',
+    purpose: 'Provides ₹1,000 per month to female students from Tamil Nadu government schools pursuing higher education.',
+    why_relevant: 'Prevents rural female dropout after school and enables girls to complete college degrees.',
+    eligibility_criteria: 'Girl students who studied Classes 6 to 12 in Tamil Nadu Government schools enrolled in degree/diploma/ITI.',
+    key_benefits: [
+      '₹1,000 monthly allowance throughout degree or diploma course',
+      'Eligible alongside other merit scholarships',
+      'Covers books, travel, and college fees'
+    ],
+    required_documents: ['Class 10 & 12 Marksheets', 'Classes 6–12 Government School TC', 'College Bonafide Certificate', 'Bank Passbook'],
+    application_process: 'College nodal officer registers student via pudhumaipenn.tn.gov.in with EMIS validation.'
+  },
+  {
+    scheme_id: 'TN-TP-014',
+    scheme_name: 'Tamil Pudhalvan Thittam',
+    ministry: 'Higher Education Department, Government of Tamil Nadu',
+    category: 'Education & Youth',
+    government_level: 'STATE_TN',
+    scheme_scope: 'INDIVIDUAL_BENEFICIARY',
+    official_portal_url: 'https://tamilpudhalvan.tn.gov.in/',
+    purpose: 'Provides ₹1,000 monthly grant to male students from Tamil Nadu government schools studying in college.',
+    why_relevant: 'Supports boys from underprivileged farming and rural families in pursuing polytechnics and degree courses.',
+    eligibility_criteria: 'Male students who studied Classes 6 to 12 in Tamil Nadu Government schools enrolled in UG degrees/diplomas.',
+    key_benefits: [
+      '₹1,000 per month paid directly into student bank account',
+      'Facilitates textbooks, stationery, and travel costs',
+      'Covers arts, science, engineering, and ITI disciplines'
+    ],
+    required_documents: ['School EMIS Certificate', 'College Bonafide', 'Aadhaar Card', 'Bank Passbook'],
+    application_process: 'Applied through college portal desk on tamilpudhalvan.tn.gov.in.'
+  },
+  {
+    scheme_id: 'TN-CMCHIS-015',
+    scheme_name: 'Chief Minister\'s Comprehensive Health Insurance Scheme (CMCHIS)',
+    ministry: 'Health & Family Welfare Department, Government of Tamil Nadu',
+    category: 'Healthcare',
+    government_level: 'STATE_TN',
+    scheme_scope: 'INDIVIDUAL_BENEFICIARY',
+    official_portal_url: 'https://www.cmchistn.com/',
+    purpose: 'Cashless hospital treatment up to ₹5.00 Lakhs per family per year in empanelled hospitals.',
+    why_relevant: 'Prevents catastrophic healthcare spending for rural families during major medical emergencies.',
+    eligibility_criteria: 'Families resident in Tamil Nadu with annual income up to ₹1,20,000 (listed in Smart Ration Card).',
+    key_benefits: [
+      'Cashless hospital care up to ₹5 Lakhs/year for 1,090+ procedures',
+      'Network includes all Government medical colleges & 800+ private hospitals',
+      '24/7 dedicated helpline (1800 425 3993)'
+    ],
+    required_documents: ['Smart Family Ration Card', 'Aadhaar Card of all family members', 'VAO Income Certificate (if needed)'],
+    application_process: 'Get CMCHIS Smart Card made at District Collectorate or Taluk Hospital kiosk.'
+  },
+  {
+    scheme_id: 'TN-KAVIADP-016',
+    scheme_name: 'Kalaignarin All Village Integrated Agriculture Development Programme (KAVIADP)',
+    ministry: 'Agriculture & Farmers Welfare Department, Government of Tamil Nadu',
+    category: 'Agriculture & Rural Development',
+    government_level: 'STATE_TN',
+    scheme_scope: 'VILLAGE_INFRASTRUCTURE',
+    official_portal_url: 'https://agritech.tnau.ac.in/',
+    purpose: 'Transforms selected Gram Panchayats into self-sufficient farming villages through inter-departmental convergence.',
+    why_relevant: 'Brings fallow lands into cultivation and builds community farm ponds and solar drying yards.',
+    eligibility_criteria: 'All farm habitations in selected Tamil Nadu Gram Panchayats under rotation.',
+    key_benefits: [
+      'Reclamation and cultivation of fallow village lands',
+      'Community farm ponds, check dams, and micro-irrigation systems',
+      'Solar drying yards and custom hiring centres for farm implements'
+    ],
+    required_documents: ['Gram Sabha Resolution', 'Farmer Patta / Chitta', 'Aadhaar Card'],
+    application_process: 'Identified by Gram Sabha and sanctioned by Assistant Director of Agriculture via Uzhavan App.'
+  },
+  {
+    scheme_id: 'TN-OAP-017',
+    scheme_name: 'Tamil Nadu Social Security Pension Scheme (OAP & Destitute Pension)',
+    ministry: 'Revenue & Disaster Management Department, Government of Tamil Nadu',
+    category: 'Social Security & Pension',
+    government_level: 'STATE_TN',
+    scheme_scope: 'INDIVIDUAL_BENEFICIARY',
+    official_portal_url: 'https://tnesevai.tn.gov.in/',
+    purpose: 'Provides monthly subsistence pension of ₹1,000–₹1,500 to senior citizens, destitute widows, and disabled persons.',
+    why_relevant: 'Vital social safety net for elderly and destitute village residents without family support.',
+    eligibility_criteria: 'Destitute elderly persons aged 60+, destitute widows, and differently-abled individuals (40%+ disability).',
+    key_benefits: [
+      '₹1,000 to ₹1,500 monthly pension via bank DBT or doorstep postal delivery',
+      '20 kg free rice monthly through PDS ration shop',
+      'Free clothing twice a year during Pongal and Deepavali'
+    ],
+    required_documents: ['Aadhaar Card & age proof', 'Smart Ration Card', 'VAO Destitute Certificate', 'Medical Disability Card (if applicable)'],
+    application_process: 'Apply at village e-Sevai centre; field inquiry conducted by Revenue Inspector.'
+  },
+  {
+    scheme_id: 'CSS-PMFBY-018',
+    scheme_name: 'Pradhan Mantri Fasal Bima Yojana (PMFBY)',
+    ministry: 'Ministry of Agriculture and Farmers Welfare',
+    category: 'Crop Insurance',
+    government_level: 'CENTRAL',
+    scheme_scope: 'INDIVIDUAL_BENEFICIARY',
+    official_portal_url: 'https://pmfby.gov.in/',
+    purpose: 'Comprehensive insurance coverage against crop failure due to droughts, floods, and pests.',
+    why_relevant: 'Safeguards farmers against erratic monsoons, drought, and post-harvest cyclone damage.',
+    eligibility_criteria: 'All farmers cultivating notified food crops and oilseeds in notified revenue areas.',
+    key_benefits: [
+      'Low farmer premium: 2% for Kharif, 1.5% for Rabi, and 5% for horticultural crops',
+      'Covers prevented sowing, mid-season damage, and post-harvest localized losses',
+      'Claims assessed via satellite data & Crop Cutting Experiments (CCE)'
+    ],
+    required_documents: ['Land Patta / Chitta', 'Sowing Certificate from VAO', 'Aadhaar Card', 'Bank Passbook'],
+    application_process: 'Enroll through PACCS, bank branch, or pmfby.gov.in portal before seasonal cutoff.'
+  },
+  {
+    scheme_id: 'CSS-SURYAGHAR-019',
+    scheme_name: 'PM Surya Ghar: Muft Bijli Yojana',
+    ministry: 'Ministry of New and Renewable Energy',
+    category: 'Clean Energy & Power',
+    government_level: 'CENTRAL',
+    scheme_scope: 'INDIVIDUAL_BENEFICIARY',
+    official_portal_url: 'https://pmsuryaghar.gov.in/',
+    purpose: 'Installs rooftop solar panels for households, providing up to 300 free units of electricity each month.',
+    why_relevant: 'Eliminates household electricity bills and supplies clean energy back into the village grid.',
+    eligibility_criteria: 'Domestic electricity consumers having a valid connection with DISCOM (TANGEDCO) and roof space.',
+    key_benefits: [
+      'Central subsidy up to ₹78,000 (₹30,000 for 1 kW, ₹60,000 for 2 kW, ₹78,000 for 3 kW+)',
+      'Up to 300 units free solar power monthly',
+      'Surplus export income via net meter'
+    ],
+    required_documents: ['Electricity Consumer Bill', 'Aadhaar Card', 'Cancelled Cheque', 'Roof photo'],
+    application_process: 'Apply online on pmsuryaghar.gov.in; DISCOM inspects and installs net meter.'
+  },
+  {
+    scheme_id: 'CSS-XVIFC-020',
+    scheme_name: '15th Finance Commission Grants for Rural Local Bodies',
+    ministry: 'Ministry of Panchayati Raj & Ministry of Finance',
+    category: 'Village Infrastructure & Governance',
+    government_level: 'CENTRAL',
+    scheme_scope: 'VILLAGE_INFRASTRUCTURE',
+    official_portal_url: 'https://egramswaraj.gov.in/',
+    purpose: 'Provides direct constitutional untied and tied funding to Gram Panchayats for civic infrastructure.',
+    why_relevant: 'Enables the Panchayat to repair street lights, maintain drinking water pipelines, and manage solid waste.',
+    eligibility_criteria: 'Gram Panchayats with an approved GPDP uploaded and audited on eGramSwaraj.',
+    key_benefits: [
+      '40% Untied Grants for local public works (streetlights, road repair)',
+      '60% Tied Grants strictly for drinking water and sanitation management',
+      'Direct PFMS fund transfer into Panchayat bank account'
+    ],
+    required_documents: ['GPDP approved by Gram Sabha', 'eGramSwaraj Action Plan Resolution'],
+    application_process: 'Prepared in GPDP and executed through eGramSwaraj-PFMS system.'
   }
 ];

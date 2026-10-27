@@ -373,16 +373,78 @@ def execute_village_future_prediction(payload_data: Dict[str, Any]) -> Dict[str,
     if school_count == 0:
         school_count = int(real_infra.get("total_schools", 0) or 0)
 
+    # Establish explicit Data Provenance & Metadata
+    historical_pop = (
+        payload_data.get("historical_population")
+        or payload_data.get("census_2011_pop")
+        or (baseline.get("total_population") if baseline else None)
+        or (baseline.get("population") if baseline else None)
+        or population
+    )
+    historical_hh = (
+        payload_data.get("historical_households")
+        or (baseline.get("total_households") if baseline else None)
+        or (baseline.get("households") if baseline else None)
+        or households
+    )
+    census_code = (
+        payload_data.get("census_code")
+        or (baseline.get("census_code") if baseline else None)
+        or (baseline.get("location_code") if baseline else None)
+    )
+
+    data_provenance = {
+        "historical_baseline": {
+            "reference_year": 2011,
+            "source": "Census of India 2011 Primary Census Abstract (PCA)",
+            "data_status": "HISTORICAL_OFFICIAL",
+            "status_label": "Historical official data",
+            "census_code": str(census_code) if census_code else None,
+            "population": round(float(historical_pop)) if historical_pop is not None else None,
+            "households": round(float(historical_hh)) if historical_hh is not None else None,
+            "male_population": baseline.get("male_population") if baseline else None,
+            "female_population": baseline.get("female_population") if baseline else None,
+            "literate_population": baseline.get("literate_population") if baseline else None,
+        },
+        "current_baseline": {
+            "reference_year": current_year,
+            "source": f"Demographic Projection Model ({current_year} Baseline from Census 2011)",
+            "data_status": "MODEL_PROJECTION",
+            "status_label": "Model projection (Estimated Baseline)",
+            "population": round(population),
+            "households": households,
+            "schools": school_count,
+            "schools_source": source_name if school_count > 0 else "Unavailable",
+            "schools_status": "CURRENT_OFFICIAL" if school_count > 0 else "UNAVAILABLE",
+            "schools_status_label": "Current official data" if school_count > 0 else "Unavailable",
+        },
+        "forecast_horizon": {
+            "base_year": current_year,
+            "start_year": current_year + 1,
+            "end_year": current_year + 5,
+            "years": [current_year + i for i in range(1, 6)],
+            "data_status": "MODEL_PROJECTION",
+            "status_label": "Model projection (5-Year Forecast)",
+        },
+        "assumptions_and_limitations": [
+            "Census 2011 figures represent authoritative decennial historical enumeration.",
+            f"The {current_year} baseline is a demographic projection calibrated against natural population growth.",
+            f"The 5-year forecast ({current_year + 1}–{current_year + 5}) applies the unchanged mathematical and demographic model from predictor.py.",
+            "Projections serve as advisory estimates for GPDP planning and are subject to policy, infrastructure, and migration dynamics."
+        ]
+    }
+
     return {
         "status": True,
         "village": village_name,
         "current_year": current_year,
         "prediction_horizon": 5,
+        "data_provenance": data_provenance,
         "data_quality": {
             "udise_available": school_count > 0,
             "udise_school_count": school_count,
             "udise_source": source_name if school_count > 0 else None,
-            "forecast_source": "Mathematical demographic & ML projection",
+            "forecast_source": "Mathematical demographic & ML projection (predictor.py)",
         },
         "current_udise": {
             "school_count": school_count,

@@ -306,6 +306,238 @@ DETAILED_SCHEME_KNOWLEDGE: Dict[str, Dict[str, Any]] = {
         ],
         "application_process": "1. Form a village SHG of 10-20 women with help of Community Resource Person (CRP). 2. Open group bank account. 3. Follow Panchasutra principles (regular meetings, savings, internal lending, timely repayment, book-keeping). 4. Apply for Revolving Fund & Bank Credit Linkage via SRLM block office.",
         "keywords": ["women", "shg", "self help group", "nrlm", "livelihood", "loan", "entrepreneur", "handicraft", "dairy", "poultry", "micro finance", "lakhpati didi", "business"]
+    },
+    "TN-KMUT-012": {
+        "scheme_id": "TN-KMUT-012",
+        "scheme_name": "Kalaignar Magalir Urimai Thogai Thittam (KMUT)",
+        "ministry": "Special Programme Implementation Department, Government of Tamil Nadu",
+        "category": "Women Welfare & Basic Income",
+        "government_level": "STATE_TN",
+        "scheme_scope": "INDIVIDUAL_BENEFICIARY",
+        "official_portal_url": "https://tnesevai.tn.gov.in/",
+        "nodal_agency": "Tamil Nadu e-Governance Agency (TNeGA) & Revenue Administration Department",
+        "purpose": "Provide economic independence and recognize uncompensated domestic labor of women heads of households in Tamil Nadu through a monthly rights grant.",
+        "why_relevant_template": "Essential livelihood support for rural women heads of households, female agricultural laborers, and self-employed women in Tamil Nadu.",
+        "eligibility_criteria": "Women heads of families aged 21+, annual family income under ₹2.5 Lakhs, cultivable landholding under 5 acres wetland or 10 acres dryland, and domestic electricity usage below 3,600 units/year.",
+        "key_benefits": [
+            "Monthly cash assistance of ₹1,000 (₹12,000 per year) directly credited via DBT to the woman's bank account on the 15th of every month.",
+            "SMS transaction alerts sent directly to registered mobile number.",
+            "Special camp-based grievance redressal at Taluk and Revenue Divisional offices."
+        ],
+        "required_documents": [
+            "Smart Family Card (Ration Card)",
+            "Aadhaar Card of the woman applicant",
+            "Electricity Consumer Number (EB Card)",
+            "Aadhaar-seeded bank account passbook"
+        ],
+        "application_process": "1. Special enrollment camps organized at village schools and ration shops. 2. Biometric and Aadhaar verification through e-Sevai handheld devices. 3. Field verification by Revenue officials. 4. Approval and monthly DBT sanction.",
+        "keywords": ["magalir", "urimai", "kmut", "women 1000", "monthly pension woman", "tamil nadu women", "kalaignar", "women grant", "female head", "housewife", "mother"]
+    },
+    "TN-PP-013": {
+        "scheme_id": "TN-PP-013",
+        "scheme_name": "Pudhumai Penn Thittam (Moovalur Ramamirtham Ammaiyar Higher Education Assurance)",
+        "ministry": "Social Welfare & Women Empowerment Department, Government of Tamil Nadu",
+        "category": "Education & Women Empowerment",
+        "government_level": "STATE_TN",
+        "scheme_scope": "INDIVIDUAL_BENEFICIARY",
+        "official_portal_url": "https://pudhumaipenn.tn.gov.in/",
+        "nodal_agency": "Directorate of Social Welfare, Tamil Nadu",
+        "purpose": "Prevent early marriages of rural girls, reduce female dropout rates after school, and encourage female students from government schools to pursue higher education.",
+        "why_relevant_template": "Empowers rural girl students who completed Class 12 in village government schools to join college degrees without financial burden.",
+        "eligibility_criteria": "Girl students who studied Classes 6 through 12 in Tamil Nadu Government schools and enrolled in undergraduate degrees, engineering, medicine, polytechnic diplomas, or ITI.",
+        "key_benefits": [
+            "Monthly allowance of ₹1,000 transferred via DBT directly into student's bank account until degree completion.",
+            "Eligible in addition to other government merit scholarships and tuition waivers.",
+            "Facilitates book purchases, study materials, and hostel accommodation."
+        ],
+        "required_documents": [
+            "Class 10 and Class 12 Marksheets",
+            "Transfer Certificate (TC) confirming Classes 6 to 12 study in TN Government School",
+            "College Admission ID / Bonafide Certificate",
+            "Aadhaar Card and Student Bank Passbook"
+        ],
+        "application_process": "1. College nodal officer registers student on pudhumaipenn.tn.gov.in. 2. Student uploads school study certificates. 3. EMIS database verifies Class 6-12 government school record. 4. Monthly DBT credited directly.",
+        "keywords": ["pudhumai penn", "girl student", "college girl", "scholarship girl", "government school girl", "higher education female", "1000 college girl", "moovalur ramamirtham"]
+    },
+    "TN-TP-014": {
+        "scheme_id": "TN-TP-014",
+        "scheme_name": "Tamil Pudhalvan Thittam",
+        "ministry": "Higher Education Department, Government of Tamil Nadu",
+        "category": "Education & Youth",
+        "government_level": "STATE_TN",
+        "scheme_scope": "INDIVIDUAL_BENEFICIARY",
+        "official_portal_url": "https://tamilpudhalvan.tn.gov.in/",
+        "nodal_agency": "Directorate of Collegiate Education & Technical Education, Tamil Nadu",
+        "purpose": "Promote higher education enrollment among young men from underprivileged backgrounds who studied in government schools.",
+        "why_relevant_template": "Supports boys from rural farming and laborer families to complete polytechnic diplomas, engineering, and arts/science degrees.",
+        "eligibility_criteria": "Male students who completed Classes 6 through 12 in Tamil Nadu Government schools pursuing full-time undergraduate degrees, diploma, or ITI programs.",
+        "key_benefits": [
+            "Monthly financial assistance of ₹1,000 paid directly to the student's bank account.",
+            "Covers stationery, textbook costs, examination fees, and daily bus travel.",
+            "Ensures equal higher education opportunities alongside Pudhumai Penn."
+        ],
+        "required_documents": [
+            "EMIS Government School Study Certificate (Classes 6–12)",
+            "College Bonafide Certificate and Student ID",
+            "Aadhaar Card",
+            "Bank Passbook linked with Aadhaar"
+        ],
+        "application_process": "1. Apply through college desk on tamilpudhalvan.tn.gov.in. 2. School education EMIS verification. 3. Direct Benefit Transfer initiated to student's bank account.",
+        "keywords": ["tamil pudhalvan", "boy student", "college boy", "scholarship boy", "government school boy", "higher education boy", "1000 college boy"]
+    },
+    "TN-CMCHIS-015": {
+        "scheme_id": "TN-CMCHIS-015",
+        "scheme_name": "Chief Minister's Comprehensive Health Insurance Scheme (CMCHIS)",
+        "ministry": "Health & Family Welfare Department, Government of Tamil Nadu",
+        "category": "Healthcare",
+        "government_level": "STATE_TN",
+        "scheme_scope": "INDIVIDUAL_BENEFICIARY",
+        "official_portal_url": "https://www.cmchistn.com/",
+        "nodal_agency": "Tamil Nadu Health Systems Project (TNHSP)",
+        "purpose": "Provide cashless secondary and tertiary hospitalization treatment to lower-income families across Tamil Nadu.",
+        "why_relevant_template": "Critical medical safety net preventing catastrophic health expenditures for rural families requiring major surgeries or intensive care.",
+        "eligibility_criteria": "All families resident in Tamil Nadu with annual family income up to ₹1,20,000 (listed in Smart Ration Card). Also covers unorganized workers and Sri Lankan Tamil camp residents.",
+        "key_benefits": [
+            "Cashless coverage up to ₹5.00 Lakhs per family per year for 1,090+ medical procedures, 52 specialized surgeries, and 8 diagnostic tests.",
+            "Empanelled network across all Tamil Nadu Government medical college hospitals and 800+ private hospitals.",
+            "Dedicated 24x7 toll-free helpline (1800 425 3993) and kiosk at every Taluk hospital."
+        ],
+        "required_documents": [
+            "Smart Family Ration Card",
+            "Aadhaar Cards of all family members",
+            "Village Administrative Officer (VAO) income certificate (if income not updated in ration card)"
+        ],
+        "application_process": "1. Visit District Collectorate or Taluk Hospital CMCHIS kiosk. 2. Biometric and photo capture. 3. Smart Health Insurance Card issued on the spot. 4. Show card at any empanelled hospital for cashless admission.",
+        "keywords": ["cmchis", "chief minister health insurance", "tamil nadu medical insurance", "hospital surgery", "cashless hospital", "5 lakhs medical", "kalaignar kaapeedu"]
+    },
+    "TN-KAVIADP-016": {
+        "scheme_id": "TN-KAVIADP-016",
+        "scheme_name": "Kalaignarin All Village Integrated Agriculture Development Programme (KAVIADP)",
+        "ministry": "Agriculture & Farmers Welfare Department, Government of Tamil Nadu",
+        "category": "Agriculture & Rural Development",
+        "government_level": "STATE_TN",
+        "scheme_scope": "VILLAGE_INFRASTRUCTURE",
+        "official_portal_url": "https://agritech.tnau.ac.in/",
+        "nodal_agency": "Department of Agriculture, Tamil Nadu",
+        "purpose": "Transform selected Gram Panchayats into agriculturally prosperous, self-reliant farming villages through inter-departmental convergence.",
+        "why_relevant_template": "Ideal for villages with fallow lands, water shortages, or needing community farm equipment and collective post-harvest storage.",
+        "eligibility_criteria": "All farm households and habitations in selected Gram Panchayats implemented on a saturation rotation across all Tamil Nadu districts.",
+        "key_benefits": [
+            "Bringing fallow lands into active cultivation with free land reclamation support.",
+            "Creation of community farm ponds, percolation ponds, and check dams.",
+            "Establishment of solar drying yards, custom hiring centres for tractors, and drip irrigation subsidies up to 100% for small/marginal farmers.",
+            "Free distribution of high-yielding vegetable and coconut seed kits."
+        ],
+        "required_documents": [
+            "Panchayat Gram Sabha resolution",
+            "Farmer Patta / Chitta / Adangal land record",
+            "Aadhaar Card"
+        ],
+        "application_process": "1. Gram Sabha identifies village farming priorities. 2. Assistant Director of Agriculture sanctions village cluster work. 3. Subsidies disbursed via Uzhavan mobile application.",
+        "keywords": ["kaviadp", "integrated agriculture", "kalaignarin agriculture", "fallow land", "farm pond", "solar drying yard", "tamil nadu agriculture", "uzhavan app"]
+    },
+    "TN-OAP-017": {
+        "scheme_id": "TN-OAP-017",
+        "scheme_name": "Tamil Nadu Social Security Pension Scheme (OAP & Destitute Widow Pension)",
+        "ministry": "Revenue & Disaster Management Department, Government of Tamil Nadu",
+        "category": "Social Security & Pension",
+        "government_level": "STATE_TN",
+        "scheme_scope": "INDIVIDUAL_BENEFICIARY",
+        "official_portal_url": "https://tnesevai.tn.gov.in/",
+        "nodal_agency": "Special Tahsildar (Social Security Schemes)",
+        "purpose": "Provide monthly subsistence and food security to vulnerable, elderly, destitute, and differently-abled individuals.",
+        "why_relevant_template": "Direct social assistance for senior citizens (60+) and destitute women in the village who have no family livelihood support.",
+        "eligibility_criteria": "Destitute persons aged 60+ (Indira Gandhi / State OAP), destitute widows (no age limit), destitute deserted wives, and persons with 40%+ disability.",
+        "key_benefits": [
+            "Monthly pension of ₹1,000 to ₹1,500 transferred directly through bank DBT or postal money order at doorsteps.",
+            "20 kg free rice every month through Public Distribution System (PDS).",
+            "Free dhotis and sarees distributed annually during Pongal and Deepavali."
+        ],
+        "required_documents": [
+            "Aadhaar Card and age proof",
+            "Smart Family Ration Card",
+            "VAO Destitute Certificate",
+            "Disability Medical Certificate (for differently-abled pension)"
+        ],
+        "application_process": "1. Apply online at village e-Sevai centre or CSC. 2. Revenue Inspector and VAO conduct spot inquiry. 3. Tahsildar issues sanction order. 4. Monthly pension credited directly.",
+        "keywords": ["oap", "old age pension", "widow pension", "destitute pension", "differently abled pension", "senior citizen grant", "vridha pension", "tamil nadu pension"]
+    },
+    "CSS-PMFBY-018": {
+        "scheme_id": "CSS-PMFBY-018",
+        "scheme_name": "Pradhan Mantri Fasal Bima Yojana (PMFBY)",
+        "ministry": "Ministry of Agriculture and Farmers Welfare",
+        "category": "Crop Insurance",
+        "government_level": "CENTRAL",
+        "scheme_scope": "INDIVIDUAL_BENEFICIARY",
+        "official_portal_url": "https://pmfby.gov.in/",
+        "nodal_agency": "State Department of Agriculture & Empanelled Insurance Companies",
+        "purpose": "Provide comprehensive insurance coverage against crop failure, stabilizing farmers' income and encouraging adoption of modern agricultural practices.",
+        "why_relevant_template": "Safeguards village farmers against unpredictable monsoon failures, droughts, flash floods, unseasonal hail, and pest infestations.",
+        "eligibility_criteria": "All farmers growing notified food crops, oilseeds, and commercial/horticultural crops in notified areas, whether loanee or non-loanee.",
+        "key_benefits": [
+            "Lowest premium rates: Only 2% for Kharif crops, 1.5% for Rabi food and oilseed crops, and 5% for annual commercial/horticultural crops.",
+            "Remaining premium subsidy (often 90%+) shared equally between Central and State Governments.",
+            "Covers prevented sowing, mid-season adversity, localized risks (hailstorm, landslide), and post-harvest cyclone damage."
+        ],
+        "required_documents": [
+            "Land possession certificate (Patta / RoR / Chitta)",
+            "Sowing certificate issued by Village Administrative Officer / Agricultural Officer",
+            "Aadhaar Card and Bank Passbook"
+        ],
+        "application_process": "1. Enroll via pmfby.gov.in, primary agricultural credit cooperative (PACCS), or bank branch before cutoff date. 2. Pay nominal premium. 3. Satellite and Crop Cutting Experiments (CCE) assess yield loss. 4. Compensation credited directly via DBT.",
+        "keywords": ["crop insurance", "fasal bima", "pmfby", "crop loss", "drought insurance", "flood damage", "pest crop", "harvest loss", "uzhavan bima"]
+    },
+    "CSS-SURYAGHAR-019": {
+        "scheme_id": "CSS-SURYAGHAR-019",
+        "scheme_name": "PM Surya Ghar: Muft Bijli Yojana",
+        "ministry": "Ministry of New and Renewable Energy",
+        "category": "Clean Energy & Power",
+        "government_level": "CENTRAL",
+        "scheme_scope": "INDIVIDUAL_BENEFICIARY",
+        "official_portal_url": "https://pmsuryaghar.gov.in/",
+        "nodal_agency": "State Electricity Distribution Companies (DISCOMs, e.g. TANGEDCO)",
+        "purpose": "Incentivize 1 Crore rural and urban households to install rooftop solar panels, providing free electricity and surplus income generation.",
+        "why_relevant_template": "Enables village households to eliminate domestic electricity bills and power irrigation or home appliances cleanly.",
+        "eligibility_criteria": "Residential electricity consumers having a valid domestic connection with TANGEDCO/DISCOM and an unshaded roof.",
+        "key_benefits": [
+            "Central subsidy of ₹30,000 for 1 kW, ₹60,000 for 2 kW, and up to ₹78,000 for 3 kW and higher systems.",
+            "Up to 300 units of free clean solar electricity per month.",
+            "Surplus units exported to grid via bi-directional net meter with credits paid by DISCOM.",
+            "Concessional collateral-free bank loans available at ~7% interest rate."
+        ],
+        "required_documents": [
+            "Latest Domestic Electricity Bill with Consumer Number",
+            "Aadhaar Card of the electricity consumer",
+            "Cancelled bank cheque / passbook for subsidy DBT transfer",
+            "Photograph of rooftop area"
+        ],
+        "application_process": "1. Register on pmsuryaghar.gov.in with Consumer Number. 2. Select empanelled solar vendor for technical installation. 3. DISCOM inspects installation and installs net meter. 4. Central subsidy credited directly to bank account within 30 days.",
+        "keywords": ["surya ghar", "muft bijli", "rooftop solar", "free electricity 300 units", "solar subsidy", "tangedco solar", "solar panels", "clean power home"]
+    },
+    "CSS-XVIFC-020": {
+        "scheme_id": "CSS-XVIFC-020",
+        "scheme_name": "15th Finance Commission Grants for Rural Local Bodies",
+        "ministry": "Ministry of Panchayati Raj & Ministry of Finance",
+        "category": "Village Infrastructure & Governance",
+        "government_level": "CENTRAL",
+        "scheme_scope": "VILLAGE_INFRASTRUCTURE",
+        "official_portal_url": "https://egramswaraj.gov.in/",
+        "nodal_agency": "Gram Panchayat Administration & Block Development Office",
+        "purpose": "Provide constitutional untied and tied financial resources to Gram Panchayats to deliver core local civic services.",
+        "why_relevant_template": "Direct funding channel for the Gram Panchayat to maintain water connections, repair street lights, and build drainage soak pits.",
+        "eligibility_criteria": "All constitutionally recognized Gram Panchayats with an approved Gram Panchayat Development Plan (GPDP) uploaded on eGramSwaraj.",
+        "key_benefits": [
+            "40% Untied Grants: Discretionary local funds for village street lighting, road patching, crematorium maintenance, and library upgrades.",
+            "60% Tied Grants: Earmarked for drinking water supply, rainwater harvesting, water recycling, and sanitation/solid waste management.",
+            "100% direct electronic transfer into Gram Panchayat bank accounts via PFMS without administrative diversion."
+        ],
+        "required_documents": [
+            "Gram Sabha approved GPDP Plan on eGramSwaraj",
+            "Panchayat Action Plan Resolution",
+            "Audited Annual Accounts on AuditOnline portal"
+        ],
+        "application_process": "1. Gram Sabha approves GPDP works. 2. Technical estimate prepared by Block Assistant Engineer. 3. Administrative sanction by Panchayat President. 4. Expenditure executed via eGramSwaraj-PFMS interface.",
+        "keywords": ["15th finance commission", "panchayat grant", "tied grant", "untied grant", "egramswaraj", "gpdp funds", "village development budget", "gram sabha fund"]
     }
 }
 

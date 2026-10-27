@@ -209,9 +209,237 @@ OFFICIAL_GOVERNMENT_SCHEMES: List[Dict[str, Any]] = [
             "percolation tanks, farm ponds, check dams, drainage canal desilting, and village connectivity earthworks."
         ),
         "benchmark_norm": "Guaranteed 100 days wage employment & asset creation",
+        "scheme_scope": "VILLAGE_INFRASTRUCTURE",
+        "government_level": "CENTRAL",
+    },
+    {
+        "scheme_id": "CSS-PMKISAN-010",
+        "scheme_name": "PM-KISAN (Pradhan Mantri Kisan Samman Nidhi)",
+        "ministry": "Ministry of Agriculture and Farmers Welfare",
+        "category": "Agriculture & Farmers",
+        "government_level": "CENTRAL",
+        "scheme_scope": "INDIVIDUAL_BENEFICIARY",
+        "official_portal_url": "https://pmkisan.gov.in/",
+        "eligibility_criteria": "All landholding farmer families with cultivable landholding in their names, subject to statutory exclusion criteria.",
+        "primary_trigger_field": "population_projected",
+        "base_budget_lakhs": 12.0,
+        "deficit_multiplier": 0.0,
+        "per_capita_multiplier": 0.0018,
+        "description": (
+            "Direct income support of ₹6,000 per year transferred in three equal 4-monthly installments "
+            "of ₹2,000 directly into the bank accounts of small and marginal farmer families via DBT."
+        ),
+        "benchmark_norm": "Direct Income Support to Landholding Farmers",
         "keywords": [
-            "mgnrega rural employment", "check dam construction", "drainage desilting channel",
-            "rural tree plantation afforestation", "flood protection embankment"
+            "pm kisan", "farmer income", "kisan samman nidhi", "agriculture cash transfer",
+            "dbt farmer", "cultivable land", "agricultural support", "small marginal farmers"
+        ],
+    },
+    {
+        "scheme_id": "CSS-PMFBY-011",
+        "scheme_name": "Pradhan Mantri Fasal Bima Yojana (PMFBY)",
+        "ministry": "Ministry of Agriculture and Farmers Welfare",
+        "category": "Agriculture & Farmers",
+        "government_level": "CENTRAL",
+        "scheme_scope": "INDIVIDUAL_BENEFICIARY",
+        "official_portal_url": "https://pmfby.gov.in/",
+        "eligibility_criteria": "All farmers including sharecroppers and tenant farmers growing notified crops in notified areas.",
+        "primary_trigger_field": "population_projected",
+        "base_budget_lakhs": 10.0,
+        "deficit_multiplier": 0.0,
+        "per_capita_multiplier": 0.0015,
+        "description": (
+            "Comprehensive crop insurance against non-preventable natural risks (drought, flood, unseasonal rains, "
+            "pests & diseases) from pre-sowing to post-harvest with lowest farmer premium (1.5% to 2%)."
+        ),
+        "benchmark_norm": "Universal Crop Loss Risk Coverage",
+        "keywords": [
+            "crop insurance", "fasal bima", "pmfby", "drought compensation", "crop loss",
+            "flood damage harvest", "pest attack", "weather based crop insurance"
+        ],
+    },
+    {
+        "scheme_id": "TN-KMUT-012",
+        "scheme_name": "Kalaignar Magalir Urimai Thogai Thittam (KMUT)",
+        "ministry": "Special Programme Implementation Department, Government of Tamil Nadu",
+        "category": "Women Welfare & Social Security",
+        "government_level": "STATE_TN",
+        "scheme_scope": "INDIVIDUAL_BENEFICIARY",
+        "official_portal_url": "https://tnesevai.tn.gov.in/",
+        "eligibility_criteria": "Women heads of households in Tamil Nadu aged 21+, family annual income < ₹2.5 Lakhs, landholding < 5 acres wetland / 10 acres dryland, and electricity usage < 3,600 units/year.",
+        "primary_trigger_field": "population_projected",
+        "base_budget_lakhs": 24.0,
+        "deficit_multiplier": 0.0,
+        "per_capita_multiplier": 0.0036,
+        "description": (
+            "Flagship Tamil Nadu universal basic income grant transferring ₹1,000 per month (₹12,000/year) "
+            "directly into the bank accounts of eligible women heads of families to recognize domestic labor and ensure livelihood autonomy."
+        ),
+        "benchmark_norm": "Universal Women Basic Income Dignity Norm",
+        "keywords": [
+            "magalir urimai", "kmut", "women monthly pension", "1000 rupees woman", "tamil nadu women scheme",
+            "kalaignar magalir urimai thogai", "women entitlement", "female head of household", "dbt 1000"
+        ],
+    },
+    {
+        "scheme_id": "TN-PP-013",
+        "scheme_name": "Pudhumai Penn Thittam (Moovalur Ramamirtham Higher Education Assurance)",
+        "ministry": "Social Welfare & Women Empowerment Department, Government of Tamil Nadu",
+        "category": "Education & Women Empowerment",
+        "government_level": "STATE_TN",
+        "scheme_scope": "INDIVIDUAL_BENEFICIARY",
+        "official_portal_url": "https://pudhumaipenn.tn.gov.in/",
+        "eligibility_criteria": "Girl students who studied classes 6 to 12 in Tamil Nadu Government schools and enrolled in recognized undergraduate degrees, diplomas, or ITI programs.",
+        "primary_trigger_field": "classroom_gap",
+        "base_budget_lakhs": 12.0,
+        "deficit_multiplier": 0.0,
+        "per_capita_multiplier": 0.0020,
+        "description": (
+            "Monthly financial assistance of ₹1,000 transferred via DBT to eligible girl students from government schools "
+            "throughout their higher education course duration until degree/diploma completion."
+        ),
+        "benchmark_norm": "Higher Education Transition for Rural Female Students",
+        "keywords": [
+            "pudhumai penn", "girl student higher education", "moovalur ramamirtham", "1000 rupees college girl",
+            "government school girl scholarship", "women education tamil nadu", "college degree support"
+        ],
+    },
+    {
+        "scheme_id": "TN-TP-014",
+        "scheme_name": "Tamil Pudhalvan Thittam",
+        "ministry": "Higher Education Department, Government of Tamil Nadu",
+        "category": "Education & Youth",
+        "government_level": "STATE_TN",
+        "scheme_scope": "INDIVIDUAL_BENEFICIARY",
+        "official_portal_url": "https://tamilpudhalvan.tn.gov.in/",
+        "eligibility_criteria": "Boy students who studied classes 6 to 12 in Tamil Nadu Government schools pursuing full-time undergraduate degrees, engineering, arts & science, polytechnic diplomas, or ITI.",
+        "primary_trigger_field": "classroom_gap",
+        "base_budget_lakhs": 12.0,
+        "deficit_multiplier": 0.0,
+        "per_capita_multiplier": 0.0020,
+        "description": (
+            "Monthly financial incentive of ₹1,000 paid to young men from government schools pursuing higher education "
+            "to purchase textbooks, study material, and meet conveyance expenses."
+        ),
+        "benchmark_norm": "Universal Higher Education Participation for Male Students",
+        "keywords": [
+            "tamil pudhalvan", "boy student higher education", "1000 rupees college boy", "government school boys college",
+            "tamil nadu boy scholarship", "higher education youth grant"
+        ],
+    },
+    {
+        "scheme_id": "TN-CMCHIS-015",
+        "scheme_name": "Chief Minister's Comprehensive Health Insurance Scheme (CMCHIS)",
+        "ministry": "Health & Family Welfare Department, Government of Tamil Nadu",
+        "category": "Healthcare",
+        "government_level": "STATE_TN",
+        "scheme_scope": "INDIVIDUAL_BENEFICIARY",
+        "official_portal_url": "https://www.cmchistn.com/",
+        "eligibility_criteria": "Families resident in Tamil Nadu with annual family income up to ₹1,20,000 (listed in ration card), covering 1,090+ medical and surgical procedures.",
+        "primary_trigger_field": "healthcare_deficit",
+        "base_budget_lakhs": 20.0,
+        "deficit_multiplier": 12.0,
+        "per_capita_multiplier": 0.0030,
+        "description": (
+            "Cashless hospital treatment cover up to ₹5.00 Lakhs per family per year in empanelled government and private hospitals "
+            "across Tamil Nadu for major surgeries, cancer therapy, cardiovascular procedures, and ICU care."
+        ),
+        "benchmark_norm": "Cashless Secondary and Tertiary Health Protection",
+        "keywords": [
+            "cmchis", "chief minister health insurance", "tamil nadu medical insurance card",
+            "cashless hospital surgery", "5 lakhs medical cover", "kalaignar insurance", "maruthuva kaapeedu"
+        ],
+    },
+    {
+        "scheme_id": "TN-KAVIADP-016",
+        "scheme_name": "Kalaignarin All Village Integrated Agriculture Development Programme (KAVIADP)",
+        "ministry": "Agriculture & Farmers Welfare Department, Government of Tamil Nadu",
+        "category": "Agriculture & Rural Infrastructure",
+        "government_level": "STATE_TN",
+        "scheme_scope": "VILLAGE_INFRASTRUCTURE",
+        "official_portal_url": "https://agritech.tnau.ac.in/",
+        "eligibility_criteria": "Selected Gram Panchayats across Tamil Nadu executed in saturation mode in convergence with Rural Development department.",
+        "primary_trigger_field": "water_deficit_lpd",
+        "base_budget_lakhs": 25.0,
+        "deficit_multiplier": 0.0006,
+        "per_capita_multiplier": 0.0025,
+        "description": (
+            "Comprehensive agrarian village development scheme bringing fallow lands into cultivation, creating collective farm ponds, "
+            "solar drying yards, micro-irrigation systems, seed processing units, and high-value horticulture clusters."
+        ),
+        "benchmark_norm": "Integrated Village Agricultural Self-Sufficiency",
+        "keywords": [
+            "kaviadp", "all village integrated agriculture", "kalaignarin agriculture", "fallow land cultivation",
+            "micro irrigation pond", "solar drying yard", "tamil nadu agriculture development"
+        ],
+    },
+    {
+        "scheme_id": "TN-OAP-017",
+        "scheme_name": "Tamil Nadu Social Security Pension Schemes (OAP & Destitute Pension)",
+        "ministry": "Revenue & Disaster Management Department, Government of Tamil Nadu",
+        "category": "Social Security & Welfare",
+        "government_level": "STATE_TN",
+        "scheme_scope": "INDIVIDUAL_BENEFICIARY",
+        "official_portal_url": "https://tnesevai.tn.gov.in/",
+        "eligibility_criteria": "Destitute elderly citizens (60+ years), destitute widows, differently-abled persons, and deserted wives without family support.",
+        "primary_trigger_field": "population_projected",
+        "base_budget_lakhs": 15.0,
+        "deficit_multiplier": 0.0,
+        "per_capita_multiplier": 0.0022,
+        "description": (
+            "Monthly social security pension of ₹1,000 to ₹1,500 transferred directly through bank DBT / postal money order, "
+            "along with free rice (20 kg/month) and free clothing during Pongal and Deepavali festivals."
+        ),
+        "benchmark_norm": "Universal Social Security Floor for Senior Citizens & Persons with Disabilities",
+        "keywords": [
+            "oap", "old age pension", "destitute widow pension", "differently abled disability pension",
+            "senior citizen monthly grant", "tamil nadu social security pension", "vridha pension"
+        ],
+    },
+    {
+        "scheme_id": "CSS-SURYAGHAR-018",
+        "scheme_name": "PM Surya Ghar: Muft Bijli Yojana",
+        "ministry": "Ministry of New and Renewable Energy",
+        "category": "Renewable Energy & Power",
+        "government_level": "CENTRAL",
+        "scheme_scope": "INDIVIDUAL_BENEFICIARY",
+        "official_portal_url": "https://pmsuryaghar.gov.in/",
+        "eligibility_criteria": "Residential households with a valid grid electricity connection and suitable rooftop space.",
+        "primary_trigger_field": "population_projected",
+        "base_budget_lakhs": 14.0,
+        "deficit_multiplier": 0.0,
+        "per_capita_multiplier": 0.0020,
+        "description": (
+            "National solar rooftop initiative providing central financial assistance up to ₹78,000 for 1–3 kW rooftop solar plants, "
+            "enabling households to get up to 300 units of free electricity each month and earn income by exporting surplus power."
+        ),
+        "benchmark_norm": "Rooftop Clean Energy Generation Norm",
+        "keywords": [
+            "pm surya ghar", "muft bijli", "rooftop solar subsidy", "free electricity 300 units",
+            "solar panel subsidy", "clean energy household", "net metering solar"
+        ],
+    },
+    {
+        "scheme_id": "CSS-XVIFC-020",
+        "scheme_name": "15th Finance Commission Grants for Rural Local Bodies",
+        "ministry": "Ministry of Panchayati Raj & Ministry of Finance",
+        "category": "Local Governance & Infrastructure",
+        "government_level": "CENTRAL",
+        "scheme_scope": "VILLAGE_INFRASTRUCTURE",
+        "official_portal_url": "https://egramswaraj.gov.in/",
+        "eligibility_criteria": "Constitutional untied and tied grants transferred directly to Gram Panchayats based on 2011 population (90%) and area (10%).",
+        "primary_trigger_field": "population_projected",
+        "base_budget_lakhs": 22.0,
+        "deficit_multiplier": 0.0,
+        "per_capita_multiplier": 0.0035,
+        "description": (
+            "Direct untied and tied central development grants to Gram Panchayats specifically earmarked for sanitation, "
+            "solid waste management, drinking water supply, rainwater harvesting, and water recycling."
+        ),
+        "benchmark_norm": "Local Government Fiscal Autonomy & Basic Services",
+        "keywords": [
+            "15th finance commission", "gram panchayat tied grant", "untied grant", "egramswaraj",
+            "local body grant", "panchayat development funds", "gpdp public works"
         ],
     },
 ]

@@ -56,13 +56,19 @@ const getPriorityBadgeConfig = (tier = 'P3') => {
 const SchemeRecommendations = ({ schemes = [], loading = false }) => {
   const { activePalette } = useTheme();
   const [selectedFilter, setSelectedFilter] = useState('ALL');
+  const [selectedScope, setSelectedScope] = useState('ALL');
 
-  // Filter schemes by active priority tier tab
+  // Filter schemes by active priority tier and scheme scope
   const filteredSchemes = useMemo(() => {
     if (!Array.isArray(schemes)) return [];
-    if (selectedFilter === 'ALL') return schemes.filter(Boolean);
-    return schemes.filter((s) => s && (s.priority_tier || 'P3').toUpperCase() === selectedFilter);
-  }, [schemes, selectedFilter]);
+    return schemes.filter((s) => {
+      if (!s) return false;
+      const matchesTier = selectedFilter === 'ALL' || (s.priority_tier || 'P3').toUpperCase() === selectedFilter;
+      const schemeScope = s.scheme_scope || (/jjm|pmgsy|sbmg|amrit|shri|15th|fc/i.test(s.scheme_id || '') ? 'VILLAGE_INFRASTRUCTURE' : 'INDIVIDUAL_BENEFICIARY');
+      const matchesScope = selectedScope === 'ALL' || schemeScope === selectedScope;
+      return matchesTier && matchesScope;
+    });
+  }, [schemes, selectedFilter, selectedScope]);
 
   // Priority count badges
   const p1Count = useMemo(
@@ -195,6 +201,46 @@ const SchemeRecommendations = ({ schemes = [], loading = false }) => {
               <span>P3 Moderate ({p3Count})</span>
             </button>
           )}
+
+          {/* Scope Switcher: Village Infrastructure vs Individual Citizen */}
+          <div className="w-full flex flex-wrap items-center gap-2 pt-2 border-t border-[var(--border-subtle)] text-[11px]">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mr-1">
+              Beneficiary Scope:
+            </span>
+            <button
+              type="button"
+              onClick={() => setSelectedScope('ALL')}
+              className={`px-2.5 py-0.5 rounded-lg font-bold transition-all cursor-pointer ${
+                selectedScope === 'ALL'
+                  ? 'bg-teal-500/20 text-teal-300 border border-teal-500/40 shadow-xs'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
+              }`}
+            >
+              All Types
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedScope('VILLAGE_INFRASTRUCTURE')}
+              className={`px-2.5 py-0.5 rounded-lg font-bold transition-all cursor-pointer ${
+                selectedScope === 'VILLAGE_INFRASTRUCTURE'
+                  ? 'bg-blue-500/20 text-blue-300 border border-blue-500/40 shadow-xs'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
+              }`}
+            >
+              🏛️ Village Infrastructure Projects
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedScope('INDIVIDUAL_BENEFICIARY')}
+              className={`px-2.5 py-0.5 rounded-lg font-bold transition-all cursor-pointer ${
+                selectedScope === 'INDIVIDUAL_BENEFICIARY'
+                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-xs'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
+              }`}
+            >
+              👤 Individual Citizen Beneficiaries
+            </button>
+          </div>
         </div>
       )}
 
@@ -205,7 +251,7 @@ const SchemeRecommendations = ({ schemes = [], loading = false }) => {
             <Info className="w-7 h-7 mx-auto text-slate-500" />
             <p className="font-bold text-[var(--text-main)] text-sm">No schemes found in this category.</p>
             <p className="text-[11px] text-[var(--text-subtle)] max-w-sm mx-auto">
-              Select &ldquo;All&rdquo; or click on a village with active infrastructure shortages to evaluate scheme allocations.
+              Select &ldquo;All Types&rdquo; or click on a village with active infrastructure shortages to evaluate scheme allocations.
             </p>
           </div>
         ) : (
@@ -217,6 +263,8 @@ const SchemeRecommendations = ({ schemes = [], loading = false }) => {
 
             const priorityTier = (scheme.priority_tier || (idx === 0 ? 'P1' : idx === 1 ? 'P2' : 'P3')).toUpperCase();
             const badgeConfig = getPriorityBadgeConfig(priorityTier);
+            const isVillageInfra = scheme.scheme_scope === 'VILLAGE_INFRASTRUCTURE' || /jjm|pmgsy|sbmg|amrit|shri|15th|fc/i.test(scheme.scheme_id || '');
+            const isTNState = scheme.government_level === 'STATE_TN' || /tamil nadu|tn-|kmut|pudhumai|pudhalvan|cmchis|kaviadp/i.test(scheme.scheme_name || scheme.scheme_id || '');
             const rawUrl = scheme.official_portal_url || scheme.application_portal || 'https://www.myscheme.gov.in/';
             let portalUrl = rawUrl;
             if (/pmayg|awaas/i.test(rawUrl)) {
@@ -265,6 +313,20 @@ const SchemeRecommendations = ({ schemes = [], loading = false }) => {
                             <span className={`relative inline-flex rounded-full h-2 w-2 ${badgeConfig.solidDotClass}`} />
                           </span>
                           {scheme.priority_label || badgeConfig.label}
+                        </span>
+
+                        {/* Beneficiary Scope Tag */}
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${
+                          isVillageInfra
+                            ? 'bg-blue-500/15 text-blue-300 border-blue-500/30'
+                            : 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+                        }`}>
+                          {isVillageInfra ? '🏛️ Village Infrastructure' : '👤 Individual Citizen'}
+                        </span>
+
+                        {/* Government Level Tag */}
+                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-[var(--bg-card)] text-[var(--text-muted)] border border-[var(--border-subtle)]">
+                          {isTNState ? 'TN State' : 'Central Gov'}
                         </span>
 
                         <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-[var(--bg-card)] text-[var(--text-muted)] border border-[var(--border-subtle)]">
