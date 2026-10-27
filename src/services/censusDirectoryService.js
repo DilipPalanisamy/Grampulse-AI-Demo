@@ -407,10 +407,166 @@ export function getDistricts() {
 }
 
 /**
+/**
+ * Calculates geodesic distance between two coordinate pairs in kilometers (Haversine formula)
+ */
+export function haversineDistanceKm(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+/**
+ * Finds the nearest authentic Census settlement by coordinates within a maximum radius.
+ */
+export function findNearestCensusRecord(lat, lng, districtFilter = null, maxDistKm = 8.0, nameHint = null) {
+  if (lat == null || lng == null || isNaN(Number(lat)) || isNaN(Number(lng))) return null;
+  const numLat = Number(lat);
+  const numLng = Number(lng);
+  const dKey = districtFilter ? normalize(districtFilter) : null;
+  const isAllDistricts = !dKey || dKey === 'all' || dKey === 'alldistricts' || dKey === 'tamilnadu';
+
+  const pool = (!isAllDistricts && DISTRICT_INDEX.has(dKey))
+    ? DISTRICT_INDEX.get(dKey)
+    : PRIMARY_RECORDS;
+
+  let best = null;
+  let minScore = maxDistKm;
+
+  // Search PRIMARY_RECORDS first (which has rich demographics and coordinates)
+  for (const r of pool) {
+    if (r.lat == null || r.lng == null) continue;
+    const d = haversineDistanceKm(numLat, numLng, Number(r.lat), Number(r.lng));
+    if (d <= maxDistKm) {
+      let score = d;
+      if (nameHint) {
+        const hintNorm = normalize(nameHint);
+        const rNorm = normalize(r.name);
+        if (hintNorm.length >= 3 && (rNorm.includes(hintNorm) || hintNorm.includes(rNorm))) {
+          score -= 4.0;
+        }
+      }
+      if (!best || score < minScore) {
+        best = r;
+        minScore = score;
+      }
+    }
+  }
+
+  // Also check _villagesCache if available
+  if (_villagesCache) {
+    for (const v of _villagesCache) {
+      if (v.lat == null || v.lng == null) continue;
+      if (!isAllDistricts && normalize(v.district) !== dKey) continue;
+      const d = haversineDistanceKm(numLat, numLng, Number(v.lat), Number(v.lng));
+      if (d <= maxDistKm) {
+        let score = d;
+        if (nameHint) {
+          const hintNorm = normalize(nameHint);
+          const vNorm = normalize(v.name);
+          if (hintNorm.length >= 3 && (vNorm.includes(hintNorm) || hintNorm.includes(vNorm))) {
+            score -= 4.0;
+          }
+        }
+        if (!best || score < minScore) {
+          best = v;
+          minScore = score;
+        }
+      }
+    }
+  }
+
+  if (best) {
+    const vCode = String(best.code || best.id);
+    if (ALIASES[vCode] && CODE_INDEX.has(ALIASES[vCode])) {
+      return expandRecord(CODE_INDEX.get(ALIASES[vCode]));
+    }
+    return expandRecord(best);
+  }
+
+  return null;
+}
+
+/**
+ * Universal Canonical Location Resolver:
+ * Consistently resolves a Census record regardless of whether selection originated
+ * from Quick Habitations, Search bar autocomplete, or Direct Map clicks/pin drops.
+ */
+export function resolveCanonicalCensusRecord(input, districtFilter = null) {
+  if (!input) return null;
+
+  if (typeof input === 'string' || typeof input === 'number') {
+    return findCensusRecord(input, districtFilter);
+  }
+
+  const obj = input;
+  const dist = obj.district || districtFilter;
+  const dKey = dist ? normalize(dist) : null;
+  const isAllDistricts = !dKey || dKey === 'all' || dKey === 'alldistricts' || dKey === 'tamilnadu';
+
+  // 1. Direct Census Code lookup (if 6-7 digit official code present)
+  const codeVal = obj.census_code || (obj.gp_code ? String(obj.gp_code).replace(/^CENSUS-/i, '') : null);
+  if (codeVal && /^\d{6,7}$/.test(String(codeVal))) {
+    const match = findCensusRecord(codeVal, dist);
+    if (match) return match;
+  }
+
+  // Also check obj.gp_id if it's an authentic census code (not synthetic 9000-99999)
+  if (obj.gp_id && /^\d{6,7}$/.test(String(obj.gp_id)) && !String(obj.gp_id).startsWith('9000') && Number(obj.gp_id) !== 9999) {
+    const match = findCensusRecord(obj.gp_id, dist);
+    if (match) return match;
+  }
+
+  // 2. Name candidate matching with priority (village > town > hamlet > suburb > municipality > name)
+  const rawAddr = obj.rawAddress || obj.address || {};
+  const nameCandidates = [
+    obj.village_name,
+    obj.village,
+    obj.gp_name,
+    obj.matched_location_name,
+    obj.name,
+    rawAddr.village,
+    rawAddr.town,
+    rawAddr.hamlet,
+    rawAddr.suburb,
+    rawAddr.municipality,
+    rawAddr.city,
+  ].filter(Boolean);
+
+  for (const nameCandidate of nameCandidates) {
+    const match = findCensusRecord(nameCandidate, dist);
+    if (match) return match;
+  }
+
+  // 3. Spatial coordinate proximity lookup (if coordinates available)
+  const lat = obj.lat ?? obj.latitude;
+  const lng = obj.lng ?? obj.lon ?? obj.longitude;
+  if (lat != null && lng != null && !isNaN(Number(lat)) && !isNaN(Number(lng))) {
+    const primaryName = nameCandidates[0] || null;
+    const match = findNearestCensusRecord(lat, lng, dist, 8.0, primaryName);
+    if (match) return match;
+  }
+
+  return null;
+}
+
+/**
  * Finds an authentic Census record by name or code with optional district filter.
  */
 export function findCensusRecord(queryOrCode, districtFilter = null) {
   if (!queryOrCode) return null;
+
+  if (typeof queryOrCode === 'object') {
+    return resolveCanonicalCensusRecord(queryOrCode, districtFilter);
+  }
 
   const dKey = districtFilter ? normalize(districtFilter) : null;
   const isAllDistricts = !dKey || dKey === 'all' || dKey === 'alldistricts' || dKey === 'tamilnadu';

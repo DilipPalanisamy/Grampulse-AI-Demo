@@ -10,7 +10,7 @@ import {
   searchVillages,
 } from '../services/api';
 import { searchRealVillages } from '../services/villageSearchService';
-import { findCensusRecord, getTopCensusRecords, getDistricts } from '../services/censusDirectoryService';
+import { findCensusRecord, resolveCanonicalCensusRecord, getTopCensusRecords, getDistricts } from '../services/censusDirectoryService';
 import { queryOverpassInfrastructure } from '../utils/overpassApi';
 
 import { useAuth } from './AuthContext';
@@ -640,7 +640,7 @@ export const LocationProvider = ({ children }) => {
 
     let targetLocation = locationOrId;
     if (typeof locationOrId !== 'object' || locationOrId === null) {
-      const rec = findCensusRecord(locationOrId);
+      const rec = resolveCanonicalCensusRecord(locationOrId);
       if (rec) {
         targetLocation = rec;
       } else {
@@ -659,23 +659,26 @@ export const LocationProvider = ({ children }) => {
         targetLocation.census_baseline?.location_name ||
         'Selected Location';
       const district = targetLocation.district || (selectedDistrict !== 'All Districts' ? selectedDistrict : 'Tamil Nadu');
-      // Query by authentic town/village name so backend resolves Census PCA and Table HL-11 accurately
-      const queryParam = targetLocation.village_name || targetLocation.village || targetLocation.gp_name || targetLocation.name || targetLocation.census_code || rawName;
 
-      console.log('[DEBUG-SELECT] Selected village name:', rawName, 'District:', district, 'Census ID:', targetLocation?.census_code, 'Input object:', targetLocation);
+      // Canonical Census resolution using coordinates, codes, and place names
+      const censusDirectoryMatch = resolveCanonicalCensusRecord(targetLocation, district) ||
+                                   findCensusRecord(targetLocation.census_code || rawName, district);
 
-      const immediateGpId = targetLocation.census_code
-        ? Number(targetLocation.census_code)
+      const resolvedCensusCode = censusDirectoryMatch?.census_code || targetLocation.census_code || null;
+      const immediateGpId = resolvedCensusCode
+        ? Number(resolvedCensusCode)
         : (Number(targetLocation.gp_id || targetLocation.id) || Math.floor(1000 + Math.random() * 9000));
 
-      // Match against authentic Census directory across all 38 districts of Tamil Nadu
-      const censusDirectoryMatch = findCensusRecord(targetLocation.census_code || immediateGpId || queryParam || rawName, district);
+      // Query by authentic town/village name so backend resolves Census PCA and Table HL-11 accurately
+      const queryParam = resolvedCensusCode || censusDirectoryMatch?.name || targetLocation.village_name || targetLocation.village || targetLocation.gp_name || targetLocation.name || rawName;
+
+      console.log('[DEBUG-SELECT] Selected village name:', rawName, 'District:', district, 'Census ID:', resolvedCensusCode, 'Input object:', targetLocation);
 
       // Match against preloaded authentic repository records (Karamadai, Chinniyampalayam, Sirumugai)
       const knownPreload = censusDirectoryMatch || PRELOADED_AUTHENTIC_VILLAGES.find(
         (v) =>
           (immediateGpId && Number(v.gp_id) === immediateGpId) ||
-          (targetLocation.census_code && String(v.census_code) === String(targetLocation.census_code)) ||
+          (resolvedCensusCode && String(v.census_code) === String(resolvedCensusCode)) ||
           String(v.gp_name || '').toLowerCase() === String(rawName).toLowerCase()
       );
 
@@ -797,7 +800,7 @@ export const LocationProvider = ({ children }) => {
         };
       } else {
         // Fallback to authentic Census 2011 & UDISE+ directory if Render backend query fails
-        const censusFallback = findCensusRecord(locationOrId.census_code || immediateGpId || queryParam || rawName, district);
+        const censusFallback = censusDirectoryMatch || resolveCanonicalCensusRecord(locationOrId, district) || findCensusRecord(locationOrId.census_code || rawName, district);
         const activeBaseline = censusFallback || knownPreload;
         const fallbackInds = hasRealIndicatorValues(locationOrId.indicators)
           ? mergeIndicatorsSafely(locationOrId.indicators, activeBaseline?.indicators)

@@ -506,17 +506,27 @@ const MapView = ({
     (loc) => {
       if (!loc) return;
       const locationPayload = {
-        gp_id: loc.gp_id || Math.floor(1000 + Math.random() * 9000),
+        ...loc,
+        gp_id: loc.census_code ? Number(loc.census_code) : (loc.gp_id || Math.floor(1000 + Math.random() * 9000)),
         gp_name: loc.gp_name || loc.name || 'Habitation',
         district: loc.district || 'District',
         state: loc.state || 'Tamil Nadu',
         lat: Number(loc.lat || 10.9634),
         lng: Number(loc.lng || 77.4727),
-        population: loc.population || 5000,
+        population: loc.population ?? null,
+        total_population: loc.total_population ?? loc.population ?? null,
+        households: loc.households ?? null,
+        male_population: loc.male_population ?? null,
+        female_population: loc.female_population ?? null,
+        literate_population: loc.literate_population ?? null,
+        schools: loc.schools ?? null,
+        school_classrooms_count: loc.school_classrooms_count ?? null,
+        census_code: loc.census_code || null,
+        indicators: loc.indicators || null,
+        census_baseline: loc.census_baseline || null,
         daily_water_supply_liters: loc.daily_water_supply_liters || 275000,
-        school_classrooms_count: loc.school_classrooms_count || 24,
-        road_coverage_km: loc.road_coverage_km || 18.5,
-        gp_code: loc.gp_code || `GP-${loc.gp_id || 'PIN'}`,
+        road_coverage_km: loc.road_coverage_km ?? null,
+        gp_code: loc.gp_code || (loc.census_code ? `CENSUS-${loc.census_code}` : `GP-${loc.gp_id || 'PIN'}`),
       };
 
       if (onAnalyzeLocation) {
@@ -827,6 +837,12 @@ const MapView = ({
                       <span className="text-[9px] font-bold uppercase tracking-wider text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200">
                         Manual Pin Drop
                       </span>
+                      {manualPinnedLocation.isOfficialCensus && (
+                        <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 ml-1.5">
+                          <Sparkles className="w-2.5 h-2.5" />
+                          Official Census
+                        </span>
+                      )}
                       <h4 className="text-sm font-black text-slate-900 mt-1 leading-tight">
                         {manualPinnedLocation.gp_name}
                       </h4>
@@ -843,10 +859,26 @@ const MapView = ({
                         {Number(manualPinnedLocation.lat).toFixed(4)}°N, {Number(manualPinnedLocation.lng).toFixed(4)}°E
                       </span>
                     </div>
+                    {manualPinnedLocation.population != null && (
+                      <div className="flex items-center justify-between text-slate-700">
+                        <span className="text-slate-500">Census 2011 Pop:</span>
+                        <span className="font-bold text-emerald-700">
+                          {Number(manualPinnedLocation.population).toLocaleString()}
+                        </span>
+                      </div>
+                    )}
+                    {manualPinnedLocation.households != null && (
+                      <div className="flex items-center justify-between text-slate-700">
+                        <span className="text-slate-500">Households:</span>
+                        <span className="font-bold text-slate-800">
+                          {Number(manualPinnedLocation.households).toLocaleString()}
+                        </span>
+                      </div>
+                    )}
                     {isGeocodingPin && (
                       <div className="flex items-center gap-1 text-emerald-600 font-semibold pt-1">
                         <Loader2 className="w-3 h-3 animate-spin" />
-                        <span>Resolving OpenStreetMap Telemetry...</span>
+                        <span>Resolving Census &amp; Spatial Telemetry...</span>
                       </div>
                     )}
                   </div>

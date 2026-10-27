@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { searchSpatialLocation, reverseGeocodeLocation } from './api';
-import { searchCensusDirectory, findCensusRecord } from './censusDirectoryService';
+import { searchCensusDirectory, findCensusRecord, resolveCanonicalCensusRecord } from './censusDirectoryService';
 
 // In-memory search cache for instant responses
 const SEARCH_RESULTS_CACHE = new Map();
@@ -268,13 +268,23 @@ export const reverseGeocodeCoordinates = async (lat, lng) => {
     const osmId = Math.abs(parseInt(item.osm_id || 1000, 10));
     const gpId = 9000 + (osmId % 90000);
 
+    // Canonical Census Resolution via authoritative statewide directory
+    const canonicalRecord = resolveCanonicalCensusRecord({
+      name,
+      district,
+      lat: Number(lat),
+      lng: Number(lng),
+      rawAddress: addr,
+    }, district);
+
     const result = {
-      gp_id: gpId,
-      gp_code: `GP-PIN-${String(gpId % 1000).padStart(3, '0')}`,
-      gp_name: name,
-      village_name: name,
-      district: district,
-      state: state,
+      ...(canonicalRecord || {}),
+      gp_id: canonicalRecord?.census_code ? Number(canonicalRecord.census_code) : (canonicalRecord?.gp_id || gpId),
+      gp_code: canonicalRecord?.census_code ? `CENSUS-${canonicalRecord.census_code}` : (canonicalRecord?.gp_code || `GP-PIN-${String(gpId % 1000).padStart(3, '0')}`),
+      gp_name: canonicalRecord?.name || canonicalRecord?.gp_name || name,
+      village_name: canonicalRecord?.name || canonicalRecord?.village_name || name,
+      district: canonicalRecord?.district || district,
+      state: canonicalRecord?.state || state,
       lat: Number(lat),
       lng: Number(lng),
       display_name: item.display_name || `${name}, ${district}, ${state}`,
@@ -287,6 +297,20 @@ export const reverseGeocodeCoordinates = async (lat, lng) => {
     return result;
   } catch (err) {
     console.error('Direct OSM reverse geocoding error:', err);
+    // Offline / Network Fallback: Spatial Lookup via Canonical Resolver
+    const spatialRecord = resolveCanonicalCensusRecord({
+      lat: Number(lat),
+      lng: Number(lng),
+    });
+    if (spatialRecord) {
+      return {
+        ...spatialRecord,
+        lat: Number(lat),
+        lng: Number(lng),
+        isLiveGeocoded: true,
+        isManualPin: true,
+      };
+    }
     return {
       gp_id: 9999,
       gp_code: 'GP-PIN-MANUAL',
