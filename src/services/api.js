@@ -30,7 +30,7 @@ export const fetchVillageData = async (villageName, district = 'Coimbatore') => 
   try {
     const res = await axios.get(`${base}/village/data`, {
       params: { village_name: villageName, district },
-      timeout: 2500,
+      timeout: 15000,
     });
     console.log(`[API RESPONSE] 200 OK from ${reqUrl}`, {
       status: res.data?.status,
@@ -245,7 +245,7 @@ export const generateOfficialPanchayatAnalytics = (
   const roadTier = roadDeficit >= 2.5 || roadDeficitPct >= 30 ? 'P1' : roadDeficit >= 1.5 || roadDeficitPct >= 15 ? 'P2' : 'P3';
 
   return {
-    gp_id: Number(gpId || 101),
+    gp_id: gpId != null ? Number(gpId) : null,
     gp_name: villageName,
     district,
     state,

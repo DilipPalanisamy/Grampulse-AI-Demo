@@ -352,7 +352,7 @@ export const AuthProvider = ({ children }) => {
       designation: `${villageName} Resident & Citizen Member`,
       villageOrCity: villageName,
       officialVillage,
-      gpId: officialVillage?.gp_id || 101,
+      gpId: officialVillage?.gp_id || null,
       gpName: villageName,
       district: officialVillage?.district || 'District',
       state: officialVillage?.state || 'India',

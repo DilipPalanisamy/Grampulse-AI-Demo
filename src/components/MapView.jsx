@@ -359,7 +359,7 @@ const MapEventsHandler = ({ isPinningMode, onMapClick }) => {
 
   useMapEvents({
     click: (e) => {
-      if (onMapClick) {
+      if (isPinningMode && onMapClick) {
         onMapClick(e.latlng);
       }
     },
@@ -559,13 +559,13 @@ const MapView = ({
       const lat = Number(latlng.lat);
       const lng = Number(latlng.lng);
 
-      // Set immediate placeholder marker
+      // Set immediate placeholder marker without fake 9999 ID
       const tempLoc = {
-        gp_id: 9999,
-        gp_code: 'GP-PIN-MANUAL',
+        gp_id: null,
+        gp_code: null,
         gp_name: `Loc (${lat.toFixed(3)}, ${lng.toFixed(3)})`,
         district: 'Locating...',
-        state: 'India',
+        state: 'Tamil Nadu',
         lat,
         lng,
         isManualPin: true,
@@ -576,14 +576,27 @@ const MapView = ({
       try {
         // Perform Reverse Geocoding via Nominatim / Backend API
         const geocoded = await reverseGeocodeCoordinates(lat, lng);
-        const resolved = { ...tempLoc, ...geocoded };
-        setManualPinnedLocation(resolved);
+        if (geocoded && geocoded.status !== 'unresolved' && (geocoded.census_code || geocoded.gp_id || (geocoded.gp_name && !geocoded.gp_name.startsWith('Unresolved')))) {
+          const resolved = { ...tempLoc, ...geocoded };
+          setManualPinnedLocation(resolved);
 
-        // Update active location metadata without routing to dashboard
-        if (onSelectLocation) {
-          onSelectLocation(resolved);
-        } else if (selectLocation) {
-          selectLocation(resolved, false);
+          // Update active location metadata without routing to dashboard
+          if (onSelectLocation) {
+            onSelectLocation(resolved);
+          } else if (selectLocation) {
+            selectLocation(resolved, false);
+          }
+        } else {
+          // Point is outside known village/panchayat boundaries
+          const unresolved = {
+            ...tempLoc,
+            status: 'unresolved',
+            gp_name: `Unresolved (${lat.toFixed(3)}, ${lng.toFixed(3)})`,
+            district: geocoded?.district || 'Outside Gram Panchayat Bounds',
+            isUnresolved: true,
+          };
+          setManualPinnedLocation(unresolved);
+          console.info('Manual pin outside known village boundaries:', { lat, lng });
         }
       } catch (err) {
         console.error('Error reverse geocoding manual pin:', err);
@@ -764,7 +777,7 @@ const MapView = ({
       {/* MAIN LEAFLET MAP CONTAINER                                         */}
       {/* =================================================================== */}
       <MapContainer
-        key={`leaflet-map-${safeCenter[0].toFixed(2)}-${safeCenter[1].toFixed(2)}`}
+        key="grampulse-leaflet-map"
         preferCanvas={true}
         center={safeCenter}
         zoom={zoom}
@@ -809,7 +822,7 @@ const MapView = ({
         {/* Real OpenStreetMap Boundary Polygon GeoJSON Layer */}
         {validPolygonGeoJson && (
           <GeoJSON
-            key={`geojson-${selectedGpId || 101}-${JSON.stringify(validPolygonGeoJson).length}`}
+            key={`geojson-${selectedGpId || 'active'}-${JSON.stringify(validPolygonGeoJson).length}`}
             data={validPolygonGeoJson}
             style={{
               color: '#10b981',

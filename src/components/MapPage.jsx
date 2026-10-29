@@ -78,7 +78,7 @@ export default function MapPage({ onBackToDashboard, onOpenChatbot }) {
                 {selectedLocation?.gp_name || 'Active Habitation'}
               </h2>
               <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 font-bold px-1.5 py-0.2 rounded bg-emerald-500/10 border border-emerald-500/20">
-                {selectedLocation?.gp_code || `GP-${selectedLocation?.gp_id || 101}`}
+                {selectedLocation?.gp_code || (selectedLocation?.gp_id ? `GP-${selectedLocation.gp_id}` : 'GP-ACTIVE')}
               </span>
             </div>
             <p className="text-[10px] text-[var(--text-muted)] truncate max-w-[180px]">
@@ -220,7 +220,7 @@ export default function MapPage({ onBackToDashboard, onOpenChatbot }) {
       <IssueReportForm
         isOpen={isReportModalOpen}
         onClose={() => setIsReportModalOpen(false)}
-        activeGpId={selectedLocation?.gp_id || 101}
+        activeGpId={selectedLocation?.gp_id || null}
         defaultCoords={mapCenter}
         onIssueCreated={handleIssueCreated}
       />

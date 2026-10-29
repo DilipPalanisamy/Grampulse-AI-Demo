@@ -374,7 +374,7 @@ function DashboardLayout() {
                   }}
                 >
                   {selectedLocation?.gp_code ||
-                    `GP-${selectedLocation?.gp_id || 101}`}
+                    (selectedLocation?.gp_id ? `GP-${selectedLocation.gp_id}` : 'GP-ACTIVE')}
                 </span>
 
                 <span className="text-xs px-2.5 py-0.5 rounded-full bg-[var(--bg-primary)] text-[var(--text-muted)] border border-[var(--border-subtle)] font-medium">
@@ -745,7 +745,7 @@ function DashboardLayout() {
             )
           }
           activeGpId={
-            selectedLocation?.gp_id || 101
+            selectedLocation?.gp_id || null
           }
           defaultCoords={
             mapCenter

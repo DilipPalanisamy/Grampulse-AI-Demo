@@ -136,6 +136,7 @@ function generateClientFallbackPrediction(payload) {
     };
   }
 
+  const forecastYears = Math.max(1, Number(payload.prediction_years || payload.prediction_horizon || payload.planning_horizon_years || 5));
   const currentPop = Number(payload.population);
   const historicalPop = payload.historical_population != null ? Number(payload.historical_population) : currentPop;
   const historicalHh = payload.historical_households != null ? Number(payload.historical_households) : Math.round(historicalPop / 4);
@@ -144,7 +145,7 @@ function generateClientFallbackPrediction(payload) {
   const years = [];
   let pop = currentPop;
 
-  for (let i = 1; i <= 5; i++) {
+  for (let i = 1; i <= forecastYears; i++) {
     const yr = currentYear + i;
     pop = Math.round(pop * (1 + growthRate));
     const hh = Math.round(pop / 4);
@@ -277,16 +278,16 @@ function generateClientFallbackPrediction(payload) {
     forecast_horizon: {
       base_year: currentYear,
       start_year: currentYear + 1,
-      end_year: currentYear + 5,
-      years: [currentYear + 1, currentYear + 2, currentYear + 3, currentYear + 4, currentYear + 5],
+      end_year: currentYear + forecastYears,
+      years: Array.from({ length: forecastYears }, (_, idx) => currentYear + idx + 1),
       status: 'MODEL_PROJECTION',
       data_status: 'MODEL_PROJECTION',
-      status_label: 'Model projection (5-Year Forecast)',
+      status_label: `Model projection (${forecastYears}-Year Forecast)`,
     },
     assumptions_and_limitations: [
       'Census 2011 observations represent authoritative decennial historical enumeration.',
       `The ${currentYear} baseline is a demographic projection calibrated against natural population growth.`,
-      `The 5-year forecast (${currentYear + 1}–${currentYear + 5}) applies the unchanged mathematical and demographic model from predictor.py.`,
+      `The ${forecastYears}-year forecast (${currentYear + 1}–${currentYear + forecastYears}) applies the unchanged mathematical and demographic model from predictor.py.`,
       'Projections serve as advisory estimates for GPDP planning and are subject to policy, infrastructure, and migration dynamics.',
     ],
   };
@@ -295,7 +296,8 @@ function generateClientFallbackPrediction(payload) {
     status: true,
     village: villageName,
     current_year: currentYear,
-    prediction_horizon: 5,
+    prediction_horizon: forecastYears,
+    prediction_years: forecastYears,
     data_provenance: dataProvenance,
     data_quality: {
       udise_available: true,
@@ -332,7 +334,7 @@ function generateClientFallbackPrediction(payload) {
       years,
       summary: {
         base_year: currentYear,
-        final_year: currentYear + 5,
+        final_year: currentYear + forecastYears,
         base_population: Math.round(currentPop),
         final_population: years[years.length - 1].population,
         population_change: years[years.length - 1].population - Math.round(currentPop),
@@ -401,10 +403,12 @@ export function buildPredictionPayload({
   selectedLocation,
   analytics,
   infrastructure,
+  planningHorizon,
 }) {
   const location = selectedLocation || {};
   const analyticData = analytics || {};
   const infra = infrastructure || {};
+  const horizon = Math.max(1, Number(planningHorizon || 5));
 
   const villageName =
     location.village_name ||
@@ -414,15 +418,18 @@ export function buildPredictionPayload({
     'Selected Village';
 
   // 1. Authentic Historical Census Population (2011)
-  const historicalPop =
+  const rawPop =
     location.indicators?.total_population?.value != null
-      ? Number(location.indicators.total_population.value)
+      ? location.indicators.total_population.value
       : (location.population != null
-          ? Number(location.population)
+          ? location.population
           : (location.total_population != null
-              ? Number(location.total_population)
-              : (analyticData.population != null ? Number(analyticData.population) : null)));
+              ? location.total_population
+              : (location.census_baseline?.population != null
+                  ? location.census_baseline.population
+                  : (analyticData.population != null ? analyticData.population : null))));
 
+  const historicalPop = rawPop != null && !isNaN(Number(rawPop)) ? Number(rawPop) : null;
   const censusCode = location.census_code || location.id || null;
   const isOfficial = Boolean(location.isOfficialData || location.isOfficialCensus || location.census_baseline);
 
@@ -469,6 +476,9 @@ export function buildPredictionPayload({
     state: location.state || 'Tamil Nadu',
     census_code: censusCode,
     current_year: 2026,
+    prediction_years: horizon,
+    prediction_horizon: horizon,
+    planning_horizon_years: horizon,
     population: estimated2026Pop,
     historical_population: historicalPop,
     historical_households: historicalHh,

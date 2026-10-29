@@ -269,19 +269,33 @@ def resolve_udise_infrastructure(village_name: str, fallback_pop: float = 5800.0
 
 def execute_village_future_prediction(payload_data: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Executes 5-year mathematical baseline forecasting and demographic projection,
+    Executes multi-year (3, 5, or 7-year) mathematical baseline forecasting and demographic projection,
     enriched with real UDISE+ school infrastructure data.
     """
     # 1. Parse and sanitize input
     village_name = str(payload_data.get("village_name") or "Selected Village").strip()
+    district = str(payload_data.get("district") or "Coimbatore").strip()
+    census_code = str(payload_data.get("census_code") or "").strip() or None
     current_year = int(payload_data.get("current_year") or 2026)
+    horizon = int(
+        payload_data.get("prediction_years")
+        or payload_data.get("prediction_horizon")
+        or payload_data.get("planning_horizon_years")
+        or 5
+    )
+    if horizon not in [3, 5, 7]:
+        horizon = max(1, min(15, horizon))
+
     # Attempt resolution from authentic Census baseline for missing fields
     baseline = None
     try:
         from census_service import get_census_baseline
-        baseline = get_census_baseline(village_name)
-    except Exception:
-        pass
+        if census_code:
+            baseline = get_census_baseline(census_code, district_name=district)
+        if not baseline:
+            baseline = get_census_baseline(village_name, district_name=district)
+    except Exception as _b_err:
+        logger.info(f"Census baseline query: {_b_err}")
 
     raw_pop = payload_data.get("population")
     if raw_pop is not None and float(raw_pop) > 0:
@@ -289,10 +303,21 @@ def execute_village_future_prediction(payload_data: Dict[str, Any]) -> Dict[str,
     elif baseline and (baseline.get("total_population") or baseline.get("population")):
         population = float(baseline.get("total_population") or baseline.get("population"))
     else:
-        raise ValueError(
-            f"Required prediction input 'population' is missing for '{village_name}'. "
-            "Official Census records are unavailable for this query."
-        )
+        try:
+            from village_data_service import get_village_government_data
+            gov = get_village_government_data(village_name, district)
+            pop_ind = gov.get("indicators", {}).get("total_population", {}).get("value")
+            if pop_ind:
+                population = float(pop_ind)
+            else:
+                population = None
+        except Exception:
+            population = None
+        if population is None:
+            raise ValueError(
+                f"Required prediction input 'population' is missing for '{village_name}'. "
+                "Official Census records are unavailable for this query."
+            )
 
     base_hh = (baseline.get("total_households") or baseline.get("households")) if baseline else None
     households = int(payload_data.get("households") or base_hh or max(1, round(population / 4)))
@@ -319,7 +344,12 @@ def execute_village_future_prediction(payload_data: Dict[str, Any]) -> Dict[str,
 
     sanitized = {
         "village_name": village_name,
+        "district": district,
+        "census_code": census_code,
         "current_year": current_year,
+        "prediction_years": horizon,
+        "planning_horizon_years": horizon,
+        "prediction_horizon": horizon,
         "population": population,
         "birth_rate": float(payload_data.get("birth_rate", 18.0)),
         "death_rate": float(payload_data.get("death_rate", 7.0)),
@@ -359,7 +389,7 @@ def execute_village_future_prediction(payload_data: Dict[str, Any]) -> Dict[str,
         "education_impact": real_impact,
     }
 
-    # 3. Generate 5-Year Forecast using predictor
+    # 3. Generate Multi-Year Forecast using predictor
     if generate_five_year_prediction:
         try:
             predictions = generate_five_year_prediction(sanitized)
@@ -421,15 +451,15 @@ def execute_village_future_prediction(payload_data: Dict[str, Any]) -> Dict[str,
         "forecast_horizon": {
             "base_year": current_year,
             "start_year": current_year + 1,
-            "end_year": current_year + 5,
-            "years": [current_year + i for i in range(1, 6)],
+            "end_year": current_year + horizon,
+            "years": [current_year + i for i in range(1, horizon + 1)],
             "data_status": "MODEL_PROJECTION",
-            "status_label": "Model projection (5-Year Forecast)",
+            "status_label": f"Model projection ({horizon}-Year Forecast)",
         },
         "assumptions_and_limitations": [
             "Census 2011 figures represent authoritative decennial historical enumeration.",
             f"The {current_year} baseline is a demographic projection calibrated against natural population growth.",
-            f"The 5-year forecast ({current_year + 1}–{current_year + 5}) applies the unchanged mathematical and demographic model from predictor.py.",
+            f"The {horizon}-year forecast ({current_year + 1}–{current_year + horizon}) applies the unchanged mathematical and demographic model from predictor.py.",
             "Projections serve as advisory estimates for GPDP planning and are subject to policy, infrastructure, and migration dynamics."
         ]
     }
@@ -438,7 +468,7 @@ def execute_village_future_prediction(payload_data: Dict[str, Any]) -> Dict[str,
         "status": True,
         "village": village_name,
         "current_year": current_year,
-        "prediction_horizon": 5,
+        "prediction_horizon": horizon,
         "data_provenance": data_provenance,
         "data_quality": {
             "udise_available": school_count > 0,
@@ -457,16 +487,26 @@ def execute_village_future_prediction(payload_data: Dict[str, Any]) -> Dict[str,
 
 
 def generate_fallback_prediction(data: Dict[str, Any]) -> Dict[str, Any]:
-    """Fallback 5-year mathematical baseline generator."""
+    """Fallback multi-year mathematical baseline generator."""
     current_year = int(data.get("current_year", 2026))
     current_pop = float(data.get("population", 5800.0))
+    horizon = int(
+        data.get("prediction_years")
+        or data.get("prediction_horizon")
+        or data.get("planning_horizon_years")
+        or 5
+    )
+    if horizon not in [3, 5, 7]:
+        horizon = max(1, min(15, horizon))
+
     net_growth = (data.get("birth_rate", 18.0) - data.get("death_rate", 7.0) + data.get("migration_rate", 1.0)) / 1000.0
     
     years = []
     running_pop = current_pop
     
-    for i in range(1, 6):
+    for i in range(1, horizon + 1):
         target_yr = current_year + i
+        running_pop = running_pop * (1.0 + net_growth)
         pop_int = round(running_pop)
         hh = round(pop_int / 4)
         water_cov = min(100.0, float(data.get("water_coverage", 70.0)) + i * 1.5)
@@ -560,7 +600,7 @@ def generate_fallback_prediction(data: Dict[str, Any]) -> Dict[str, Any]:
         "years": years,
         "summary": {
             "base_year": current_year,
-            "final_year": current_year + 5,
+            "final_year": current_year + horizon,
             "base_population": round(current_pop),
             "final_population": years[-1]["population"],
             "population_change": years[-1]["population"] - round(current_pop),

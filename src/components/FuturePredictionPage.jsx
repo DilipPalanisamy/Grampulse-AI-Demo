@@ -52,6 +52,7 @@ import {
 
 import { generatePredictionPdf } from '../utils/predictionPdfGenerator';
 import { parseDocumentFile } from '../utils/documentTelemetryParser';
+import { useLocation } from '../context/LocationContext';
 
 /*
 ============================================================
@@ -621,23 +622,28 @@ YEAR INTERVENTIONS & UTILITY SATURATION COMPONENT
 function YearInterventionsView({ yearData }) {
   const [filterPriority, setFilterPriority] = useState('all');
 
-  const interventions = useMemo(() => {
+  const allInterventions = useMemo(() => {
     return evaluateSectorInterventions(yearData);
   }, [yearData]);
 
+  // AI Priority Interventions & Resource Allocation only displays items that require action (High & Moderate),
+  // excluding low or adequate need items.
+  const interventions = useMemo(() => {
+    return allInterventions.filter((i) => i.priority !== 'Low');
+  }, [allInterventions]);
+
   const highCount = interventions.filter((i) => i.priority === 'High').length;
   const medCount = interventions.filter((i) => i.priority === 'Medium').length;
-  const lowCount = interventions.filter((i) => i.priority === 'Low').length;
 
   const filteredInterventions = useMemo(() => {
     if (filterPriority === 'all') return interventions;
     return interventions.filter((i) => i.priority === filterPriority);
   }, [interventions, filterPriority]);
 
-  const waterIntervention = interventions.find((i) => i.id === 'water');
-  const elecIntervention = interventions.find((i) => i.id === 'electricity');
-  const netIntervention = interventions.find((i) => i.id === 'internet');
-  const empIntervention = interventions.find((i) => i.id === 'employment');
+  const waterIntervention = allInterventions.find((i) => i.id === 'water');
+  const elecIntervention = allInterventions.find((i) => i.id === 'electricity');
+  const netIntervention = allInterventions.find((i) => i.id === 'internet');
+  const empIntervention = allInterventions.find((i) => i.id === 'employment');
 
   return (
     <div className="space-y-5 px-6 pb-6">
@@ -839,149 +845,131 @@ function YearInterventionsView({ yearData }) {
       </div>
 
       {/* 2. AI PREDICTED PRIORITY INTERVENTIONS (DECISION MATRIX) */}
-      <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-primary)] p-5 space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border-subtle)] pb-3">
-          <div>
-            <div className="flex items-center gap-2">
-              <Shield className="w-4 h-4 text-amber-400" />
-              <h4 className="text-sm font-black text-[var(--text-main)]">
-                AI Priority Interventions & Resource Allocation ({yearData.year})
-              </h4>
+      {interventions.length > 0 && (
+        <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-primary)] p-5 space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border-subtle)] pb-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <Shield className="w-4 h-4 text-amber-400" />
+                <h4 className="text-sm font-black text-[var(--text-main)]">
+                  AI Priority Interventions & Resource Allocation ({yearData.year})
+                </h4>
+              </div>
+              <p className="text-[11px] text-[var(--text-muted)] mt-0.5">
+                The AI evaluated population demand vs. available capacity and decided priority levels (High vs. Moderate):
+              </p>
             </div>
-            <p className="text-[11px] text-[var(--text-muted)] mt-0.5">
-              The AI evaluated population demand vs. available capacity and decided priority levels (High vs. Moderate vs. Low):
-            </p>
-          </div>
 
-          {/* Filter Pills */}
-          <div className="flex flex-wrap items-center gap-1.5 bg-[var(--bg-card)] p-1 rounded-xl border border-[var(--border-subtle)]">
-            <button
-              type="button"
-              onClick={() => setFilterPriority('all')}
-              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-                filterPriority === 'all'
-                  ? 'bg-emerald-500 text-white shadow-sm'
-                  : 'text-[var(--text-muted)] hover:text-white'
-              }`}
-            >
-              All ({interventions.length})
-            </button>
-            <button
-              type="button"
-              onClick={() => setFilterPriority('High')}
-              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-                filterPriority === 'High'
-                  ? 'bg-rose-500 text-white shadow-sm'
-                  : 'text-rose-400/80 hover:text-rose-300'
-              }`}
-            >
-              🔴 High ({highCount})
-            </button>
-            <button
-              type="button"
-              onClick={() => setFilterPriority('Medium')}
-              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-                filterPriority === 'Medium'
-                  ? 'bg-amber-500 text-white shadow-sm'
-                  : 'text-amber-400/80 hover:text-amber-300'
-              }`}
-            >
-              🟡 Moderate ({medCount})
-            </button>
-            <button
-              type="button"
-              onClick={() => setFilterPriority('Low')}
-              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-                filterPriority === 'Low'
-                  ? 'bg-emerald-600 text-white shadow-sm'
-                  : 'text-emerald-400/80 hover:text-emerald-300'
-              }`}
-            >
-              🟢 Adequate ({lowCount})
-            </button>
-          </div>
-        </div>
-
-        {/* Interventions Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-          {filteredInterventions.map((item) => {
-            const Icon = item.icon;
-            const isHigh = item.priority === 'High';
-            const isMed = item.priority === 'Medium';
-
-            const cardBorder = isHigh
-              ? 'border-rose-500/30 hover:border-rose-400/50 bg-gradient-to-br from-rose-950/20 via-[var(--bg-card)] to-transparent'
-              : isMed
-              ? 'border-amber-500/30 hover:border-amber-400/50 bg-gradient-to-br from-amber-950/20 via-[var(--bg-card)] to-transparent'
-              : 'border-emerald-500/20 hover:border-emerald-500/40 bg-[var(--bg-card)]';
-
-            const badgeColor = isHigh
-              ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
-              : isMed
-              ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
-              : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40';
-
-            return (
-              <div
-                key={item.id}
-                className={`p-4 rounded-2xl border ${cardBorder} transition-all duration-200 space-y-2.5`}
+            {/* Filter Pills */}
+            <div className="flex flex-wrap items-center gap-1.5 bg-[var(--bg-card)] p-1 rounded-xl border border-[var(--border-subtle)]">
+              <button
+                type="button"
+                onClick={() => setFilterPriority('all')}
+                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                  filterPriority === 'all'
+                    ? 'bg-emerald-500 text-white shadow-sm'
+                    : 'text-[var(--text-muted)] hover:text-white'
+                }`}
               >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-2.5">
-                    <div
-                      className={`w-8 h-8 rounded-xl flex items-center justify-center border ${
-                        isHigh
-                          ? 'bg-rose-500/20 border-rose-500/40 text-rose-400'
-                          : isMed
-                          ? 'bg-amber-500/20 border-amber-500/40 text-amber-400'
-                          : 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400'
-                      }`}
-                    >
-                      <Icon className="w-4 h-4" />
+                All ({interventions.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setFilterPriority('High')}
+                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                  filterPriority === 'High'
+                    ? 'bg-rose-500 text-white shadow-sm'
+                    : 'text-rose-400/80 hover:text-rose-300'
+                }`}
+              >
+                🔴 High ({highCount})
+              </button>
+              <button
+                type="button"
+                onClick={() => setFilterPriority('Medium')}
+                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                  filterPriority === 'Medium'
+                    ? 'bg-amber-500 text-white shadow-sm'
+                    : 'text-amber-400/80 hover:text-amber-300'
+                }`}
+              >
+                🟡 Moderate ({medCount})
+              </button>
+            </div>
+          </div>
+
+          {/* Interventions Cards Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+            {filteredInterventions.map((item) => {
+              const Icon = item.icon;
+              const isHigh = item.priority === 'High';
+
+              const cardBorder = isHigh
+                ? 'border-rose-500/30 hover:border-rose-400/50 bg-gradient-to-br from-rose-950/20 via-[var(--bg-card)] to-transparent'
+                : 'border-amber-500/30 hover:border-amber-400/50 bg-gradient-to-br from-amber-950/20 via-[var(--bg-card)] to-transparent';
+
+              const badgeColor = isHigh
+                ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
+                : 'bg-amber-500/20 text-amber-300 border-amber-500/40';
+
+              return (
+                <div
+                  key={item.id}
+                  className={`p-4 rounded-2xl border ${cardBorder} transition-all duration-200 space-y-2.5`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-2.5">
+                      <div
+                        className={`w-8 h-8 rounded-xl flex items-center justify-center border ${
+                          isHigh
+                            ? 'bg-rose-500/20 border-rose-500/40 text-rose-400'
+                            : 'bg-amber-500/20 border-amber-500/40 text-amber-400'
+                        }`}
+                      >
+                        <Icon className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <h5 className="text-xs font-black text-[var(--text-main)]">{item.sector}</h5>
+                        <span className="text-[10px] text-[var(--text-muted)]">{item.status}</span>
+                      </div>
                     </div>
-                    <div>
-                      <h5 className="text-xs font-black text-[var(--text-main)]">{item.sector}</h5>
-                      <span className="text-[10px] text-[var(--text-muted)]">{item.status}</span>
-                    </div>
+
+                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border shadow-sm ${badgeColor}`}>
+                      {isHigh ? '🔴 High Priority' : '🟡 Moderate Need'}
+                    </span>
                   </div>
 
-                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border shadow-sm ${badgeColor}`}>
-                    {isHigh ? '🔴 High Priority' : isMed ? '🟡 Moderate Need' : '🟢 Low / Adequate'}
-                  </span>
-                </div>
+                  {/* Key Metrics Chips */}
+                  <div className="flex flex-wrap items-center gap-2 text-[10px]">
+                    <span className="px-2 py-0.5 rounded-md bg-[var(--bg-primary)] border border-[var(--border-subtle)] font-medium text-[var(--text-muted)]">
+                      Demand: <strong className="text-[var(--text-main)] font-bold">{item.demandLabel}</strong>
+                    </span>
+                    <span
+                      className={`px-2 py-0.5 rounded-md border font-bold ${
+                        isHigh
+                          ? 'bg-rose-500/10 text-rose-300 border-rose-500/20'
+                          : 'bg-amber-500/10 text-amber-300 border-amber-500/20'
+                      }`}
+                    >
+                      Gap: {item.deficitLabel}
+                    </span>
+                  </div>
 
-                {/* Key Metrics Chips */}
-                <div className="flex flex-wrap items-center gap-2 text-[10px]">
-                  <span className="px-2 py-0.5 rounded-md bg-[var(--bg-primary)] border border-[var(--border-subtle)] font-medium text-[var(--text-muted)]">
-                    Demand: <strong className="text-[var(--text-main)] font-bold">{item.demandLabel}</strong>
-                  </span>
-                  <span
-                    className={`px-2 py-0.5 rounded-md border font-bold ${
-                      isHigh
-                        ? 'bg-rose-500/10 text-rose-300 border-rose-500/20'
-                        : isMed
-                        ? 'bg-amber-500/10 text-amber-300 border-amber-500/20'
-                        : 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20'
-                    }`}
-                  >
-                    Gap: {item.deficitLabel}
-                  </span>
-                </div>
+                  {/* Reasoning & Recommendation */}
+                  <p className="text-[11px] text-[var(--text-muted)] leading-relaxed">
+                    {item.reason}
+                  </p>
 
-                {/* Reasoning & Recommendation */}
-                <p className="text-[11px] text-[var(--text-muted)] leading-relaxed">
-                  {item.reason}
-                </p>
-
-                <div className="pt-2 border-t border-[var(--border-subtle)] text-[10.5px] text-[var(--text-main)] flex items-start gap-1.5">
-                  <span className="font-bold text-emerald-400 shrink-0">GPDP Action:</span>
-                  <span className="text-[var(--text-muted)]">{item.recommendation}</span>
+                  <div className="pt-2 border-t border-[var(--border-subtle)] text-[10.5px] text-[var(--text-main)] flex items-start gap-1.5">
+                    <span className="font-bold text-emerald-400 shrink-0">GPDP Action:</span>
+                    <span className="text-[var(--text-muted)]">{item.recommendation}</span>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
@@ -1537,7 +1525,7 @@ function PredictionReportView({
                   : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
               }`}
             >
-              📊 All 5 Years
+              📊 All {years.length} Years ({years[0]?.year}–{years[years.length - 1]?.year})
             </button>
             {years.map((y) => (
               <button
@@ -1766,10 +1754,10 @@ function PredictionReportView({
           <div>
             <h3 className="text-lg font-black text-[var(--text-main)] flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-emerald-400" />
-              <span>5-Year Year-over-Year Comparative Matrix</span>
+              <span>{years.length}-Year Year-over-Year Comparative Matrix</span>
             </h3>
             <p className="text-xs text-[var(--text-muted)]">
-              Complete trajectory from base year {summary.base_year || 2026} to 2031
+              Complete trajectory from base year {summary.base_year || 2026} to {years[years.length - 1]?.year || 2031}
             </p>
           </div>
           {/* BOTTOM COLORFUL PDF DOWNLOADER BUTTON */}
@@ -1778,17 +1766,17 @@ function PredictionReportView({
             onClick={() => handleDownloadPdf('all')}
             disabled={downloadingYear !== null}
             className="px-4 py-2 rounded-xl bg-gradient-to-r from-rose-600 via-pink-600 to-amber-500 hover:from-rose-500 hover:to-amber-400 text-white text-xs font-black flex items-center gap-2 shadow-xl shadow-rose-950/60 ring-2 ring-rose-400/40 transition-all hover:scale-105 active:scale-95 cursor-pointer disabled:opacity-60 disabled:cursor-wait"
-            title="Directly download official 5-year future prediction PDF report alone"
+            title={`Directly download official ${years.length}-year future prediction PDF report`}
           >
             {downloadingYear === 'all' ? (
               <>
                 <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
-                <span>Downloading 5-Year PDF...</span>
+                <span>Downloading {years.length}-Year PDF...</span>
               </>
             ) : (
               <>
                 <Download className="w-3.5 h-3.5 text-white" />
-                <span>Download 5-Year Prediction PDF</span>
+                <span>Download {years.length}-Year Prediction PDF</span>
               </>
             )}
           </button>
@@ -1908,7 +1896,13 @@ function FuturePredictionPage({
   infrastructure,
   initialMode = 'selected',
   onBackToDashboard,
+  planningHorizon: propHorizon,
+  setPlanningHorizon: propSetHorizon,
 }) {
+  const locationCtx = useLocation();
+  const effectiveHorizon = propHorizon || locationCtx?.planningHorizon || 5;
+  const setHorizon = propSetHorizon || locationCtx?.setPlanningHorizon;
+
   // Dual Slide Switcher: 'selected' | 'manual'
   const [activeSlide, setActiveSlide] = useState(initialMode || 'selected');
 
@@ -1945,6 +1939,7 @@ function FuturePredictionPage({
         selectedLocation: locWithData,
         analytics,
         infrastructure,
+        planningHorizon: effectiveHorizon,
       });
 
       console.log('[DEBUG-FUTURE-PREDICTION] input data:', {
@@ -1969,7 +1964,7 @@ function FuturePredictionPage({
     } finally {
       setSelectedLoading(false);
     }
-  }, [selectedLocation, analytics, infrastructure]);
+  }, [selectedLocation, analytics, infrastructure, effectiveHorizon]);
 
   useEffect(() => {
     fetchSelectedVillagePrediction();
@@ -2156,6 +2151,9 @@ function FuturePredictionPage({
         electricity_coverage: manualForm.electricity_coverage !== '' ? Number(manualForm.electricity_coverage) : 95.0,
         internet_coverage: manualForm.internet_coverage !== '' ? Number(manualForm.internet_coverage) : 50.0,
         employment_rate: manualForm.employment_rate !== '' ? Number(manualForm.employment_rate) : 65.0,
+        prediction_years: effectiveHorizon,
+        prediction_horizon: effectiveHorizon,
+        planning_horizon_years: effectiveHorizon,
       };
 
       console.log('Sending manual prediction payload:', payload);
@@ -2324,13 +2322,38 @@ function FuturePredictionPage({
                   • {selectedLocation?.district || 'District'}, {selectedLocation?.state || 'India'}
                 </span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-3">
                 <span className="text-xs text-[var(--text-muted)]">
                   Official Pop: <strong>{formatNumber(selectedLocation?.population || 5800)}</strong>
                 </span>
                 <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-bold border border-emerald-500/20">
                   {selectedLocation?.isOfficialData ? 'Official Census & MoPR Verified' : 'UDISE+ Synced'}
                 </span>
+
+                {/* Interactive Planning Horizon Selector */}
+                <div className="flex items-center gap-1.5 bg-[var(--bg-primary)] px-2 py-1 rounded-xl border border-[var(--border-subtle)] ml-auto">
+                  <span className="text-[11px] font-bold text-[var(--text-muted)] flex items-center gap-1">
+                    <Calendar className="w-3 h-3 text-[var(--text-muted)]" />
+                    <span>Horizon:</span>
+                  </span>
+                  {[3, 5, 7].map((h) => (
+                    <button
+                      key={h}
+                      type="button"
+                      onClick={() => {
+                        if (setHorizon) setHorizon(h);
+                      }}
+                      className={`px-2.5 py-0.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                        effectiveHorizon === h
+                          ? 'bg-gradient-to-r from-emerald-600 to-teal-500 text-white shadow-md'
+                          : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-card-hover)]'
+                      }`}
+                      title={`Forecast horizon ${h} years (${2026 + 1}–${2026 + h})`}
+                    >
+                      {h}Y
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 

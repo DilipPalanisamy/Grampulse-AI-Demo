@@ -40,7 +40,7 @@ export const searchRealVillages = async (query = '', districtFilter = '', stateF
     }
     const res = await axios.get(`${backendBase}/village/search`, {
       params,
-      timeout: 2000,
+      timeout: 10000,
     });
 
     if (res.data && res.data.status && Array.isArray(res.data.results) && res.data.results.length > 0) {
@@ -312,16 +312,18 @@ export const reverseGeocodeCoordinates = async (lat, lng) => {
       };
     }
     return {
-      gp_id: 9999,
-      gp_code: 'GP-PIN-MANUAL',
-      gp_name: `Point (${lat.toFixed(3)}, ${lng.toFixed(3)})`,
+      status: 'unresolved',
+      gp_id: null,
+      gp_code: null,
+      gp_name: `Unresolved Location (${lat.toFixed(3)}, ${lng.toFixed(3)})`,
       village_name: `Point (${lat.toFixed(3)}, ${lng.toFixed(3)})`,
-      district: 'Local District',
-      state: 'India',
+      district: 'Unknown District',
+      state: 'Tamil Nadu',
       lat: Number(lat),
       lng: Number(lng),
-      isLiveGeocoded: true,
+      isLiveGeocoded: false,
       isManualPin: true,
+      error: 'Location outside known village or panchayat boundaries',
     };
   }
 };

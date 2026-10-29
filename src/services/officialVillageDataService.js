@@ -129,7 +129,7 @@ export async function resolveOfficialVillageData(villageOrCityName, districtOrSt
 
   // 3. UNKNOWN / UNMATCHED SETTLEMENT: Return null indicators without fabricating data
   const unknownVillage = {
-    gp_id: 9999,
+    gp_id: null,
     gp_code: 'GP-UNMATCHED',
     gp_name: cleanName,
     village_name: cleanName,

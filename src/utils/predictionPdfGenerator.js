@@ -1075,53 +1075,55 @@ function renderYearDetailedPage(
 
   currentY = doc.lastAutoTable.finalY + 4.5;
 
-  // 6. Year AI Priority Interventions Table
-  doc.setTextColor(15, 23, 42);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9.5);
-  doc.text(`Year ${yearData.year} AI Priority Interventions & GPDP Sanctions`, margin, currentY);
+  // 6. Year AI Priority Interventions Table (exclude Low / Adequate)
+  const interventions = evaluateSectorInterventionsForPdf(yearData).filter((item) => item.priority !== 'Low');
+  if (interventions.length > 0) {
+    doc.setTextColor(15, 23, 42);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9.5);
+    doc.text(`Year ${yearData.year} AI Priority Interventions & GPDP Sanctions`, margin, currentY);
 
-  currentY += 3.5;
+    currentY += 3.5;
 
-  const interventions = evaluateSectorInterventionsForPdf(yearData);
-  const intHead = [['Priority', 'Sector', 'Need Assessment & Deficit Reason', 'Action Plan & Sanction']];
-  const intBody = interventions.slice(0, 4).map((item) => [
-    item.priority === 'High' ? 'P1 (Critical)' : item.priority === 'Medium' ? 'P2 (Moderate)' : 'P3 (Planned)',
-    item.sector,
-    item.reason,
-    item.recommendation,
-  ]);
+    const intHead = [['Priority', 'Sector', 'Need Assessment & Deficit Reason', 'Action Plan & Sanction']];
+    const intBody = interventions.slice(0, 4).map((item) => [
+      item.priority === 'High' ? 'P1 (Critical)' : 'P2 (Moderate)',
+      item.sector,
+      item.reason,
+      item.recommendation,
+    ]);
 
-  autoTable(doc, {
-    startY: currentY,
-    head: intHead,
-    body: intBody,
-    margin: { left: margin, right: margin },
-    theme: 'grid',
-    headStyles: {
-      fillColor: [30, 41, 59],
-      textColor: [255, 255, 255],
-      fontStyle: 'bold',
-      fontSize: 7.2,
-      halign: 'left',
-      cellPadding: 1.8,
-    },
-    bodyStyles: {
-      fontSize: 6.7,
-      textColor: [30, 41, 59],
-      cellPadding: 1.6,
-      halign: 'left',
-    },
-    columnStyles: {
-      0: { fontStyle: 'bold', textColor: [180, 83, 9], cellWidth: 26 },
-      1: { fontStyle: 'bold', cellWidth: 36 },
-      2: { cellWidth: 62 },
-      3: { cellWidth: 58 },
-    },
-    alternateRowStyles: {
-      fillColor: [248, 250, 252],
-    },
-  });
+    autoTable(doc, {
+      startY: currentY,
+      head: intHead,
+      body: intBody,
+      margin: { left: margin, right: margin },
+      theme: 'grid',
+      headStyles: {
+        fillColor: [30, 41, 59],
+        textColor: [255, 255, 255],
+        fontStyle: 'bold',
+        fontSize: 7.2,
+        halign: 'left',
+        cellPadding: 1.8,
+      },
+      bodyStyles: {
+        fontSize: 6.7,
+        textColor: [30, 41, 59],
+        cellPadding: 1.6,
+        halign: 'left',
+      },
+      columnStyles: {
+        0: { fontStyle: 'bold', textColor: [180, 83, 9], cellWidth: 26 },
+        1: { fontStyle: 'bold', cellWidth: 36 },
+        2: { cellWidth: 62 },
+        3: { cellWidth: 58 },
+      },
+      alternateRowStyles: {
+        fillColor: [248, 250, 252],
+      },
+    });
+  }
 }
 
 /**
@@ -1194,7 +1196,7 @@ export function generateClientSideGpdpPdf({
 
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(13, 78, 64);
-  doc.text(`GP Code: ${location?.gp_code || `GP-${gpId || 101}`}`, contentWidth - 25, currentY + 7);
+  doc.text(`GP Code: ${location?.gp_code || (gpId ? `GP-${gpId}` : 'N/A')}`, contentWidth - 25, currentY + 7);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(71, 85, 105);
   doc.text(`Census: ${location?.census_code || '644405'}`, contentWidth - 25, currentY + 13);

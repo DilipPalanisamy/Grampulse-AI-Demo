@@ -205,26 +205,56 @@ async def get_spatial_infrastructure(
     tags=["Spatial & GIS Engine"],
 )
 async def reverse_geocode_point(
-    lat: float = Query(..., ge=-90.0, le=90.0, description="Latitude of clicked point"),
-    lng: float = Query(..., ge=-180.0, le=180.0, description="Longitude of clicked point"),
+    lat: Optional[float] = Query(None, description="Latitude of clicked point"),
+    lng: Optional[float] = Query(None, description="Longitude of clicked point"),
+    latitude: Optional[float] = Query(None, description="Alternative latitude"),
+    longitude: Optional[float] = Query(None, description="Alternative longitude"),
 ):
     """
     Reverse geocodes any map pin coordinates to discover village, ward, district,
     state, and boundary geometry using OpenStreetMap Nominatim.
     """
-    res = reverse_geocode_osm(lat=lat, lng=lng)
-    if not res:
-        return {
-            "gp_id": 9999,
-            "gp_code": "GP-PIN-MANUAL",
-            "gp_name": "Pinned Location",
-            "district": "Local District",
-            "state": "India",
-            "lat": lat,
-            "lng": lng,
-            "is_live_osm": True,
-        }
-    return res
+    actual_lat = lat if lat is not None else latitude
+    actual_lng = lng if lng is not None else longitude
+    if actual_lat is None or actual_lng is None:
+        raise HTTPException(status_code=422, detail="Both lat and lng coordinates must be provided")
+
+    res = reverse_geocode_osm(lat=actual_lat, lng=actual_lng)
+    if res and res.get("gp_name"):
+        # Enrich with official Census data if available
+        try:
+            if get_census_baseline:
+                base = get_census_baseline(res["gp_name"], district_name=res.get("district"))
+                if base:
+                    res["census_code"] = base.get("census_code")
+                    res["location_type"] = base.get("location_type", "Village")
+                    res["population"] = base.get("population")
+                    res["households"] = base.get("households")
+                    res["electricity_coverage"] = base.get("electricity_coverage_percent")
+                    res["tap_water_coverage"] = base.get("tap_water_coverage_percent")
+                    res["latrine_coverage"] = base.get("latrine_coverage_percent")
+                    if base.get("census_code"):
+                        try:
+                            res["gp_id"] = int(base["census_code"])
+                            res["gp_code"] = f"CENSUS-{base['census_code']}"
+                        except Exception:
+                            pass
+        except Exception as _e:
+            logger.debug(f"Reverse geocode census baseline enrichment: {_e}")
+        return res
+
+    return {
+        "status": "unresolved",
+        "detail": "Clicked location is outside known administrative village boundaries",
+        "lat": lat,
+        "lng": lng,
+        "gp_id": None,
+        "gp_code": None,
+        "gp_name": f"Point ({lat:.4f}°N, {lng:.4f}°E)",
+        "district": "Unknown",
+        "state": "India",
+        "is_live_osm": False,
+    }
 
 
 # ---------------------------------------------------------------------------
