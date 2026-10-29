@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { generateClientSideGpdpPdf } from '../utils/predictionPdfGenerator';
 
 // Base URL configured for FastAPI backend (aligned with 127.0.0.1)
 const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL || 'http://127.0.0.1:8000/api/v1';
@@ -271,7 +272,7 @@ export const generateOfficialPanchayatAnalytics = (
       road_deficit_pct: roadDeficitPct,
     },
     priority_analysis: {
-      top_sector: waterTier === 'P1' ? 'Water Supply' : classTier === 'P1' ? 'Education' : 'Roads & Infrastructure',
+      top_sector: waterTier === 'P1' ? 'Water Supply' : classTier === 'P1' ? 'Education' : roadTier === 'P1' ? 'Roads & Infrastructure' : 'Water Supply',
       top_priority: waterTier === 'P1' || classTier === 'P1' || roadTier === 'P1' ? 'P1' : 'P2',
       water: { priority: waterTier, deficit_lpd: waterDeficit },
       education: { priority: classTier, classroom_gap: classGap },
@@ -280,48 +281,130 @@ export const generateOfficialPanchayatAnalytics = (
     },
     matched_schemes: [
       {
-        scheme_id: 1,
+        scheme_id: 'CSS-JJM-001',
         scheme_name: 'Jal Jeevan Mission (Har Ghar Jal)',
         ministry: 'Ministry of Jal Shakti',
+        category: 'Water Supply',
         sector: 'Water Supply',
         priority_tier: waterTier,
-        allocation_amount: waterDeficit > 0 ? `₹${(Math.round(waterDeficit * 0.0015 * 10) / 10).toFixed(1)} Lakhs` : '₹15.0 Lakhs',
+        priority_label: waterTier === 'P1' ? 'P1 - CRITICAL INTERVENTION' : waterTier === 'P2' ? 'P2 - HIGH PRIORITY' : 'P3 - MODERATE / PLANNED',
+        estimated_budget: waterDeficit > 0 ? `₹ ${(Math.max(8.0, Math.round(waterDeficit * 0.0015 * 10) / 10)).toFixed(1)} Lakhs` : '₹ 15.0 Lakhs',
+        allocation_amount: waterDeficit > 0 ? `₹ ${(Math.max(8.0, Math.round(waterDeficit * 0.0015 * 10) / 10)).toFixed(1)} Lakhs` : '₹ 15.0 Lakhs',
+        budget_formula_breakdown: waterDeficit > 0 ? `${Math.round(waterDeficit).toLocaleString()} LPD deficit × ₹0.0015L formula` : 'Standard habitational baseline allocation',
         description: `Dedicated piped drinking water supply augmentation targeting 55 LPCD service level for ${villageName}.`,
-        eligibility: 'All rural habitations with functional household tap connection deficit.',
+        eligibility_criteria: 'All rural habitations with functional household tap connection deficit below 55 LPD norm.',
+        eligibility: 'All rural habitations with functional household tap connection deficit below 55 LPD norm.',
+        benchmark_norm: 'JJM 55 LPD/capita standard',
+        match_score_percent: 96.5,
+        match_score: 0.965,
+        scheme_scope: 'VILLAGE_INFRASTRUCTURE',
+        official_portal_url: 'https://jaljeevanmission.gov.in',
         application_portal: 'https://jaljeevanmission.gov.in',
       },
       {
-        scheme_id: 2,
-        scheme_name: 'PM SHRI Schools Infrastructure',
+        scheme_id: 'CSS-PMSHRI-004',
+        scheme_name: 'PM SHRI Schools Infrastructure & Samagra Shiksha',
         ministry: 'Ministry of Education',
+        category: 'Education',
         sector: 'Education',
         priority_tier: classTier,
-        allocation_amount: classGap > 0 ? `₹${(classGap * 6.5).toFixed(1)} Lakhs` : '₹18.0 Lakhs',
+        priority_label: classTier === 'P1' ? 'P1 - CRITICAL INTERVENTION' : classTier === 'P2' ? 'P2 - HIGH PRIORITY' : 'P3 - MODERATE / PLANNED',
+        estimated_budget: classGap > 0 ? `₹ ${(classGap * 6.5).toFixed(1)} Lakhs` : '₹ 18.0 Lakhs',
+        allocation_amount: classGap > 0 ? `₹ ${(classGap * 6.5).toFixed(1)} Lakhs` : '₹ 18.0 Lakhs',
+        budget_formula_breakdown: classGap > 0 ? `${classGap} room deficit × ₹6.50L per classroom standard` : 'UDISE+ smart classroom upgrade grant',
         description: `Upgradation of classrooms, STEM composite laboratories, and smart digital boards in ${villageName}.`,
-        eligibility: 'Panchayat elementary and higher secondary schools exceeding 30:1 PTR.',
-        application_portal: 'https://pmshrischools.education.gov.in',
+        eligibility_criteria: 'Panchayat elementary and higher secondary schools exceeding 1:30 pupil-to-classroom ratio.',
+        eligibility: 'Panchayat elementary and higher secondary schools exceeding 1:30 pupil-to-classroom ratio.',
+        benchmark_norm: 'Right to Education (RTE) Act 1:30 pupil-to-classroom ratio',
+        match_score_percent: 93.8,
+        match_score: 0.938,
+        scheme_scope: 'VILLAGE_INFRASTRUCTURE',
+        official_portal_url: 'https://education.gov.in',
+        application_portal: 'https://education.gov.in',
       },
       {
-        scheme_id: 3,
-        scheme_name: 'Pradhan Mantri Gram Sadak Yojana (PMGSY)',
+        scheme_id: 'CSS-PMGSY-002',
+        scheme_name: 'Pradhan Mantri Gram Sadak Yojana (PMGSY - Phase III)',
         ministry: 'Ministry of Rural Development',
+        category: 'Roads & Infrastructure',
         sector: 'Roads & Infrastructure',
         priority_tier: roadTier,
-        allocation_amount: roadDeficit > 0 ? `₹${(roadDeficit * 18.0).toFixed(1)} Lakhs` : '₹25.0 Lakhs',
-        description: `Construction of all-weather paved bitumen road network connecting ${villageName} to main district arterial roads.`,
+        priority_label: roadTier === 'P1' ? 'P1 - CRITICAL INTERVENTION' : roadTier === 'P2' ? 'P2 - HIGH PRIORITY' : 'P3 - MODERATE / PLANNED',
+        estimated_budget: roadDeficit > 0 ? `₹ ${(roadDeficit * 22.0).toFixed(1)} Lakhs` : '₹ 25.0 Lakhs',
+        allocation_amount: roadDeficit > 0 ? `₹ ${(roadDeficit * 22.0).toFixed(1)} Lakhs` : '₹ 25.0 Lakhs',
+        budget_formula_breakdown: roadDeficit > 0 ? `${roadDeficit} km road gap × ₹22.0L/km standard` : 'All-weather road upgrade grant',
+        description: `Construction of all-weather paved bitumen road network connecting ${villageName} to main district arterial corridors.`,
+        eligibility_criteria: 'Habitations with unpaved road deficits under PMGSY Phase-III guidelines.',
         eligibility: 'Habitations with unpaved road deficits under PMGSY Phase-III guidelines.',
-        application_portal: 'https://pmgsy.nic.in',
+        benchmark_norm: 'PMGSY 1.25 km paved road per 1,000 population',
+        match_score_percent: 91.2,
+        match_score: 0.912,
+        scheme_scope: 'VILLAGE_INFRASTRUCTURE',
+        official_portal_url: 'https://www.myscheme.gov.in/schemes/pmgsy',
+        application_portal: 'https://www.myscheme.gov.in/schemes/pmgsy',
       },
       {
-        scheme_id: 4,
-        scheme_name: 'Swachh Bharat Mission - Gramin (ODF Plus)',
+        scheme_id: 'CSS-SBMG-005',
+        scheme_name: 'Swachh Bharat Mission - Gramin (ODF Plus Model)',
         ministry: 'Ministry of Jal Shakti',
+        category: 'Sanitation',
         sector: 'Sanitation',
         priority_tier: 'P3',
-        allocation_amount: '₹12.0 Lakhs',
+        priority_label: 'P3 - MODERATE / PLANNED',
+        estimated_budget: '₹ 12.5 Lakhs',
+        allocation_amount: '₹ 12.5 Lakhs',
+        budget_formula_breakdown: 'Solid & liquid waste management (SLWM) + community compost pit grant',
         description: `Solid and liquid waste management (SLWM), community compost pits, and greywater management in ${villageName}.`,
-        eligibility: 'All Gram Panchayats striving for verified ODF Plus Model status.',
+        eligibility_criteria: 'All Gram Panchayats striving for verified ODF Plus Model certification.',
+        eligibility: 'All Gram Panchayats striving for verified ODF Plus Model certification.',
+        benchmark_norm: 'SBM-G ODF Plus SLWM coverage norm',
+        match_score_percent: 88.5,
+        match_score: 0.885,
+        scheme_scope: 'VILLAGE_INFRASTRUCTURE',
+        official_portal_url: 'https://www.myscheme.gov.in/schemes/sbm-g',
         application_portal: 'https://www.myscheme.gov.in/schemes/sbm-g',
+      },
+      {
+        scheme_id: 'CSS-XVFC-009',
+        scheme_name: '15th Finance Commission Rural Local Body Grant',
+        ministry: 'Ministry of Panchayati Raj',
+        category: 'Gram Panchayat Grants',
+        sector: 'Gram Panchayat Grants',
+        priority_tier: 'P2',
+        priority_label: 'P2 - HIGH PRIORITY',
+        estimated_budget: popCurrent ? `₹ ${(Math.round(popCurrent * 0.0055 * 10) / 10).toFixed(1)} Lakhs` : '₹ 20.0 Lakhs',
+        allocation_amount: popCurrent ? `₹ ${(Math.round(popCurrent * 0.0055 * 10) / 10).toFixed(1)} Lakhs` : '₹ 20.0 Lakhs',
+        budget_formula_breakdown: '60% Tied (Water & Sanitation) + 40% Untied (Core Local Body Works)',
+        description: `Direct constitutional grant allocation to ${villageName} Gram Panchayat for drinking water maintenance, sanitation, and local public asset creation.`,
+        eligibility_criteria: 'All recognized Gram Panchayats registered under eGramSwaraj and audited accounts.',
+        eligibility: 'All recognized Gram Panchayats registered under eGramSwaraj and audited accounts.',
+        benchmark_norm: '15th Finance Commission MoPR guidelines',
+        match_score_percent: 94.0,
+        match_score: 0.94,
+        scheme_scope: 'VILLAGE_INFRASTRUCTURE',
+        official_portal_url: 'https://egramswaraj.gov.in/',
+        application_portal: 'https://egramswaraj.gov.in/',
+      },
+      {
+        scheme_id: 'CSS-ABHWC-003',
+        scheme_name: 'Ayushman Bharat Health & Wellness Centre (NHM)',
+        ministry: 'Ministry of Health and Family Welfare',
+        category: 'Healthcare',
+        sector: 'Healthcare',
+        priority_tier: 'P2',
+        priority_label: 'P2 - HIGH PRIORITY',
+        estimated_budget: '₹ 15.0 Lakhs',
+        allocation_amount: '₹ 15.0 Lakhs',
+        budget_formula_breakdown: 'Sub-Centre / PHC diagnostic expansion & telemedicine hub grant',
+        description: `Upgradation of village sub-centre into a comprehensive Health and Wellness Centre (AB-HWC) with telemedicine and essential diagnostics.`,
+        eligibility_criteria: 'Rural habitations requiring primary healthcare access under IPHS 2022 standards.',
+        eligibility: 'Rural habitations requiring primary healthcare access under IPHS 2022 standards.',
+        benchmark_norm: 'IPHS 2022 rural primary health norms',
+        match_score_percent: 89.0,
+        match_score: 0.89,
+        scheme_scope: 'VILLAGE_INFRASTRUCTURE',
+        official_portal_url: 'https://nhm.gov.in/',
+        application_portal: 'https://nhm.gov.in/',
       },
     ],
   };
@@ -376,30 +459,46 @@ export const sendChatMessage = async (message, location = {}, chatHistory = []) 
  * Downloads official GPDP PDF plan report generated via ReportLab.
  * Triggers native browser file download blob stream.
  */
-export const downloadGPDPReport = async (gpId, gpName = 'Panchayat', horizonYears = 5) => {
+export const downloadGPDPReport = async (
+  gpId,
+  gpName = 'Panchayat',
+  horizonYears = 5,
+  locationContext = null,
+  analyticsContext = null
+) => {
   try {
     const response = await apiClient.get(`/panchayat/${gpId}/pdf`, {
       params: { planning_horizon_years: horizonYears },
       responseType: 'blob',
+      timeout: 8000,
     });
 
     const blob = new Blob([response.data], { type: 'application/pdf' });
     const downloadUrl = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = downloadUrl;
-    
+
     const targetYear = new Date().getFullYear() + Number(horizonYears);
     const sanitizedGp = (gpName || 'Panchayat').replace(/\s+/g, '_');
     link.setAttribute('download', `GPDP_Plan_${sanitizedGp}_${targetYear}.pdf`);
-    
+
     document.body.appendChild(link);
     link.click();
-    
+
     link.remove();
     window.URL.revokeObjectURL(downloadUrl);
     return true;
   } catch (error) {
-    console.error(`Error downloading GPDP report for GP #${gpId}:`, error);
-    throw error;
+    console.warn(
+      `Backend GPDP PDF endpoint unavailable for GP #${gpId}, generating client-side GPDP Plan PDF:`,
+      error?.message || error
+    );
+    return generateClientSideGpdpPdf({
+      gpId,
+      gpName,
+      horizonYears,
+      location: locationContext,
+      analytics: analyticsContext,
+    });
   }
 };

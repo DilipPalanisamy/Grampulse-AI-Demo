@@ -220,7 +220,7 @@ export default function MapPage({ onBackToDashboard, onOpenChatbot }) {
       <IssueReportForm
         isOpen={isReportModalOpen}
         onClose={() => setIsReportModalOpen(false)}
-        activeGpId={selectedLocation.gp_id}
+        activeGpId={selectedLocation?.gp_id || 101}
         defaultCoords={mapCenter}
         onIssueCreated={handleIssueCreated}
       />

@@ -21,10 +21,13 @@ import {
   TrendingUp,
   Mail,
   ShieldCheck,
+  Download,
+  FileText,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLocation } from '../context/LocationContext';
 import { useTheme } from '../context/ThemeContext';
+import { downloadGPDPReport } from '../services/api';
 
 /**
  * Highlights substring matches within a text string.
@@ -86,6 +89,25 @@ export default function Header({ onOpenReportModal }) {
 
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const profileMenuRef = useRef(null);
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
+
+  const handleDownloadPdf = async () => {
+    if (!selectedLocation) return;
+    setIsDownloadingPdf(true);
+    try {
+      await downloadGPDPReport(
+        selectedLocation.gp_id,
+        selectedLocation.gp_name,
+        5,
+        selectedLocation,
+        analytics
+      );
+    } catch (e) {
+      console.error('Error generating GPDP PDF:', e);
+    } finally {
+      setIsDownloadingPdf(false);
+    }
+  };
 
   // Global Ctrl+K / Cmd+K keyboard shortcut to focus search
   useEffect(() => {
@@ -420,6 +442,41 @@ export default function Header({ onOpenReportModal }) {
             </button>
           </div>
 
+          {/* Citizen Actions: Report Grievance & Download GPDP PDF */}
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            {onOpenReportModal && (
+              <button
+                type="button"
+                onClick={onOpenReportModal}
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 shadow-md transition-all active:scale-95 cursor-pointer"
+                title="Lodge a geotagged citizen grievance"
+              >
+                <PlusCircle className="w-3.5 h-3.5" />
+                <span className="hidden lg:inline">Report Grievance</span>
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={handleDownloadPdf}
+              disabled={isDownloadingPdf}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-[var(--bg-primary)] hover:bg-[var(--bg-card-hover)] text-[var(--text-main)] border border-[var(--border-subtle)] hover:border-emerald-500/40 shadow-sm transition-all active:scale-95 cursor-pointer disabled:opacity-50"
+              title="Download Official GPDP Plan PDF Report"
+            >
+              {isDownloadingPdf ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-500" />
+                  <span className="hidden sm:inline">Generating...</span>
+                </>
+              ) : (
+                <>
+                  <FileText className="w-3.5 h-3.5 text-emerald-500" />
+                  <span className="hidden sm:inline">GPDP Plan</span>
+                  <Download className="w-3 h-3 text-[var(--text-muted)]" />
+                </>
+              )}
+            </button>
+          </div>
 
           {/* Visual Theme Toggle & Customizer Control in Top Navigation */}
           <div className="flex items-center gap-1.5 flex-shrink-0">

@@ -15,8 +15,8 @@ import math
 import numpy as np
 from datetime import datetime
 from typing import Dict, Any, Optional
-from sklearn.linear_model import LinearRegression
-from sklearn.preprocessing import PolynomialFeatures
+
+HAS_SKLEARN = False
 
 # ---------------------------------------------------------------------------
 # Standard Indian Rural Governance Benchmarks
@@ -45,27 +45,36 @@ def fit_demographic_projection_model(
         for y in range(-9, 1)
     ])
 
-    # 2. Train Scikit-learn Linear Regression on log-scale population
+    # 2. Train regression on log-scale population
     log_pop_past = np.log(pop_past)
-    model = LinearRegression()
-    model.fit(years_past, log_pop_past)
+    if HAS_SKLEARN:
+        model = LinearRegression()
+        model.fit(years_past, log_pop_past)
+        future_year = np.array([[horizon_years]])
+        pred_log_pop = model.predict(future_year)[0]
+        projected_pop = int(round(np.exp(pred_log_pop)))
+        trajectory_years = np.arange(0, horizon_years + 1).reshape(-1, 1)
+        trajectory_log = model.predict(trajectory_years)
+        slope = float(model.coef_[0])
+        r2 = float(model.score(years_past, log_pop_past))
+    else:
+        slope, intercept = np.polyfit(years_past.ravel(), log_pop_past, 1)
+        pred_log_pop = intercept + slope * horizon_years
+        projected_pop = int(round(np.exp(pred_log_pop)))
+        trajectory_years = np.arange(0, horizon_years + 1)
+        trajectory_log = intercept + slope * trajectory_years
+        ss_res = np.sum((log_pop_past - (intercept + slope * years_past.ravel())) ** 2)
+        ss_tot = np.sum((log_pop_past - np.mean(log_pop_past)) ** 2) or 1.0
+        r2 = float(1.0 - (ss_res / ss_tot))
 
-    # 3. Predict across target forecast horizon
-    future_year = np.array([[horizon_years]])
-    pred_log_pop = model.predict(future_year)[0]
-    projected_pop = int(round(np.exp(pred_log_pop)))
-
-    # Compute year-by-year trajectory
-    trajectory_years = np.arange(0, horizon_years + 1).reshape(-1, 1)
-    trajectory_log = model.predict(trajectory_years)
     trajectory_pops = [int(round(np.exp(val))) for val in trajectory_log]
 
     return {
         "projected_population": projected_pop,
         "population_growth": max(0, projected_pop - base_population),
         "trajectory": trajectory_pops,
-        "regression_slope": float(model.coef_[0]),
-        "r2_score": float(model.score(years_past, log_pop_past)),
+        "regression_slope": slope,
+        "r2_score": r2,
     }
 
 
