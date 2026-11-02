@@ -234,6 +234,8 @@ function DashboardLayout() {
             analytics={analytics}
             infrastructure={infrastructure}
             initialMode={predictionInitialMode}
+            planningHorizon={planningHorizon}
+            setPlanningHorizon={setPlanningHorizon}
             onBackToDashboard={() =>
               setActiveTab('dashboard')
             }

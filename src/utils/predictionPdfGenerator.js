@@ -103,6 +103,10 @@ export function generatePredictionPdf({
   doc.setFontSize(8.5);
   doc.text('GRAMPULSE AI  •  MINISTRY OF PANCHAYATI RAJ & UDISE+ CALIBRATED', margin, 9);
 
+  const horizonYears = predictionData?.prediction_horizon || (predictionData?.forecast_years && predictionData.forecast_years.length) || 5;
+  const startYr = baseYear + 1;
+  const endYr = baseYear + horizonYears;
+
   // Main Report Title
   doc.setTextColor(255, 255, 255);
   doc.setFont('helvetica', 'bold');
@@ -110,7 +114,7 @@ export function generatePredictionPdf({
   doc.text(
     isSpecificYear
       ? `YEAR ${selectedYearNum} FUTURE PREDICTION & DEFICIT FORECAST`
-      : '5-YEAR VILLAGE DEVELOPMENT & DEFICIT FORECAST REPORT',
+      : `${horizonYears}-YEAR VILLAGE DEVELOPMENT & DEFICIT FORECAST REPORT`,
     margin,
     18
   );
@@ -122,7 +126,7 @@ export function generatePredictionPdf({
   doc.text(
     isSpecificYear
       ? `Target Year: ${selectedYearNum} (Base: ${baseYear})`
-      : `Planning Horizon: ${baseYear + 1} – ${baseYear + 5} (5-Year Model)`,
+      : `Planning Horizon: ${startYr} – ${endYr} (${horizonYears}-Year Model)`,
     pageWidth - margin,
     18,
     { align: 'right' }

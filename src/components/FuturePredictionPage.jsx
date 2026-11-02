@@ -1108,9 +1108,9 @@ function PredictionReportView({
                 <Sparkles className="w-3.5 h-3.5" />
                 {isManual ? 'Custom Simulation Forecast' : 'Live GIS & UDISE+ Telemetry'}
               </span>
-              <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-[var(--bg-primary)] text-[var(--text-muted)] border border-[var(--border-subtle)] flex items-center gap-1.5">
+              <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-[var(--bg-primary)] text-[var(--text-muted)] border border-[var(--border-subtle)] flex items-center gap-1.5 font-mono">
                 <Calendar className="w-3.5 h-3.5 text-emerald-400" />
-                Horizon: 2027 – 2031 (5 Years)
+                Horizon: {forecastHorizon.start_year || 2027} – {forecastHorizon.end_year || (2026 + (predictionData?.prediction_horizon || 5))} ({predictionData?.prediction_horizon || forecastHorizon.horizon_years || 5} Years)
               </span>
             </div>
 
@@ -1130,17 +1130,17 @@ function PredictionReportView({
               onClick={() => handleDownloadPdf('all')}
               disabled={downloadingYear !== null}
               className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-rose-600 via-pink-600 to-amber-500 hover:from-rose-500 hover:to-amber-400 text-white text-xs sm:text-sm font-black flex items-center gap-2 shadow-xl shadow-rose-950/60 ring-2 ring-rose-400/40 transition-all hover:scale-105 active:scale-95 cursor-pointer disabled:opacity-60 disabled:cursor-wait"
-              title="Directly download official 5-year future prediction PDF report alone"
+              title={`Directly download official ${predictionData?.prediction_horizon || 5}-year future prediction PDF report alone`}
             >
               {downloadingYear === 'all' ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin text-white" />
-                  <span>Downloading 5-Year PDF...</span>
+                  <span>Downloading {predictionData?.prediction_horizon || 5}-Year PDF...</span>
                 </>
               ) : (
                 <>
                   <Download className="w-4 h-4 text-white" />
-                  <span>Download 5-Year Prediction PDF</span>
+                  <span>Download {predictionData?.prediction_horizon || 5}-Year Prediction PDF</span>
                 </>
               )}
             </button>
@@ -1298,22 +1298,22 @@ function PredictionReportView({
             </div>
           </div>
 
-          {/* 3. Five-Year Model Forecast Horizon */}
+          {/* 3. Multi-Year Model Forecast Horizon */}
           <div className="p-4 rounded-2xl bg-[var(--bg-primary)] border border-emerald-500/30 space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-black uppercase tracking-wider text-emerald-400">Step 3: 5-Year Horizon</span>
+              <span className="text-[10px] font-black uppercase tracking-wider text-emerald-400">Step 3: {predictionData?.prediction_horizon || 5}-Year Horizon</span>
               <span className="px-2 py-0.5 rounded text-[9px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 uppercase">
                 Model projection
               </span>
             </div>
-            <div className="text-xl font-black text-emerald-400">
-              2027 &rarr; 2031 <span className="text-xs text-[var(--text-muted)] font-normal">({formatNumber(summary.final_population || finalYearData?.population)} pop)</span>
+            <div className="text-xl font-black text-emerald-400 font-mono">
+              {forecastHorizon.start_year || 2027} &rarr; {forecastHorizon.end_year || (2026 + (predictionData?.prediction_horizon || 5))} <span className="text-xs text-[var(--text-muted)] font-normal">({formatNumber(summary.final_population || finalYearData?.population)} pop)</span>
             </div>
             <p className="text-[11px] text-[var(--text-muted)] leading-relaxed">
-              Five-year trajectory simulated by unchanged predictor model across water demand, UDISE+ classroom capacity, and road wear.
+              {predictionData?.prediction_horizon || 5}-year trajectory simulated by demographic & infrastructure models across water demand, classroom capacity, and road wear.
             </p>
-            <div className="text-[10px] text-emerald-300/80 pt-1 border-t border-[var(--border-subtle)] flex items-center justify-between">
-              <span>Horizon: 2027–2031</span>
+            <div className="text-[10px] text-emerald-300/80 pt-1 border-t border-[var(--border-subtle)] flex items-center justify-between font-mono">
+              <span>Horizon: {forecastHorizon.start_year || 2027}–{forecastHorizon.end_year || (2026 + (predictionData?.prediction_horizon || 5))}</span>
               <span className="font-bold">Status: Dynamic ML Simulation</span>
             </div>
           </div>
@@ -1510,7 +1510,7 @@ function PredictionReportView({
             <span>Forecast Timeline Horizon</span>
           </h3>
           <p className="text-xs text-[var(--text-muted)]">
-            Explore overall 5-year progression or inspect any specific target year:
+            Explore overall {years.length || 5}-year progression or inspect any specific target year:
           </p>
         </div>
 
@@ -2366,7 +2366,7 @@ function FuturePredictionPage({
                 </div>
                 <div className="text-center space-y-1">
                   <h3 className="text-lg font-black text-[var(--text-main)]">
-                    Calculating 5-Year Forecast for {selectedLocation?.gp_name || 'Selected Village'}
+                    Calculating {effectiveHorizon}-Year Forecast for {selectedLocation?.gp_name || 'Selected Village'}
                   </h3>
                   <p className="text-xs text-[var(--text-muted)] max-w-md mx-auto">
                     Synthesizing real UDISE+ school infrastructure, cohort population changes, and water-health deficit curves...
@@ -2398,7 +2398,7 @@ function FuturePredictionPage({
               <PredictionReportView
                 predictionData={selectedPrediction}
                 modeTitle="Live Map Village Forecast"
-                modeSubtitle={`Official 5-year projection model for ${selectedLocation?.gp_name || 'Selected Village'} GP using live GIS telemetry & verified UDISE+ records.`}
+                modeSubtitle={`Official ${effectiveHorizon}-year projection model for ${selectedLocation?.gp_name || 'Selected Village'} GP using live GIS telemetry & verified UDISE+ records.`}
                 isManual={false}
                 onRefresh={fetchSelectedVillagePrediction}
                 selectedLocation={selectedLocation}

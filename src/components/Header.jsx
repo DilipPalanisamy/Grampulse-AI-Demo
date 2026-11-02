@@ -23,6 +23,9 @@ import {
   ShieldCheck,
   Download,
   FileText,
+  Calendar,
+  ChevronDown,
+  Check,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLocation } from '../context/LocationContext';
@@ -62,6 +65,31 @@ HighlightMatch.propTypes = {
   query: PropTypes.string,
 };
 
+
+const HORIZON_OPTIONS = [
+  {
+    years: 3,
+    title: '3 Years of Prediction',
+    badge: '3-Year Short-Term',
+    range: '2027 – 2029',
+    description: 'Immediate infrastructure deficit remediation & rapid saturation targets',
+  },
+  {
+    years: 5,
+    title: '5 Years of Prediction',
+    badge: '5-Year GPDP Standard',
+    range: '2027 – 2031',
+    description: 'Official 5-Year Gram Panchayat Development Plan statutory baseline model',
+  },
+  {
+    years: 7,
+    title: '7 Years of Prediction',
+    badge: '7-Year Long-Term',
+    range: '2027 – 2033',
+    description: 'Extended demographic growth trajectory & master infrastructure planning',
+  },
+];
+
 export default function Header({ onOpenReportModal }) {
   const { user, logout } = useAuth();
   const { themeConfig, toggleMode, activePalette, toggleCustomizer } = useTheme();
@@ -80,6 +108,8 @@ export default function Header({ onOpenReportModal }) {
     selectedDistrict,
     setSelectedDistrict,
     districts,
+    planningHorizon,
+    setPlanningHorizon,
   } = useLocation();
 
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -91,6 +121,44 @@ export default function Header({ onOpenReportModal }) {
   const profileMenuRef = useRef(null);
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
 
+  const [isHorizonOpen, setIsHorizonOpen] = useState(false);
+  const horizonDropdownRef = useRef(null);
+
+  // Close horizon dropdown when clicking outside or pressing Escape
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (
+        horizonDropdownRef.current &&
+        !horizonDropdownRef.current.contains(e.target)
+      ) {
+        setIsHorizonOpen(false);
+      }
+    };
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setIsHorizonOpen(false);
+      }
+    };
+    if (isHorizonOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isHorizonOpen]);
+
+  const handleSelectHorizon = (years) => {
+    if (setPlanningHorizon) {
+      setPlanningHorizon(years);
+    }
+    if (setActiveTab) {
+      setActiveTab('prediction');
+    }
+    setIsHorizonOpen(false);
+  };
+
   const handleDownloadPdf = async () => {
     if (!selectedLocation) return;
     setIsDownloadingPdf(true);
@@ -98,7 +166,7 @@ export default function Header({ onOpenReportModal }) {
       await downloadGPDPReport(
         selectedLocation.gp_id,
         selectedLocation.gp_name,
-        5,
+        planningHorizon || 5,
         selectedLocation,
         analytics
       );
@@ -442,19 +510,120 @@ export default function Header({ onOpenReportModal }) {
             </button>
           </div>
 
-          {/* Citizen Actions: Report Grievance & Download GPDP PDF */}
+          {/* Prediction Horizons Dropdown & GPDP PDF Action */}
           <div className="flex items-center gap-1.5 flex-shrink-0">
-            {onOpenReportModal && (
+            {/* HORIZONS DROPDOWN (3, 5, AND 7 YEARS OF PREDICTION) */}
+            <div className="relative" ref={horizonDropdownRef}>
               <button
                 type="button"
-                onClick={onOpenReportModal}
-                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 shadow-md transition-all active:scale-95 cursor-pointer"
-                title="Lodge a geotagged citizen grievance"
+                onClick={() => setIsHorizonOpen((prev) => !prev)}
+                className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 cursor-pointer shadow-sm border ${
+                  isHorizonOpen
+                    ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50 ring-2 ring-emerald-500/30'
+                    : 'bg-[var(--bg-primary)] hover:bg-[var(--bg-card-hover)] text-[var(--text-main)] border-[var(--border-subtle)] hover:border-emerald-500/40'
+                }`}
+                title="Select Planning & Prediction Horizon (3, 5, or 7 Years)"
+                aria-expanded={isHorizonOpen}
               >
-                <PlusCircle className="w-3.5 h-3.5" />
-                <span className="hidden lg:inline">Report Grievance</span>
+                <Calendar className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="hidden sm:inline">Horizons</span>
+                <span className="px-1.5 py-0.5 rounded-md text-[10px] font-extrabold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-mono">
+                  {planningHorizon || 5}Y
+                </span>
+                <ChevronDown
+                  className={`w-3 h-3 text-[var(--text-muted)] transition-transform duration-200 ${
+                    isHorizonOpen ? 'rotate-180 text-emerald-400' : ''
+                  }`}
+                />
               </button>
-            )}
+
+              {/* Horizons Dropdown Menu */}
+              {isHorizonOpen && (
+                <div className="absolute right-0 top-full mt-2 w-72 sm:w-80 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-subtle)] shadow-2xl p-3 z-[1300] backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150 space-y-2">
+                  <div className="flex items-center justify-between pb-2 border-b border-[var(--border-subtle)] px-1">
+                    <div className="flex items-center gap-1.5">
+                      <TrendingUp className="w-4 h-4 text-emerald-400" />
+                      <span className="text-xs font-black uppercase tracking-wider text-[var(--text-main)]">
+                        Prediction Horizons
+                      </span>
+                    </div>
+                    <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 font-mono">
+                      Active: {planningHorizon || 5}Y
+                    </span>
+                  </div>
+
+                  <p className="text-[11px] text-[var(--text-muted)] px-1 leading-relaxed">
+                    Select a multi-year horizon to simulate infrastructure deficits, population cohorts, and service demands.
+                  </p>
+
+                  <div className="space-y-1.5 pt-1">
+                    {HORIZON_OPTIONS.map((opt) => {
+                      const isSelected = (planningHorizon || 5) === opt.years;
+                      return (
+                        <button
+                          key={opt.years}
+                          type="button"
+                          onClick={() => handleSelectHorizon(opt.years)}
+                          className={`w-full text-left p-2.5 rounded-xl border transition-all cursor-pointer flex items-start gap-2.5 group relative ${
+                            isSelected
+                              ? 'bg-gradient-to-r from-emerald-500/20 via-teal-500/15 to-transparent border-emerald-500/50 shadow-md ring-1 ring-emerald-500/30'
+                              : 'bg-[var(--bg-primary)] hover:bg-[var(--bg-card-hover)] border-[var(--border-subtle)] hover:border-emerald-500/30'
+                          }`}
+                        >
+                          <div
+                            className={`w-5 h-5 rounded-lg flex items-center justify-center shrink-0 mt-0.5 transition-all ${
+                              isSelected
+                                ? 'bg-gradient-to-tr from-emerald-600 to-teal-500 text-white shadow-sm ring-2 ring-emerald-400/40'
+                                : 'bg-[var(--bg-card)] border border-[var(--border-subtle)] group-hover:border-emerald-500/40 text-transparent'
+                            }`}
+                          >
+                            <Check className="w-3.5 h-3.5 stroke-[3]" />
+                          </div>
+
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-1.5">
+                              <span
+                                className={`text-xs font-black tracking-tight ${
+                                  isSelected ? 'text-emerald-400' : 'text-[var(--text-main)] group-hover:text-emerald-400'
+                                }`}
+                              >
+                                {opt.title}
+                              </span>
+                              <span
+                                className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded ${
+                                  isSelected
+                                    ? 'bg-emerald-500/25 text-emerald-300 border border-emerald-500/40'
+                                    : 'bg-[var(--bg-card)] text-[var(--text-muted)] border border-[var(--border-subtle)]'
+                                }`}
+                              >
+                                {opt.range}
+                              </span>
+                            </div>
+
+                            <div className="flex items-center gap-1.5 mt-0.5">
+                              <span className="text-[10px] font-bold text-emerald-400/80">
+                                {opt.badge}
+                              </span>
+                            </div>
+
+                            <p className="text-[10px] text-[var(--text-muted)] mt-1 line-clamp-2 leading-relaxed">
+                              {opt.description}
+                            </p>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <div className="pt-2 border-t border-[var(--border-subtle)] px-1 flex items-center justify-between text-[10px] text-[var(--text-muted)]">
+                    <span>Applies across App &amp; GPDP PDF</span>
+                    <span className="text-emerald-400 font-bold">
+                      Click to load &rarr;
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
 
             <button
               type="button"
@@ -583,6 +752,21 @@ export default function Header({ onOpenReportModal }) {
                     Active Multi-Location GPDP Planning, Census Cohorts &amp; Grievance Access.
                   </p>
                 </div>
+
+                {/* Preserved Citizen Grievance Action */}
+                {onOpenReportModal && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsProfileOpen(false);
+                      onOpenReportModal();
+                    }}
+                    className="w-full px-3 py-2 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 hover:text-emerald-300 border border-emerald-500/30 text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-95"
+                  >
+                    <PlusCircle className="w-3.5 h-3.5" />
+                    <span>Lodge / Report Citizen Grievance</span>
+                  </button>
+                )}
 
                 {/* 3. Action Footer (Sign Out) */}
                 <div className="pt-1 flex items-center justify-between gap-3 border-t border-[var(--border-subtle)]">
