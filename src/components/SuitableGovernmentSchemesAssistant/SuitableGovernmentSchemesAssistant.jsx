@@ -560,33 +560,33 @@ You can explore official Central & State schemes on [india.gov.in](https://www.i
       }`}
     >
       {/* 1. Header Bar */}
-      <div className="bg-[var(--bg-card-hover)] px-4 py-3 border-b border-[var(--border-subtle)] flex items-center justify-between flex-shrink-0">
-        <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-teal-600 via-emerald-600 to-cyan-400 border border-emerald-400/40 flex items-center justify-center text-white shadow-md shadow-teal-950/50 ring-2 ring-emerald-500/20">
+      <div className="bg-[var(--bg-card-hover)] px-4 py-3 border-b border-[var(--border-subtle)] flex items-center justify-between gap-2 flex-shrink-0">
+        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+          <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-teal-600 via-emerald-600 to-cyan-400 border border-emerald-400/40 flex items-center justify-center text-white shadow-md shadow-teal-950/50 ring-2 ring-emerald-500/20 flex-shrink-0">
             <Landmark className="w-5 h-5" />
           </div>
-          <div>
-            <div className="flex items-center gap-1.5">
-              <h3 className="text-xs sm:text-sm font-black text-[var(--text-main)] leading-tight">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <h3 className="text-xs sm:text-sm font-black text-[var(--text-main)] leading-tight truncate">
                 Suitable Government Schemes
               </h3>
-              <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded-full bg-teal-500/15 text-teal-600 dark:text-teal-300 border border-teal-500/30">
+              <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-full bg-teal-500/15 text-teal-600 dark:text-teal-300 border border-teal-500/30 flex-shrink-0">
                 RAG AI
               </span>
             </div>
-            <p className="text-[10px] text-[var(--text-muted)] truncate max-w-[220px]">
+            <p className="text-[10px] text-[var(--text-muted)] truncate">
               Location: {selectedLocation?.gp_name || 'Village'} GP ({selectedLocation?.state || 'India'})
             </p>
           </div>
         </div>
 
         {/* Action Controls */}
-        <div className="flex items-center gap-1 sm:gap-1.5">
+        <div className="flex items-center gap-1 sm:gap-1.5 flex-shrink-0">
           <button
             type="button"
             onClick={() => handleGoToPrediction('selected')}
-            className="px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-[11px] font-bold shadow-sm transition-all flex items-center gap-1 cursor-pointer active:scale-95 mr-1"
-            title="Open 5-Year Future Prediction"
+            className="px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-[11px] font-bold shadow-sm transition-all flex items-center gap-1 cursor-pointer active:scale-95"
+            title={`Open ${planningHorizon || 5}-Year Future Prediction`}
           >
             <TrendingUp className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Future Prediction</span>
@@ -704,7 +704,7 @@ You can explore official Central & State schemes on [india.gov.in](https://www.i
           <div className="px-3.5 py-2 bg-[var(--bg-card-hover)] border-t border-[var(--border-subtle)] flex items-center justify-between text-xs flex-shrink-0">
             <span className="text-[11px] text-[var(--text-muted)] font-medium truncate flex items-center gap-1.5">
               <TrendingUp className="w-3.5 h-3.5 text-indigo-400" />
-              <span>5-Year Village Development Forecast:</span>
+              <span>{planningHorizon || 5}-Year Village Development Forecast:</span>
             </span>
             <button
               type="button"
