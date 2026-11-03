@@ -508,6 +508,23 @@ You can explore official Central & State schemes on [india.gov.in](https://www.i
     }
   };
 
+  // Dynamic suggestion chips with synchronized horizon forecast
+  const dynamicQuickQuestions = useMemo(() => {
+    const horizon = planningHorizon || 5;
+    const village = selectedLocation?.gp_name || 'Village';
+    return [
+      {
+        id: 'horizon-forecast',
+        label: `${horizon}-Year Forecast`,
+        icon: 'TrendingUp',
+        color: '#6366f1',
+        bg: 'bg-indigo-500/15 text-indigo-400 border-indigo-500/40 hover:bg-indigo-500/25',
+        query: `What is the ${horizon}-year village development forecast and infrastructure projection for ${village}?`,
+      },
+      ...QUICK_QUESTIONS,
+    ];
+  }, [planningHorizon, selectedLocation?.gp_name]);
+
   const handleSubmit = (e) => {
     e.preventDefault();
     handleSendQuery(textInput);
@@ -551,23 +568,6 @@ You can explore official Central & State schemes on [india.gov.in](https://www.i
       </div>
     );
   }
-
-  // Dynamic suggestion chips with synchronized horizon forecast
-  const dynamicQuickQuestions = useMemo(() => {
-    const horizon = planningHorizon || 5;
-    const village = selectedLocation?.gp_name || 'Village';
-    return [
-      {
-        id: 'horizon-forecast',
-        label: `${horizon}-Year Forecast`,
-        icon: 'TrendingUp',
-        color: '#6366f1',
-        bg: 'bg-indigo-500/15 text-indigo-400 border-indigo-500/40 hover:bg-indigo-500/25',
-        query: `What is the ${horizon}-year village development forecast and infrastructure projection for ${village}?`,
-      },
-      ...QUICK_QUESTIONS,
-    ];
-  }, [planningHorizon, selectedLocation?.gp_name]);
 
   // Expanded Interactive Chatbot Window
   return (

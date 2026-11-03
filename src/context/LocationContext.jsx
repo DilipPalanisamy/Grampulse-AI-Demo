@@ -384,21 +384,6 @@ export const LocationProvider = ({ children }) => {
   const [selectedDistrict, setSelectedDistrict] = useState('All Districts');
   const districts = useMemo(() => getDistricts(), []);
 
-  // Update available habitations when district filter changes
-  useEffect(() => {
-    // Clear previous search query and stale search results
-    setSearchQuery('');
-    setSearchResults([]);
-
-    const districtList = getAllDistrictLocations(selectedDistrict);
-    const topPick = districtList[0] || SAFE_DEFAULT_VILLAGE;
-
-    setLocations(districtList);
-    setSelectedGpId(Number(topPick.gp_id));
-    selectedLocationRef.current = topPick;
-    loadAnalytics(Number(topPick.gp_id), topPick);
-  }, [selectedDistrict, loadAnalytics]);
-
   // Active Location Object (guaranteed non-null)
   const selectedLocation = useMemo(() => {
     const found = locations?.find((l) => Number(l?.gp_id) === Number(selectedGpId));
@@ -415,6 +400,14 @@ export const LocationProvider = ({ children }) => {
     }
     return [11.0267, 77.0617]; // Default to Chinniyampalayam / Coimbatore
   }, [selectedLocation]);
+
+  // Ref to hold active location without recreating callbacks
+  const selectedLocationRef = useRef(selectedLocation);
+  useEffect(() => {
+    selectedLocationRef.current = selectedLocation;
+  }, [selectedLocation]);
+
+  const prevDistrictRef = useRef(selectedDistrict);
 
   // Auto-sync active location when authenticated user session updates
   useEffect(() => {
@@ -485,35 +478,6 @@ export const LocationProvider = ({ children }) => {
     };
     initLocations();
   }, []);
-
-  // Hydrate authentic backend indicators for the initial active location on mount
-  useEffect(() => {
-    const hydrateInitial = async () => {
-      const active = selectedLocation;
-      if (active?.gp_name && (!active.indicators || Object.keys(active.indicators).length === 0)) {
-        try {
-          const gov = await fetchVillageData(active.gp_name, active.district || 'Coimbatore');
-          if (gov && gov.status) {
-            handleSelectLocation({
-              ...active,
-              ...gov,
-              gp_name: active.gp_name,
-              village_name: active.village_name || active.gp_name,
-            }, false);
-          }
-        } catch (e) {
-          console.warn('Initial village hydration error:', e);
-        }
-      }
-    };
-    hydrateInitial();
-  }, []);
-
-  // Ref to hold active location without recreating callbacks
-  const selectedLocationRef = useRef(selectedLocation);
-  useEffect(() => {
-    selectedLocationRef.current = selectedLocation;
-  }, [selectedLocation]);
 
   // Load Analytics when selected GP or planning horizon changes
   const loadAnalytics = useCallback(async (gpIdOverride = null, locOverride = null) => {
@@ -911,6 +875,47 @@ export const LocationProvider = ({ children }) => {
   const handleIssueCreated = useCallback((newIssue) => {
     setIssues((prev) => [newIssue, ...prev]);
   }, []);
+
+  // Update available habitations when district filter changes
+  useEffect(() => {
+    if (prevDistrictRef.current === selectedDistrict) return;
+    prevDistrictRef.current = selectedDistrict;
+
+    // Clear previous search query and stale search results
+    setSearchQuery('');
+    setSearchResults([]);
+
+    const districtList = getAllDistrictLocations(selectedDistrict);
+    const topPick = districtList[0] || SAFE_DEFAULT_VILLAGE;
+
+    setLocations(districtList);
+    setSelectedGpId(Number(topPick.gp_id));
+    selectedLocationRef.current = topPick;
+    loadAnalytics(Number(topPick.gp_id), topPick);
+  }, [selectedDistrict, loadAnalytics]);
+
+  // Hydrate authentic backend indicators for the initial active location on mount
+  useEffect(() => {
+    const hydrateInitial = async () => {
+      const active = selectedLocation;
+      if (active?.gp_name && (!active.indicators || Object.keys(active.indicators).length === 0)) {
+        try {
+          const gov = await fetchVillageData(active.gp_name, active.district || 'Coimbatore');
+          if (gov && gov.status) {
+            handleSelectLocation({
+              ...active,
+              ...gov,
+              gp_name: active.gp_name,
+              village_name: active.village_name || active.gp_name,
+            }, false);
+          }
+        } catch (e) {
+          console.warn('Initial village hydration error:', e);
+        }
+      }
+    };
+    hydrateInitial();
+  }, [handleSelectLocation, selectedLocation]);
 
   const value = {
     locations,
