@@ -178,11 +178,24 @@ function expandRecord(r) {
     total_workers: r.work ?? null,
     road_coverage_km: null,
     isOfficialData: true,
+    literacy_rate: (r.lit != null && r.pop != null && r.pop > 0)
+      ? Number(((r.lit / r.pop) * 100).toFixed(1))
+      : null,
     tagline: `${r.name} (${locType}, ${dist})`,
     description: r.elec != null || r.pop != null
       ? `Authentic government records from Census 2011 Table HL-11/PCA and UDISE+ Directory.`
       : `Official Tamil Nadu administrative village. Indicators handled with strict data authenticity.`,
-    indicators,
+    indicators: {
+      ...indicators,
+      literacy_rate: {
+        indicator: 'literacy_rate',
+        value: (r.lit != null && r.pop != null && r.pop > 0) ? Number(((r.lit / r.pop) * 100).toFixed(1)) : null,
+        unit: 'percent',
+        data_status: (r.lit != null && r.pop != null) ? 'HISTORICAL' : 'UNAVAILABLE',
+        source: 'Census 2011 PCA',
+        reference_year: 2011,
+      },
+    },
     census_baseline: {
       location_name: r.name,
       location_type: locType,
@@ -768,7 +781,90 @@ export function searchCensusDirectory(query, districtFilter = null, limit = 15) 
   return results;
 }
 
+/**
+ * Returns all verified locations belonging to the selected district.
+ * For Coimbatore: all 306 verified Census 2011 + Table HL-11 + UDISE+ records.
+ * For Tiruppur: all 347 verified rural and urban records.
+ * For other districts: all verified towns and villages belonging to that district.
+ * Zero locations from Gujarat or outside Tamil Nadu.
+ */
+export function getAllDistrictLocations(district = null) {
+  const dKey = district ? normalize(district) : null;
+  const isAllDistricts = !dKey || dKey === 'all' || dKey === 'alldistricts' || dKey === 'tamilnadu';
+
+  let pool = [];
+  if (!isAllDistricts && DISTRICT_INDEX.has(dKey)) {
+    pool = DISTRICT_INDEX.get(dKey);
+  } else if (!isAllDistricts) {
+    pool = PRIMARY_RECORDS.filter((r) => normalize(r.district) === dKey);
+    if (_villagesCache && _villagesCache.length > 0) {
+      const vPool = _villagesCache.filter((v) => normalize(v.district) === dKey);
+      const seen = new Set(pool.map((p) => String(p.id)));
+      for (const v of vPool) {
+        if (!seen.has(String(v.id || v.code))) {
+          pool.push(v);
+        }
+      }
+    }
+  } else {
+    pool = PRIMARY_RECORDS;
+  }
+
+  // Sort: Urban local bodies / high population first, then alphabetical
+  const sorted = [...pool].sort((a, b) => {
+    const aPop = a.pop || 0;
+    const bPop = b.pop || 0;
+    if (aPop !== bPop) return bPop - aPop;
+    return String(a.name || '').localeCompare(String(b.name || ''));
+  });
+
+  return sorted.map(expandRecord);
+}
+
+/**
+ * Searches locations strictly within the active district (or statewide).
+ * Supports partial matching, case-insensitivity, Census codes, and native script.
+ */
+export function searchDistrictLocations(query, district = null, limit = 50) {
+  const cleanQuery = normalize(query);
+  const rawQ = String(query || '').trim().toLowerCase();
+  
+  const allInDistrict = getAllDistrictLocations(district);
+  if (!cleanQuery && !rawQ) {
+    return allInDistrict;
+  }
+
+  const results = [];
+  const seen = new Set();
+
+  for (const r of allInDistrict) {
+    if (!r) continue;
+    const norm = normalize(r.gp_name || r.name);
+    const normRaw = normalize(r.raw_name || r.matched_location_name);
+    const codeStr = String(r.census_code || r.gp_id || '');
+    const talukNorm = normalize(r.subdistrict_name || '');
+    const native = String(r.native_name || '').toLowerCase();
+
+    if (
+      norm.includes(cleanQuery) ||
+      normRaw.includes(cleanQuery) ||
+      codeStr.includes(cleanQuery) ||
+      talukNorm.includes(cleanQuery) ||
+      String(r.gp_name || '').toLowerCase().includes(rawQ) ||
+      (native && native.includes(rawQ))
+    ) {
+      if (!seen.has(r.gp_id)) {
+        seen.add(r.gp_id);
+        results.push(r);
+        if (results.length >= limit) break;
+      }
+    }
+  }
+
+  return results;
+}
+
 export function getAllCensusRecords(district = null) {
-  return getTopCensusRecords(100, district);
+  return getAllDistrictLocations(district);
 }
 

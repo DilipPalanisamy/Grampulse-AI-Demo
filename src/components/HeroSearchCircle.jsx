@@ -12,7 +12,10 @@ import {
   Building2,
   Layers,
   ChevronDown,
+  Clock,
+  Trash2,
 } from 'lucide-react';
+import { getAllDistrictLocations } from '../services/censusDirectoryService';
 import { useLocation } from '../context/LocationContext';
 import { useTheme } from '../context/ThemeContext';
 
@@ -36,6 +39,28 @@ function HeroSearchCircle({ onNavigateToMap }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
+  const [recentSearches, setRecentSearches] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('grampulse_recent_searches') || '[]');
+    } catch (e) {
+      return [];
+    }
+  });
+
+  const clearRecentHistory = (e) => {
+    e.stopPropagation();
+    try {
+      localStorage.removeItem('grampulse_recent_searches');
+    } catch (err) {}
+    setRecentSearches([]);
+  };
+
+  // Clear query on district switch
+  useEffect(() => {
+    setInputVal('');
+    setIsDropdownOpen(false);
+  }, [selectedDistrict]);
+
   useEffect(() => {
     const handleOutsideClick = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -55,12 +80,23 @@ function HeroSearchCircle({ onNavigateToMap }) {
 
   const handleSelectVillage = (village) => {
     if (!village) return;
-    selectLocation(village);
-    setInputVal(village.gp_name || '');
+    selectLocation(village, false);
+    setInputVal(village.gp_name || village.name || '');
     setIsDropdownOpen(false);
-    if (onNavigateToMap) {
-      onNavigateToMap();
-    }
+
+    try {
+      const existing = JSON.parse(localStorage.getItem('grampulse_recent_searches') || '[]');
+      const filtered = existing.filter((item) => Number(item.gp_id || item.id) !== Number(village.gp_id || village.id));
+      const updated = [{
+        gp_id: village.gp_id || village.id,
+        gp_name: village.gp_name || village.name,
+        census_code: village.census_code,
+        district: village.district || selectedDistrict,
+        location_type: village.location_type || 'Location'
+      }, ...filtered].slice(0, 6);
+      localStorage.setItem('grampulse_recent_searches', JSON.stringify(updated));
+      setRecentSearches(updated);
+    } catch (e) {}
   };
 
   // Dynamic quick habitations based on active district
@@ -89,10 +125,16 @@ function HeroSearchCircle({ onNavigateToMap }) {
     ];
   }, [locations, selectedDistrict]);
 
-  const displayResults =
-    inputVal.trim().length > 0
-      ? (Array.isArray(searchResults) ? searchResults : [])
-      : (Array.isArray(locations) ? locations.slice(0, 8) : []);
+  const displayResults = useMemo(() => {
+    if (inputVal.trim().length > 0) {
+      return Array.isArray(searchResults) ? searchResults : [];
+    }
+    // Immediately display all verified locations for active district
+    if (Array.isArray(locations) && locations.length > 0) {
+      return locations;
+    }
+    return getAllDistrictLocations(selectedDistrict);
+  }, [inputVal, searchResults, locations, selectedDistrict]);
 
   return (
     <div className="relative w-full flex flex-col items-center justify-center py-6 sm:py-10">
@@ -209,29 +251,32 @@ function HeroSearchCircle({ onNavigateToMap }) {
 
             {/* Dropdown Results Overlay */}
             {isDropdownOpen && (
-              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-72 sm:w-80 bg-[var(--bg-card)] border border-[var(--border-strong)] rounded-2xl shadow-2xl z-50 p-2 space-y-1 backdrop-blur-2xl max-h-56 overflow-y-auto custom-scrollbar text-left">
-                <div className="flex items-center justify-between px-2 py-1 border-b border-[var(--border-subtle)] text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">
-                  <span className="flex items-center gap-1" style={{ color: activePalette.primary }}>
-                    <Globe className="w-3 h-3" />
-                    {inputVal ? 'Official Matches' : `Verified in ${selectedDistrict}`}
+              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-80 sm:w-96 bg-[var(--bg-card)] border border-[var(--border-strong)] rounded-2xl shadow-2xl z-50 p-2 space-y-1 backdrop-blur-2xl max-h-72 sm:max-h-80 overflow-y-auto custom-scrollbar text-left">
+                <div className="flex items-center justify-between px-2.5 py-1.5 border-b border-[var(--border-subtle)] text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider sticky top-0 bg-[var(--bg-card)]/95 backdrop-blur-md z-10">
+                  <span className="flex items-center gap-1.5" style={{ color: activePalette.primary }}>
+                    <Globe className="w-3.5 h-3.5" />
+                    {inputVal ? `Matching Places in ${selectedDistrict}` : `Verified Places in ${selectedDistrict}`}
                   </span>
-                  <span>{displayResults.length} Found</span>
+                  <span className="font-mono text-[10px] font-semibold text-emerald-400">
+                    {displayResults.length} Available
+                  </span>
                 </div>
 
+                {/* Primary District Locations List */}
                 {displayResults.length === 0 ? (
-                  <div className="py-4 text-center text-xs text-[var(--text-muted)]">
-                    Searching for &ldquo;{inputVal}&rdquo; in {selectedDistrict}...
+                  <div className="py-6 text-center text-xs text-[var(--text-muted)]">
+                    No verified settlements matching &ldquo;{inputVal}&rdquo; in {selectedDistrict}.
                   </div>
                 ) : (
                   displayResults.map((village) => (
                     <button
-                      key={`hero-${village.census_code || village.gp_id}-${village.gp_name}`}
+                      key={`hero-${village.census_code || village.gp_id}-${village.gp_name || village.name}`}
                       type="button"
                       onClick={() => handleSelectVillage(village)}
-                      className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-[var(--bg-card-hover)] text-[var(--text-muted)] hover:text-[var(--text-main)] transition-all cursor-pointer text-left"
+                      className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-[var(--bg-card-hover)] text-[var(--text-muted)] hover:text-[var(--text-main)] transition-all cursor-pointer text-left group/item"
                     >
                       <div className="flex items-center gap-2 truncate">
-                        <MapPin className="w-3.5 h-3.5 flex-shrink-0" style={{ color: activePalette.primary }} />
+                        <MapPin className="w-3.5 h-3.5 flex-shrink-0 group-hover/item:scale-110 transition-transform" style={{ color: activePalette.primary }} />
                         <div className="truncate">
                           <p className="text-xs font-bold text-[var(--text-main)] leading-tight truncate">
                             {village.gp_name || village.name}
@@ -242,7 +287,8 @@ function HeroSearchCircle({ onNavigateToMap }) {
                             )}
                           </p>
                           <p className="text-[10px] text-[var(--text-muted)] truncate">
-                            {village.location_type || village.level || 'Location'} • {village.district || 'Tamil Nadu'}
+                            {village.location_type || village.level || 'Settlement'} • {village.district || selectedDistrict || 'Tamil Nadu'}
+                            {village.population ? ` • Pop: ${Number(village.population).toLocaleString()}` : ''}
                           </p>
                         </div>
                       </div>
@@ -258,6 +304,38 @@ function HeroSearchCircle({ onNavigateToMap }) {
                       </span>
                     </button>
                   ))
+                )}
+
+                {/* Separate Distinct Recently Searched Section */}
+                {recentSearches.length > 0 && (
+                  <div className="mt-2 pt-2 border-t border-[var(--border-subtle)] space-y-1">
+                    <div className="flex items-center justify-between px-2.5 py-1 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">
+                      <span className="flex items-center gap-1.5">
+                        <Clock className="w-3 h-3 text-slate-400" />
+                        <span>Recently Viewed</span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={clearRecentHistory}
+                        className="text-[10px] text-rose-400 hover:text-rose-300 flex items-center gap-1 cursor-pointer font-medium"
+                        title="Clear Recent History"
+                      >
+                        <Trash2 className="w-2.5 h-2.5" />
+                        <span>Clear History</span>
+                      </button>
+                    </div>
+                    {recentSearches.map((rec) => (
+                      <button
+                        key={`recent-${rec.gp_id}-${rec.gp_name}`}
+                        type="button"
+                        onClick={() => handleSelectVillage(rec)}
+                        className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-[var(--bg-card-hover)] text-xs text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors cursor-pointer text-left"
+                      >
+                        <span className="truncate font-medium">{rec.gp_name} ({rec.district})</span>
+                        <span className="text-[9px] font-mono text-slate-400">{rec.location_type || 'Viewed'}</span>
+                      </button>
+                    ))}
+                  </div>
                 )}
               </div>
             )}

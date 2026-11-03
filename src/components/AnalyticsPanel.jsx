@@ -190,7 +190,7 @@ const AnalyticsPanel = ({
 
   const actualPop = inds.total_population?.value ?? selectedLocation?.population ?? baseline.population ?? null;
   const actualHh = inds.total_households?.value ?? selectedLocation?.households ?? baseline.households ?? null;
-  const actualHl11Hh = inds.hl11_total_households?.value ?? selectedLocation?.hl11_households ?? baseline.hl11_households ?? null;
+  const actualHl11Hh = inds.hl11_total_households?.value ?? selectedLocation?.hl11_households ?? baseline.hl11_households ?? actualHh ?? null;
   const actualElec = inds.household_electricity_coverage?.value ?? selectedLocation?.electricity_coverage ?? baseline.electricity_coverage_percent ?? null;
   const actualWater = inds.tap_water_coverage_percent?.value ?? selectedLocation?.tap_water_coverage ?? baseline.tap_water_coverage_percent ?? null;
   const actualSanitation = inds.latrine_facility_coverage?.value ?? selectedLocation?.latrine_coverage ?? baseline.latrine_coverage_percent ?? null;
@@ -199,9 +199,13 @@ const AnalyticsPanel = ({
   const actualLiteratePop = inds.literate_population?.value ?? selectedLocation?.literate_population ?? baseline.literate_population ?? null;
   const actualRoadLength = inds.village_road_length_km?.value ?? selectedLocation?.road_coverage_km ?? null;
 
-  const actualLiteracyRate = actualLiteratePop != null && actualPop != null
-    ? ((actualLiteratePop / actualPop) * 100).toFixed(1)
-    : (selectedLocation?.literacy_rate != null ? Number(selectedLocation.literacy_rate).toFixed(1) : null);
+  const actualLiteracyRate = selectedLocation?.literacy_rate != null
+    ? Number(selectedLocation.literacy_rate).toFixed(1)
+    : (inds.literacy_rate?.value != null
+      ? Number(inds.literacy_rate.value).toFixed(1)
+      : (actualLiteratePop != null && actualPop != null && actualPop > 0
+        ? ((actualLiteratePop / actualPop) * 100).toFixed(1)
+        : null));
 
   const formatPercentVal = (val) => {
     if (val === null || val === undefined || val === '') return 'Not Available';

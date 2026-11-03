@@ -8,10 +8,13 @@ const REVERSE_GEOCODE_CACHE = new Map();
 
 const getBackendBaseUrl = () => {
   const envUrl = import.meta.env?.VITE_API_BASE_URL;
-  if (envUrl) {
+  if (envUrl && !envUrl.includes('localhost') && !envUrl.includes('127.0.0.1')) {
     return envUrl.replace(/\/api\/v1\/?$/, '');
   }
-  return 'http://127.0.0.1:8000';
+  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    return null;
+  }
+  return envUrl ? envUrl.replace(/\/api\/v1\/?$/, '') : 'http://127.0.0.1:8000';
 };
 
 /**
@@ -32,7 +35,8 @@ export const searchRealVillages = async (query = '', districtFilter = '', stateF
   // 1. PRIMARY: Query existing FastAPI Backend Official Census Search Endpoint
   try {
     const backendBase = getBackendBaseUrl();
-    const searchUrl = `${backendBase}/village/search?query=${encodeURIComponent(cleanQ)}&limit=15`;
+    if (backendBase) {
+      const searchUrl = `${backendBase}/village/search?query=${encodeURIComponent(cleanQ)}&limit=15`;
     console.log(`[API REQUEST] GET ${searchUrl}`);
     const params = { query: cleanQ, limit: 15 };
     if (districtFilter && districtFilter !== 'All Districts' && districtFilter !== 'Tamil Nadu') {
@@ -99,6 +103,7 @@ export const searchRealVillages = async (query = '', districtFilter = '', stateF
 
       SEARCH_RESULTS_CACHE.set(cacheKey, formatted);
       return formatted;
+    }
     }
   } catch (backendErr) {
     console.warn(`[API ERROR] FastAPI backend Census search failed for '${cleanQ}':`, backendErr?.message || backendErr);
@@ -177,7 +182,11 @@ export const searchRealVillages = async (query = '', districtFilter = '', stateF
           'District'
         ).replace('District', '').trim();
 
-        const state = addr.state || 'India';
+        const state = addr.state || 'Tamil Nadu';
+        // Enforce strict Tamil Nadu boundary: Never return Gujarat or other outside state results
+        if (state !== 'Tamil Nadu' && stateFilter === 'Tamil Nadu') {
+          return null;
+        }
         const lat = parseFloat(item.lat);
         const lng = parseFloat(item.lon);
         const osmId = Math.abs(parseInt(item.osm_id || idx + 1000, 10));
@@ -200,8 +209,9 @@ export const searchRealVillages = async (query = '', districtFilter = '', stateF
         };
       });
 
-    SEARCH_RESULTS_CACHE.set(cacheKey, liveResults);
-    return liveResults;
+    const cleanLiveResults = liveResults.filter(Boolean);
+    SEARCH_RESULTS_CACHE.set(cacheKey, cleanLiveResults);
+    return cleanLiveResults;
   } catch (err) {
     console.error('Village search geocoding error:', err);
     return [];

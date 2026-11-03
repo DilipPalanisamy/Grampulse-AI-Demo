@@ -26,11 +26,14 @@ import {
   Calendar,
   ChevronDown,
   Check,
+  Clock,
+  Trash2,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLocation } from '../context/LocationContext';
 import { useTheme } from '../context/ThemeContext';
 import { downloadGPDPReport } from '../services/api';
+import { getAllDistrictLocations } from '../services/censusDirectoryService';
 
 /**
  * Highlights substring matches within a text string.
@@ -114,6 +117,27 @@ export default function Header({ onOpenReportModal }) {
 
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [localInput, setLocalInput] = useState('');
+
+  const [recentSearches, setRecentSearches] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('grampulse_recent_searches') || '[]');
+    } catch (e) {
+      return [];
+    }
+  });
+
+  const clearRecentHistory = (e) => {
+    e.stopPropagation();
+    try {
+      localStorage.removeItem('grampulse_recent_searches');
+    } catch (err) {}
+    setRecentSearches([]);
+  };
+
+  useEffect(() => {
+    setLocalInput('');
+    setIsSearchOpen(false);
+  }, [selectedDistrict]);
   const searchContainerRef = useRef(null);
   const searchInputRef = useRef(null);
 
@@ -152,9 +176,6 @@ export default function Header({ onOpenReportModal }) {
   const handleSelectHorizon = (years) => {
     if (setPlanningHorizon) {
       setPlanningHorizon(years);
-    }
-    if (setActiveTab) {
-      setActiveTab('prediction');
     }
     setIsHorizonOpen(false);
   };
@@ -228,9 +249,23 @@ export default function Header({ onOpenReportModal }) {
 
   const handleSelectVillage = (village) => {
     if (!village) return;
-    selectLocation(village, false);
+    selectLocation(village, true);
     setIsSearchOpen(false);
-    setLocalInput(village.gp_name || '');
+    setLocalInput(village.gp_name || village.name || '');
+
+    try {
+      const existing = JSON.parse(localStorage.getItem('grampulse_recent_searches') || '[]');
+      const filtered = existing.filter((item) => Number(item.gp_id || item.id) !== Number(village.gp_id || village.id));
+      const updated = [{
+        gp_id: village.gp_id || village.id,
+        gp_name: village.gp_name || village.name,
+        census_code: village.census_code,
+        district: village.district || selectedDistrict,
+        location_type: village.location_type || 'Location'
+      }, ...filtered].slice(0, 6);
+      localStorage.setItem('grampulse_recent_searches', JSON.stringify(updated));
+      setRecentSearches(updated);
+    } catch (e) {}
   };
 
   const handleKeyDown = (e) => {
@@ -244,10 +279,15 @@ export default function Header({ onOpenReportModal }) {
     }
   };
 
-  const displayResults =
-    localInput.trim().length > 0
-      ? (Array.isArray(searchResults) ? searchResults : [])
-      : (Array.isArray(locations) ? locations.slice(0, 8) : []);
+  const displayResults = useMemo(() => {
+    if (localInput.trim().length > 0) {
+      return Array.isArray(searchResults) ? searchResults : [];
+    }
+    if (Array.isArray(locations) && locations.length > 0) {
+      return locations;
+    }
+    return getAllDistrictLocations(selectedDistrict);
+  }, [localInput, searchResults, locations, selectedDistrict]);
 
   return (
     <header className="sticky top-0 z-[1200] overflow-visible bg-[var(--bg-card-glass)] border-b border-[var(--border-subtle)] text-[var(--text-main)] shadow-xl backdrop-blur-2xl transition-colors duration-200">
@@ -360,7 +400,7 @@ export default function Header({ onOpenReportModal }) {
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
                 </div>
               ) : (
-                <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 text-[10px] font-mono font-semibold text-[var(--text-muted)] bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-md shadow-xs pointer-events-none select-none">
+                <kbd className="hidden sm:inline-flex items-center px-2 py-0.5 text-[10px] font-mono font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 hover:border-emerald-500/60 hover:bg-emerald-500/25 rounded-md shadow-xs pointer-events-none select-none transition-all">
                   Ctrl K
                 </kbd>
               )}
@@ -373,9 +413,9 @@ export default function Header({ onOpenReportModal }) {
               <div className="flex items-center justify-between px-3 py-1.5 border-b border-[var(--border-subtle)] text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">
                 <span className="flex items-center gap-1.5" style={{ color: activePalette.primary }}>
                   <Globe className="w-3.5 h-3.5" />
-                  {localInput.trim().length > 0 ? 'Official Census & GIS Matches' : 'Registered Habitations'}
+                  {localInput.trim().length > 0 ? `Matching Places in ${selectedDistrict}` : `Verified Places in ${selectedDistrict}`}
                 </span>
-                <span>{displayResults.length} Results</span>
+                <span className="font-mono text-[10px] font-semibold text-emerald-400">{displayResults.length} Available</span>
               </div>
 
               {displayResults.length === 0 ? (
@@ -452,6 +492,38 @@ export default function Header({ onOpenReportModal }) {
                   );
                 })
               )}
+
+              {/* Distinct Recently Viewed Section */}
+              {recentSearches.length > 0 && (
+                <div className="mt-2 pt-2 border-t border-[var(--border-subtle)] space-y-1">
+                  <div className="flex items-center justify-between px-3 py-1 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">
+                    <span className="flex items-center gap-1.5">
+                      <Clock className="w-3 h-3 text-slate-400" />
+                      <span>Recently Viewed</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={clearRecentHistory}
+                      className="text-[10px] text-rose-400 hover:text-rose-300 flex items-center gap-1 cursor-pointer font-medium"
+                      title="Clear Recent History"
+                    >
+                      <Trash2 className="w-2.5 h-2.5" />
+                      <span>Clear History</span>
+                    </button>
+                  </div>
+                  {recentSearches.map((rec) => (
+                    <button
+                      key={`hdr-recent-${rec.gp_id}-${rec.gp_name}`}
+                      type="button"
+                      onClick={() => handleSelectVillage(rec)}
+                      className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg hover:bg-[var(--bg-card-hover)] text-xs text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors cursor-pointer text-left"
+                    >
+                      <span className="truncate font-medium">{rec.gp_name} ({rec.district})</span>
+                      <span className="text-[9px] font-mono text-slate-400">{rec.location_type || 'Viewed'}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -510,8 +582,19 @@ export default function Header({ onOpenReportModal }) {
             </button>
           </div>
 
-          {/* Prediction Horizons Dropdown & GPDP PDF Action */}
+          {/* Prediction Horizons Dropdown, Report Grievance & GPDP PDF Action */}
           <div className="flex items-center gap-1.5 flex-shrink-0">
+            {onOpenReportModal && (
+              <button
+                type="button"
+                onClick={onOpenReportModal}
+                className="hidden lg:inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 shadow-sm transition-all active:scale-95 cursor-pointer"
+                title="Lodge a geotagged citizen grievance"
+              >
+                <PlusCircle className="w-3.5 h-3.5" />
+                <span>Report Grievance</span>
+              </button>
+            )}
             {/* HORIZONS DROPDOWN (3, 5, AND 7 YEARS OF PREDICTION) */}
             <div className="relative" ref={horizonDropdownRef}>
               <button

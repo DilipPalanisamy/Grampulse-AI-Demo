@@ -538,12 +538,11 @@ const MapView = ({
           selectLocation(locationPayload, false);
         }
 
-        if (setActiveTab) {
+        if (setActiveTab && !isMapPage) {
           setActiveTab('dashboard');
-        }
-
-        if (typeof window !== 'undefined') {
-          window.scrollTo({ top: 0, behavior: 'smooth' });
+          if (typeof window !== 'undefined') {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
         }
       }
     },

@@ -547,6 +547,37 @@ def _format_pca_row_to_baseline(row: pd.Series, requested_norm: str, default_dis
         amenities = get_location_amenities(normalize_village_name(clean_name), district=default_district)
     if not amenities:
         amenities = get_location_amenities(normalize_village_name(str(row.get("Name", ""))), district=default_district)
+
+    if not amenities:
+        # Check subdistrict-level HL-11 benchmark if available from official Table HL-11
+        sub_code = str(row.get("Subdistt", "")).strip()
+        sub_map = {
+            "5898": {"electricity_coverage_percent": 92.65, "tap_water_coverage_percent": 92.90, "latrine_coverage_percent": 50.24, "taluk": "Mettupalayam"},
+            "5899": {"electricity_coverage_percent": 95.62, "tap_water_coverage_percent": 93.29, "latrine_coverage_percent": 67.69, "taluk": "Coimbatore North"},
+            "5900": {"electricity_coverage_percent": 96.83, "tap_water_coverage_percent": 96.54, "latrine_coverage_percent": 79.35, "taluk": "Coimbatore South"},
+            "5901": {"electricity_coverage_percent": 89.40, "tap_water_coverage_percent": 89.13, "latrine_coverage_percent": 46.08, "taluk": "Pollachi"},
+            "5902": {"electricity_coverage_percent": 96.65, "tap_water_coverage_percent": 95.96, "latrine_coverage_percent": 80.32, "taluk": "Valparai"},
+            "5903": {"electricity_coverage_percent": 94.40, "tap_water_coverage_percent": 90.25, "latrine_coverage_percent": 52.79, "taluk": "Sulur"},
+        }
+        if sub_code in sub_map:
+            amenities = {
+                "hl11_households": _safe_int(row.get("No_HH")),
+                "electricity_coverage_percent": sub_map[sub_code]["electricity_coverage_percent"],
+                "latrine_coverage_percent": sub_map[sub_code]["latrine_coverage_percent"],
+                "tap_water_coverage_percent": sub_map[sub_code]["tap_water_coverage_percent"],
+                "amenities_source": "Census of India 2011 Table HL-11 (Sub-District Benchmark)",
+                "amenities_reference_year": 2011,
+            }
+        elif default_district.lower() == "coimbatore":
+            amenities = {
+                "hl11_households": _safe_int(row.get("No_HH")),
+                "electricity_coverage_percent": 94.75,
+                "latrine_coverage_percent": 66.69,
+                "tap_water_coverage_percent": 93.76,
+                "amenities_source": "Census of India 2011 Table HL-11 (District Benchmark)",
+                "amenities_reference_year": 2011,
+            }
+
     if amenities:
         baseline_result.update(amenities)
 

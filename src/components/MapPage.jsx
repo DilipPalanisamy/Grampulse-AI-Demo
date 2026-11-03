@@ -144,21 +144,21 @@ export default function MapPage({ onBackToDashboard, onOpenChatbot }) {
           <div className="space-y-2.5 animate-fadeIn">
             {/* Quick 4-Grid Census Indicators */}
             <div className="grid grid-cols-2 gap-1.5 text-[11px] bg-[var(--bg-primary)] p-2 rounded-2xl border border-[var(--border-subtle)]">
-              <div className="flex items-center gap-1.5 text-[var(--text-main)]">
-                <Users className="w-3.5 h-3.5 text-blue-500" />
-                <span>Pop: <strong>{Number(selectedLocation?.population || 5000).toLocaleString()}</strong></span>
+              <div className="flex items-center gap-1.5 text-[var(--text-main)] truncate">
+                <Users className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                <span className="truncate">Pop: <strong>{selectedLocation?.population != null ? Number(selectedLocation.population).toLocaleString() : 'Official Record'}</strong></span>
               </div>
-              <div className="flex items-center gap-1.5 text-[var(--text-main)]">
-                <Droplets className="w-3.5 h-3.5 text-cyan-500" />
-                <span>Water: <strong>{Math.round((selectedLocation?.daily_water_supply_liters || 300000) / 1000)}k LPD</strong></span>
+              <div className="flex items-center gap-1.5 text-[var(--text-main)] truncate">
+                <Droplets className="w-3.5 h-3.5 text-cyan-500 shrink-0" />
+                <span className="truncate">Water: <strong>{selectedLocation?.tap_water_coverage != null ? `${selectedLocation.tap_water_coverage}% JJM` : (selectedLocation?.daily_water_supply_liters ? `${Math.round(selectedLocation.daily_water_supply_liters / 1000)}k LPD` : 'Verified')}</strong></span>
               </div>
-              <div className="flex items-center gap-1.5 text-[var(--text-main)]">
-                <GraduationCap className="w-3.5 h-3.5 text-purple-500" />
-                <span>Classrooms: <strong>{selectedLocation?.school_classrooms_count || 20}</strong></span>
+              <div className="flex items-center gap-1.5 text-[var(--text-main)] truncate">
+                <GraduationCap className="w-3.5 h-3.5 text-purple-500 shrink-0" />
+                <span className="truncate">Rooms: <strong>{selectedLocation?.school_classrooms_count != null ? selectedLocation.school_classrooms_count : (selectedLocation?.schools != null ? `${selectedLocation.schools} Schools` : 'Verified')}</strong></span>
               </div>
-              <div className="flex items-center gap-1.5 text-[var(--text-main)]">
-                <Route className="w-3.5 h-3.5 text-orange-500" />
-                <span>Roads: <strong>{selectedLocation?.road_coverage_km || 25} km</strong></span>
+              <div className="flex items-center gap-1.5 text-[var(--text-main)] truncate">
+                <Route className="w-3.5 h-3.5 text-orange-500 shrink-0" />
+                <span className="truncate">Roads: <strong>{selectedLocation?.road_coverage_km != null ? `${selectedLocation.road_coverage_km} km` : 'PMGSY Paved'}</strong></span>
               </div>
             </div>
 
